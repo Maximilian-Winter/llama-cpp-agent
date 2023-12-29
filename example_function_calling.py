@@ -30,7 +30,7 @@ wrapped_model = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n" + documentation,
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
-response = wrapped_model.get_chat_response('Write a long poem about the USA in the "HelloUSA.txt" file?',
+response = wrapped_model.get_chat_response('Write a long poem about the USA in the "HelloUSA.txt" file.',
                                            temperature=0.15, grammar=grammar)
 
 function_call = json.loads(response)

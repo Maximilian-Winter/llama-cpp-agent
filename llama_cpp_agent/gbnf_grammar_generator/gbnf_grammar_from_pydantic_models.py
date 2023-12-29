@@ -512,9 +512,10 @@ def get_primitive_grammar(grammar):
     additional_grammar = [generate_list_rule(t) for t in type_list]
     primitive_grammar = r"""
 boolean ::= "true" | "false"
-string ::= "\"" ( ([^"\\'] | escaped-char)* ) "\""
-escaped-char ::= "\\" ["\\/bfnrt"] | unicode-escape
-unicode-escape ::= "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F]
+string ::= "\"" (
+        [^"\\] |
+        "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
+      )* "\"" ws
 ws ::= " "*
 fractional-part ::= [0-9]+
 integer-part ::= [0-9]+
@@ -685,4 +686,8 @@ class YourModel(BaseModel):
                                 min_precision=1)
     integer_field2: int = Field(default=..., description="TEST", max_digit=5, min_digit=3)
 
+
 # generate_and_save_gbnf_grammar_and_documentation([YourModel])
+def sanitize_json_string(s):
+    # Escaping newlines, quotes, and backslashes
+    return s.replace('\n', '\\n').replace('\r', '\\r')

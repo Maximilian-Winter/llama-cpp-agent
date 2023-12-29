@@ -3,7 +3,8 @@ import json
 from llama_cpp import Llama, LlamaGrammar
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import generate_gbnf_grammar_and_documentation
+from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import \
+    generate_gbnf_grammar_and_documentation, sanitize_json_string
 
 from example_function_call_models import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
@@ -14,7 +15,7 @@ gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
 grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
 
 main_model = Llama(
-    "../gguf-models/dpopenhermes-7b-v2.Q8_0.gguf",
+    "../gguf-models/dolphin-2.6-mistral-7b-Q8_0.gguf",
     n_gpu_layers=35,
     f16_kv=True,
     use_mlock=False,
@@ -33,7 +34,9 @@ wrapped_model = LlamaCppAgent(main_model, debug_output=True,
 response = wrapped_model.get_chat_response('Write a long poem about the USA in the "HelloUSA.txt" file under "./".',
                                            temperature=0.75, grammar=grammar)
 
-function_call = json.loads(response)
+sanitized = sanitize_json_string(response)
+print(sanitized)
+function_call = json.loads(sanitized)
 
 if function_call["function"] == "write-text-file":
     call_parameters = function_call["function_params"]

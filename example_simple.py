@@ -3,7 +3,7 @@ from llama_cpp import Llama
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 main_model = Llama(
-    "../gguf-models/dpopenhermes-7b-v2.Q8_0.gguf",
+    "../gguf-models/airoboros-l2-13b-3.1.1.Q4_K_M.gguf",
     n_gpu_layers=35,
     f16_kv=True,
     use_mlock=False,
@@ -16,6 +16,6 @@ main_model = Llama(
     seed=42,
 )
 wrapped_model = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt="You are an advanced AI assistant.", predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+                              system_prompt="You are an advanced AI assistant.", predefined_messages_formatter_type=MessagesFormatterType.LLAMA_2)
 
 wrapped_model.get_chat_response('Write a long poem about the USA.', temperature=0.7)

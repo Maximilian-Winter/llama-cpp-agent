@@ -1,9 +1,9 @@
 from enum import Enum
 from typing import List, Dict, Tuple
 
-SYS_PROMPT_START_MIXTRAL = """[INST] """
-SYS_PROMPT_END_MIXTRAL = """ """
-USER_PROMPT_START_MIXTRAL = """"""
+SYS_PROMPT_START_MIXTRAL = """"""
+SYS_PROMPT_END_MIXTRAL = """"""
+USER_PROMPT_START_MIXTRAL = """[INST] """
 USER_PROMPT_END_MIXTRAL = """ [/INST]"""
 ASSISTANT_PROMPT_START_MIXTRAL = """"""
 ASSISTANT_PROMPT_END_MIXTRAL = """"""
@@ -44,7 +44,7 @@ class MessagesFormatter:
                  USER_PROMPT_END: str,
                  ASSISTANT_PROMPT_START: str,
                  ASSISTANT_PROMPT_END: str,
-                 INCLUDE_SYS_PROMPT_IN_FIRST_MESSAGE: bool,
+                 INCLUDE_SYS_PROMPT_IN_MESSAGE: bool,
                  DEFAULT_STOP_SEQUENCES: List[str]):
         self.PRE_PROMPT = PRE_PROMPT
         self.SYS_PROMPT_START = SYS_PROMPT_START
@@ -53,7 +53,7 @@ class MessagesFormatter:
         self.USER_PROMPT_END = USER_PROMPT_END
         self.ASSISTANT_PROMPT_START = ASSISTANT_PROMPT_START
         self.ASSISTANT_PROMPT_END = ASSISTANT_PROMPT_END
-        self.INCLUDE_SYS_PROMPT_IN_FIRST_MESSAGE = INCLUDE_SYS_PROMPT_IN_FIRST_MESSAGE
+        self.INCLUDE_SYS_PROMPT_IN_MESSAGE = INCLUDE_SYS_PROMPT_IN_MESSAGE
         self.DEFAULT_STOP_SEQUENCES = DEFAULT_STOP_SEQUENCES
 
     def format_messages(self, messages: List[Dict[str, str]]) -> Tuple[str, str]:
@@ -64,7 +64,7 @@ class MessagesFormatter:
             if message["role"] == "system":
                 formatted_messages += self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
                 last_role = "system"
-                if self.INCLUDE_SYS_PROMPT_IN_FIRST_MESSAGE:
+                if self.INCLUDE_SYS_PROMPT_IN_MESSAGE:
                     formatted_messages = self.USER_PROMPT_START + formatted_messages
                     no_user_prompt_start = True
             elif message["role"] == "user":

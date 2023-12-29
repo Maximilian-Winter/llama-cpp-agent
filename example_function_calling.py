@@ -35,7 +35,6 @@ response = wrapped_model.get_chat_response('Write a long poem about the USA in t
                                            temperature=0.75, grammar=grammar)
 
 sanitized = sanitize_json_string(response)
-print(sanitized)
 function_call = json.loads(sanitized)
 
 if function_call["function"] == "write-text-file":

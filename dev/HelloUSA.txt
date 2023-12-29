@@ -1,25 +1,25 @@
-# SECTION: poem
-In the land of the free and the home of the brave,
-A nation that stands tall, proud and brave.
-From sea to shining sea, a land of opportunity,
-A melting pot of dreams, a land of liberty.
+# SECTION: Poem
+Land of the free, and the brave,
+Where dreams and opportunities pave the way,
+A tapestry woven with colors so bright,
+United we stand, our spirit almighty.
 
-From the rugged mountains to the golden plains,
-A land of diverse beauty, a land of gains.
-A nation built on values, a beacon of hope,
-A land that inspires, a land that does cope.
+From coast to coast, the landscape unfolds,
+A symphony of mountains, plains, and beaches,
+A melting pot of cultures, stories untold,
+A nation that thrives, a beacon of peace.
 
-From the founding fathers to the modern age,
-A nation that has faced many a rage.
-But through it all, a nation has stood tall,
-A land that has weathered many a storm, a land that does enthrall.
+Beneath the stars and stripes, we stand tall,
+A country that values freedom and equality,
+A land where the weak find their call,
+A place where the strong unite in unity.
 
-A land of innovation, a land of dreams,
-A land that has conquered many a scheme.
-A land that has given so much to the world,
-A land that has changed the course, a land that does unfurl.
+We celebrate our diversity, our heritage so grand,
+A nation built on hope, dreams, and second chances,
+A land where opportunities expand,
+A place where we can dance, laugh, and romance.
 
-Oh, land that I love, a land that is free,
-A land that has been, and will always be.
-A land that I am proud to call my own,
-A land that I will cherish, a land that does grow.# END SECTION
+The USA, our home, sweet home,
+A nation that we cherish, and where we belong,
+A place of strength, resilience, and hope grown,
+Our journey continues, we know we belong.# END SECTION

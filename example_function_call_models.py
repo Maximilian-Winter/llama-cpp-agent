@@ -45,7 +45,13 @@ class WriteTextFileSection(BaseModel):
         if self.file_extension[0] != ".":
             self.file_extension = "." + self.file_extension
 
-        if self.folder[0] == ".":
+        if self.folder == "":
+            self.folder = "./"
+
+        if self.folder[0] == "." and len(self.folder) == 1:
+            self.folder = "./"
+
+        if self.folder[0] == "." and len(self.folder) > 1 and self.folder[1] != "/":
             self.folder = "./" + self.folder[1:]
 
         if self.folder[0] == "/":

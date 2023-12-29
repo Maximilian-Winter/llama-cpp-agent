@@ -31,7 +31,7 @@ wrapped_model = LlamaCppAgent(main_model, debug_output=True,
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
 response = wrapped_model.get_chat_response('Write a long poem about the USA in the "HelloUSA.txt" file.',
-                                           temperature=0.15, grammar=grammar)
+                                           temperature=0.75, grammar=grammar)
 
 function_call = json.loads(response)
 

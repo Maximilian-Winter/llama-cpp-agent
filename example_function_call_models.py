@@ -6,9 +6,9 @@ from pydantic import Field, BaseModel
 base_folder = "dev"
 
 
-class WriteTextFileSection(BaseModel):
+class WriteTextFile(BaseModel):
     """
-    Handles writing or modifying specific sections within a text file.
+    Handles writing or modifying specific files.
     """
 
     chain_of_thought: str = Field(
@@ -21,9 +21,9 @@ class WriteTextFileSection(BaseModel):
         description="Path to the folder where the file is located or will be created. It should be a valid directory path."
     )
 
-    file_name: str = Field(
+    file_name_without_extension: str = Field(
         ...,
-        description="Name of the target file (excluding the file extension) where the section will be written or modified."
+        description="Name of the target file without the file extension."
     )
 
     file_extension: str = Field(
@@ -31,14 +31,9 @@ class WriteTextFileSection(BaseModel):
         description="File extension indicating the file type, such as '.txt', '.py', '.md', etc."
     )
 
-    section: str = Field(
+    content: str = Field(
         ...,
-        description="The specific section within the file to be targeted, such as a class, method, or a uniquely identified section. Example values: 'class User', 'method calculateInterest', 'section Introduction'."
-    )
-
-    body: str = Field(
-        ...,
-        description="The actual content to be written into the specified section. It can be code, text, or data in a format compatible with the file type."
+        description="The actual content to be written into the file."
     )
 
     def run(self):
@@ -57,59 +52,16 @@ class WriteTextFileSection(BaseModel):
         if self.folder[0] == "/":
             self.folder = self.folder[1:]
 
-        file_path = os.path.join(self.folder, f"{self.file_name}{self.file_extension}")
+        file_path = os.path.join(self.folder, f"{self.file_name_without_extension}{self.file_extension}")
         file_path = os.path.join(base_folder, file_path)
 
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        # Check if file exists and read content
-        if os.path.exists(file_path):
-            with open(file_path, 'r') as file:
-                lines = file.readlines()
-        else:
-            lines = []
-
-        # Determine markers based on file type
-        start_marker, end_marker = self.get_markers(self.file_extension, self.section)
-
-        # Find and replace section
-        start_idx, end_idx = self.find_section(lines, start_marker, end_marker)
-        if start_idx != -1:
-            # Replace content
-            new_section = [start_marker + '\n'] + self.body.splitlines(keepends=True) + [end_marker + '\n']
-            lines[start_idx:end_idx] = new_section
-        else:
-            # Append new section
-            lines.extend([start_marker + '\n'] + self.body.splitlines(keepends=True) + [end_marker + '\n'])
 
         # Write back to file
         with open(file_path, 'w') as file:
-            file.writelines(lines)
+            file.writelines(self.content)
 
-        return f"File section '{self.section}' written to '{self.file_name}'."
-
-    @staticmethod
-    def find_section(lines, start_marker, end_marker):
-        start_idx = -1
-        for i, line in enumerate(lines):
-            if line.strip() == start_marker:
-                start_idx = i
-            elif line.strip() == end_marker and start_idx != -1:
-                return start_idx, i + 1
-        return start_idx, len(lines)
-
-    @staticmethod
-    def get_markers(file_extension, section):
-        if file_extension in ['.c', '.cpp', '.h']:
-            return f"// SECTION: {section}", "// END SECTION"
-        elif file_extension in ['.html', '.md']:
-            return f"<!-- SECTION: {section} -->", "<!-- END SECTION -->"
-        elif file_extension == '.js':
-            return f"// SECTION: {section}", "// END SECTION"
-        elif file_extension == '.py':
-            return f"# SECTION: {section}", "# END SECTION"
-        else:
-            # Default markers for unknown file types
-            return f"# SECTION: {section}", "# END SECTION"
+        return f"Content written to '{self.file_name_without_extension}{self.file_extension}'."
 
 
 class ReadTextFile(BaseModel):

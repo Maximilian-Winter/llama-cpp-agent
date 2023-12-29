@@ -31,13 +31,20 @@ ASSISTANT_PROMPT_START_LLAMA_2, ASSISTANT_PROMPT_END_LLAMA_2 = "", "</s>"
 SYS_PROMPT_START_LLAMA_2, SYS_PROMPT_END_LLAMA_2 = "<<SYS>>\n", "\n<</SYS>>\n\n"
 DEFAULT_LLAMA_2_STOP_SEQUENCES = ["</s>", "[INST]"]
 
+SYS_PROMPT_START_SYNTHIA = """SYSTEM: """
+SYS_PROMPT_END_SYNTHIA = """\n"""
+USER_PROMPT_START_SYNTHIA = """USER: """
+USER_PROMPT_END_SYNTHIA = """\n"""
+ASSISTANT_PROMPT_START_SYNTHIA = """ASSISTANT:"""
+ASSISTANT_PROMPT_END_SYNTHIA = """\n"""
+
 
 class MessagesFormatterType(Enum):
     MIXTRAL = 1
     CHATML = 2
     VICUNA = 3
     LLAMA_2 = 4
-
+    SYNTHIA = 5
 
 class MessagesFormatter:
     def __init__(self, PRE_PROMPT: str, SYS_PROMPT_START: str, SYS_PROMPT_END: str, USER_PROMPT_START: str,
@@ -96,11 +103,16 @@ llama_2_formatter = MessagesFormatter("", SYS_PROMPT_START_LLAMA_2, SYS_PROMPT_E
                                       USER_PROMPT_END_LLAMA_2, ASSISTANT_PROMPT_START_LLAMA_2,
                                       ASSISTANT_PROMPT_END_LLAMA_2, True, DEFAULT_LLAMA_2_STOP_SEQUENCES)
 
+synthia_formatter = MessagesFormatter("", SYS_PROMPT_START_SYNTHIA, SYS_PROMPT_END_SYNTHIA, USER_PROMPT_START_SYNTHIA,
+                                      USER_PROMPT_END_SYNTHIA, ASSISTANT_PROMPT_START_SYNTHIA,
+                                      ASSISTANT_PROMPT_END_SYNTHIA, False, DEFAULT_VICUNA_STOP_SEQUENCES)
+
 predefined_formatter = {
     MessagesFormatterType.MIXTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
     MessagesFormatterType.VICUNA: vicuna_formatter,
-    MessagesFormatterType.LLAMA_2: llama_2_formatter
+    MessagesFormatterType.LLAMA_2: llama_2_formatter,
+    MessagesFormatterType.SYNTHIA: synthia_formatter
 }
 
 

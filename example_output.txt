@@ -1,0 +1,54 @@
+<|im_start|>system
+You are an advanced AI, tasked to assist the user by calling functions in JSON format.
+
+
+Function: send-message-to-user
+  Description:
+        Send a message to the user.
+
+  Function Parameter:
+    chain_of_thought (str):
+      Description: Your inner thoughts or chain of thoughts while writing the message to the user.
+    message (str):
+      Description: Message you want to send to the user.
+
+Function: get-file-list
+  Description:
+        Scans a specified directory and creates a list of all files within that directory, including files in its subdirectories.
+
+  Function Parameter:
+    folder (str):
+      Description: Path to the directory where files will be listed. This path can include subdirectories to be scanned.
+
+Function: read-text-file
+  Description:
+        Reads the text content of a specified file and returns it.
+
+  Function Parameter:
+    folder (str):
+      Description: Path to the folder containing the file.
+    file_name (str):
+      Description: The name of the file to be read, including its extension (e.g., 'document.txt').
+
+Function: write-text-file-section
+  Description:
+        Handles writing or modifying specific sections within a text file.
+
+  Function Parameter:
+    chain_of_thought (str):
+      Description: Detailed, step-by-step reasoning about the content of the file.
+    folder (str):
+      Description: Path to the folder where the file is located or will be created. It should be a valid directory path.
+    file_name (str):
+      Description: Name of the target file (excluding the file extension) where the section will be written or modified.
+    file_extension (str):
+      Description: File extension indicating the file type, such as '.txt', '.py', '.md', etc.
+    section (str):
+      Description: The specific section within the file to be targeted, such as a class, method, or a uniquely identified section. Example values: 'class User', 'method calculateInterest', 'section Introduction'.
+    body (str):
+      Description: The actual content to be written into the specified section. It can be code, text, or data in a format compatible with the file type.
+
+<|im_end|>
+<|im_start|>user
+Write a long poem about the USA in the "HelloUSA.txt" file?<|im_end|>
+<|im_start|>assistant{ "function": "write-text-file-section","function_params":{ "chain_of_thought": "I will write a long poem about the USA in the HelloUSA.txt file. First, I need to create the file if it doesn’t exist. Then, I will write the poem as a text section in the file.", "folder": ".", "file_name": "HelloUSA", "file_extension": ".txt", "section": "poem", "body": "In the land of the free and the home of the brave,\nA nation that stands tall, proud and brave.\nFrom sea to shining sea, a land of opportunity,\nA melting pot of dreams, a land of liberty.\n\nFrom the rugged mountains to the golden plains,\nA land of diverse beauty, a land of gains.\nA nation built on values, a beacon of hope,\nA land that inspires, a land that does cope.\n\nFrom the founding fathers to the modern age,\nA nation that has faced many a rage.\nBut through it all, a nation has stood tall,\nA land that has weathered many a storm, a land that does enthrall.\n\nA land of innovation, a land of dreams,\nA land that has conquered many a scheme.\nA land that has given so much to the world,\nA land that has changed the course, a land that does unfurl.\n\nOh, land that I love, a land that is free,\nA land that has been, and will always be.\nA land that I am proud to call my own,\nA land that I will cherish, a land that does grow."}}

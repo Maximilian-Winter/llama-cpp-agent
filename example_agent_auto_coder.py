@@ -5,12 +5,11 @@ from llama_cpp import Llama, LlamaGrammar
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import \
-    generate_and_save_gbnf_grammar_and_documentation, generate_gbnf_grammar_and_documentation, sanitize_json_string, map_grammar_names_to_pydantic_model_class
+    generate_gbnf_grammar_and_documentation, sanitize_json_string, map_grammar_names_to_pydantic_model_class
 
-from example_agent_models_auto_coder import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile, agent_dev_folder_setup
+from example_agent_models_auto_coder import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile, \
+    agent_dev_folder_setup
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-
-from llama_cpp_agent.llm_prompt_template import PromptTemplateFields, Prompter
 
 pydantic_function_models = [GetFileList, ReadTextFile, WriteTextFile]
 
@@ -23,8 +22,8 @@ grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
 output_to_pydantic_model = map_grammar_names_to_pydantic_model_class(pydantic_function_models)
 
 main_model = Llama(
-    "../gguf-models/openhermes-2.5-mistral-7b.Q8_0.gguf",
-    n_gpu_layers=30,
+    "../gguf-models/neuralhermes-2.5-mistral-7b.Q8_0.gguf",
+    n_gpu_layers=46,
     f16_kv=True,
     offload_kqv=True,
     use_mlock=False,
@@ -37,8 +36,11 @@ main_model = Llama(
     seed=42,
 )
 
-system_prompt = f'''You are an advanced AI agent called AutoCoder. As AutoCoder your primary task is to autonomously plan, outline and implement complete software projects based on user specifications. You have to use JSON objects to perform functions.
-Here are your available functions:
+system_prompt = f'''You are an advanced AI agent called AutoPlanner. As AutoPlanner your primary task is to autonomously plan complete software projects based on user specifications. Your output is constrained to write files and performa specific function calls. Here are your available functions:
+
+{documentation}'''.strip()
+system_prompt = f'''You are an advanced AI agent called AutoCoder. As AutoCoder your primary task is to autonomously plan, outline and implement complete software projects based on user specifications. Your output is constrained to write files and performa specific function calls. Here are your available functions:
+
 {documentation}'''.strip()
 
 task = 'Implement a chat bot frontend in HTML, CSS and Javascript with a dark UI under the "./workspace" folder without.'

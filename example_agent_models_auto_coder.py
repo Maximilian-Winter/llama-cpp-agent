@@ -14,7 +14,6 @@ def agent_dev_folder_setup(custom_base_folder=None):
     os.mkdir(base_folder)
 
 
-agent_dev_folder_setup()
 
 
 class WriteOperation(Enum):

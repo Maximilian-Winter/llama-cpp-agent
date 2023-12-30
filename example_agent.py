@@ -12,7 +12,7 @@ from llama_cpp_agent.messages_formatter import MessagesFormatterType
 pydantic_function_models = [SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile]
 
 gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
-    pydantic_function_models, "function", "function_params", "Function",
+    pydantic_function_models, False, "function", "function_params", "Function",
     "Function Parameter")
 grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
 

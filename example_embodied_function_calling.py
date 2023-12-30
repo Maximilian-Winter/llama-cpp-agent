@@ -10,7 +10,7 @@ from example_function_call_models import SendMessageToUser, GetFileList, ReadTex
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
 gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
-    [SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile], "function", "function_params", "Function",
+    [SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile], False, "function", "function_params", "Function",
     "Function Parameter")
 grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
 

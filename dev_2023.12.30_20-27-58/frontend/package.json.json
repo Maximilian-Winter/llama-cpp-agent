@@ -1,0 +1,15 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "ChatBot Frontend",
+  "main": "index.html",
+  "dependencies": {},
+  "devDependencies": {
+    "@vue/cli-service": "^4.5.13"
+  },
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  }
+}

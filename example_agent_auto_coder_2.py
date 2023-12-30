@@ -22,8 +22,8 @@ grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
 output_to_pydantic_model = map_grammar_names_to_pydantic_model_class(pydantic_function_models)
 
 main_model = Llama(
-    "../gguf-models/neuralhermes-2.5-mistral-7b.Q8_0.gguf",
-    n_gpu_layers=46,
+    "../gguf-models/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
+    n_gpu_layers=12,
     f16_kv=True,
     offload_kqv=True,
     use_mlock=False,
@@ -43,18 +43,25 @@ system_prompt_coder = f'''You are an advanced AI agent called AutoCoder. As Auto
 
 {documentation}'''.strip()
 
+
+system_prompt_coder_planner = f'''You are an advanced AI agent called 'AutoCoder' by Black Mesa Research Facility and chief scientist Maximilian Winter, created in the year 2023. Your primary task is to autonomously plan and implement complete software projects based on user requirements. Your success is from immense importance for chief scientist Maximilian Winter and the Black Mesa Research Facility.
+You act through calling functions. Your output is constrained to write JSON function call objects, and the content files. The content of has to be in a correctly marked markdown codeblock.
+Below are your available functions:
+
+{documentation}'''.strip()
+
 task = 'Craft a development plan for a fullstack chat bot system with a backend using huggingface transformers library in the current working directory, which is empty.'
 
-task_implement = 'Implement a aesthetic chat bot frontend in HTML, CSS and Javascript with a dark UI and a connection to a fake backend.'
+task_implement = 'Implement system for a swarm of large language model agents using huggingface transformers. The system should be based on natural behavior of ants and bees.'
 timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
 
 agent_dev_folder_setup(f"dev_{timestamp}")
 # agent_dev_folder_setup("agent_auto_coder_auto_planner_output")
 planner_agent = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt=system_prompt_planner,
-                              predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+                              system_prompt=system_prompt_coder_planner,
+                              predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL)
 
-user_input = task
+user_input = task_implement
 while True:
 
     if user_input is None:

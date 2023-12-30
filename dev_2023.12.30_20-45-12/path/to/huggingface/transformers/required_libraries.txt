@@ -1,0 +1,4 @@
+# File Content goes here
+## Required Libraries
+- transformers
+- torch

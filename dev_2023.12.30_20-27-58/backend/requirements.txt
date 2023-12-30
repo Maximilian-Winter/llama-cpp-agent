@@ -1,0 +1,6 @@
+# Install Dependencies
+
+Now, let's install the required packages mentioned earlier into our newly created virtual environment. We'll save these dependencies in a `requirements.txt` file for future reference.
+
+1. Activate the `chatbot-backend` virtual environment.
+2. Run the following command to install the dependencies from your terminal:

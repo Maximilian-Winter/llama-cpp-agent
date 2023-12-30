@@ -28,6 +28,7 @@ class LlamaCppAgent:
             self,
             message: str,
             role: Literal["system"] | Literal["user"] | Literal["assistant"] = "user",
+            system_prompt=None,
             grammar: LlamaGrammar = None,
             max_tokens: int = 0,
             temperature: float = 0.4,
@@ -45,10 +46,12 @@ class LlamaCppAgent:
             add_response_to_chat_history: bool = True,
             print_output: bool = True
     ):
+        if system_prompt is None:
+            system_prompt = self.system_prompt
         messages = [
             {
                 "role": "system",
-                "content": self.system_prompt,
+                "content": system_prompt,
             },
         ]
 

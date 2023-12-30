@@ -24,7 +24,7 @@ main_model = Llama(
     n_batch=1024,
     n_ctx=8192,
     last_n_tokens_size=1024,
-    verbose=False,
+    verbose=True,
     seed=42,
 )
 

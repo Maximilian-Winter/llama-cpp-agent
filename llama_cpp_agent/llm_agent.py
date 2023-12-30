@@ -7,12 +7,6 @@ from .messages_formatter import MessagesFormatterType, get_predefined_messages_f
 
 
 class LlamaCppAgent:
-    name: str
-    system_prompt: str
-    model: Llama
-    messages: List[Dict[str, str]] = []
-    debug_output: bool
-    messages_formatter: MessagesFormatter
 
     def __init__(self, model, name="llamacpp_model", system_prompt="You are helpful assistant.",
                  predefined_messages_formatter_type: MessagesFormatterType = None, debug_output=False):

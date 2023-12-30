@@ -48,7 +48,7 @@ task_implement = 'Implement the existing development plan in the "./" folder, fo
 timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
 
 # agent_dev_folder_setup(f"dev_{timestamp}")
-agent_dev_folder_setup("dev_2023.12.30_16-51-29")
+agent_dev_folder_setup("agent_auto_coder_auto_planner_output")
 planner_agent = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt=system_prompt_planner,
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML)

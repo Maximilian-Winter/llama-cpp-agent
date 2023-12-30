@@ -51,14 +51,14 @@ class LlamaCppAgent:
         messages = [
             {
                 "role": "system",
-                "content": system_prompt,
+                "content": system_prompt.strip(),
             },
         ]
 
         self.messages.append(
             {
                 "role": role,
-                "content": message,
+                "content": message.strip(),
             },
         )
         messages.extend(self.messages)
@@ -99,10 +99,10 @@ class LlamaCppAgent:
                     self.messages.append(
                         {
                             "role": response_role,
-                            "content": full_response,
+                            "content": full_response.strip(),
                         },
                     )
-                return full_response
+                return full_response.strip()
             if stream:
                 full_response = ""
                 for out in completion:
@@ -112,10 +112,10 @@ class LlamaCppAgent:
                     self.messages.append(
                         {
                             "role": response_role,
-                            "content": full_response,
+                            "content": full_response.strip(),
                         },
                     )
-                return full_response
+                return full_response.strip()
             if print_output:
                 text = completion['choices'][0]['text']
                 print(text)
@@ -124,19 +124,19 @@ class LlamaCppAgent:
                     self.messages.append(
                         {
                             "role": response_role,
-                            "content": text,
+                            "content": text.strip(),
                         },
                     )
-                return text
+                return text.strip()
             text = completion['choices'][0]['text']
             if add_response_to_chat_history:
                 self.messages.append(
                     {
                         "role": response_role,
-                        "content": text,
+                        "content": text.strip(),
                     },
                 )
-            return text
+            return text.strip()
         return "Error: No model loaded!"
 
     def remove_last_k_chat_messages(self, k):

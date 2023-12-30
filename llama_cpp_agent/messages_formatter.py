@@ -38,6 +38,14 @@ USER_PROMPT_END_SYNTHIA = """\n"""
 ASSISTANT_PROMPT_START_SYNTHIA = """ASSISTANT:"""
 ASSISTANT_PROMPT_END_SYNTHIA = """\n"""
 
+SYS_PROMPT_START_NEURAL_CHAT = """### System:\n"""
+SYS_PROMPT_END_NEURAL_CHAT = """\n"""
+USER_PROMPT_START_NEURAL_CHAT = """### User:\n"""
+USER_PROMPT_END_NEURAL_CHAT = """ \n"""
+ASSISTANT_PROMPT_START_NEURAL_CHAT = """### Assistant:\n"""
+ASSISTANT_PROMPT_END_NEURAL_CHAT = """\n"""
+DEFAULT_NEURAL_CHAT_STOP_SEQUENCES = ["### User:"]
+
 
 class MessagesFormatterType(Enum):
     MIXTRAL = 1
@@ -45,6 +53,8 @@ class MessagesFormatterType(Enum):
     VICUNA = 3
     LLAMA_2 = 4
     SYNTHIA = 5
+    NEURAL_CHAT = 6
+
 
 class MessagesFormatter:
     def __init__(self, PRE_PROMPT: str, SYS_PROMPT_START: str, SYS_PROMPT_END: str, USER_PROMPT_START: str,
@@ -107,12 +117,16 @@ synthia_formatter = MessagesFormatter("", SYS_PROMPT_START_SYNTHIA, SYS_PROMPT_E
                                       USER_PROMPT_END_SYNTHIA, ASSISTANT_PROMPT_START_SYNTHIA,
                                       ASSISTANT_PROMPT_END_SYNTHIA, False, DEFAULT_VICUNA_STOP_SEQUENCES)
 
+neural_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_NEURAL_CHAT, SYS_PROMPT_END_NEURAL_CHAT, USER_PROMPT_START_NEURAL_CHAT,
+                                          USER_PROMPT_END_NEURAL_CHAT, ASSISTANT_PROMPT_START_NEURAL_CHAT,
+                                          ASSISTANT_PROMPT_END_NEURAL_CHAT, False, DEFAULT_NEURAL_CHAT_STOP_SEQUENCES)
 predefined_formatter = {
     MessagesFormatterType.MIXTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
     MessagesFormatterType.VICUNA: vicuna_formatter,
     MessagesFormatterType.LLAMA_2: llama_2_formatter,
-    MessagesFormatterType.SYNTHIA: synthia_formatter
+    MessagesFormatterType.SYNTHIA: synthia_formatter,
+    MessagesFormatterType.NEURAL_CHAT: neural_chat_formatter
 }
 
 

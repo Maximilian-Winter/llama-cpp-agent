@@ -148,18 +148,39 @@ class LlamaCppAgent:
         self.messages = self.messages[:-k] if k > 0 else self.messages
 
     def save_messages(self, file_path: str):
-        """
-        Save the current state of messages to a file in JSON format.
-        :param file_path: The path of the file where messages will be saved.
-        """
         with open(file_path, 'w') as file:
             json.dump(self.messages, file, indent=4)
 
     def load_messages(self, file_path: str):
-        """
-        Load messages from a file and append them to the current messages list.
-        :param file_path: The path of the file from which messages will be loaded.
-        """
         with open(file_path, 'r') as file:
             loaded_messages = json.load(file)
             self.messages.extend(loaded_messages)
+
+    @staticmethod
+    def agent_conversation(
+            agent_1,
+            agent_2,
+            agent_1_initial_message,
+            number_of_exchanges=15
+    ):
+        current_message = agent_1_initial_message
+        current_agent, next_agent = agent_2, agent_1
+
+        for _ in range(number_of_exchanges):
+            # Current agent responds to the last message
+            response = current_agent.get_chat_response(
+                message=current_message,
+                role="user",
+                add_response_to_chat_history=True,
+                print_output=True,
+                top_p=0.8,
+                top_k=40
+            )
+
+            # Update the message for the next turn
+            current_message = response
+
+            # Swap the agents for the next turn
+            current_agent, next_agent = next_agent, current_agent
+
+        print("Conversation ended.")

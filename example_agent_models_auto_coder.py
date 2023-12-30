@@ -11,9 +11,7 @@ base_folder = "dev"
 def agent_dev_folder_setup(custom_base_folder=None):
     global base_folder
     base_folder = custom_base_folder
-    os.mkdir(base_folder)
-
-
+    os.makedirs(base_folder, exist_ok=True)
 
 
 class WriteOperation(Enum):

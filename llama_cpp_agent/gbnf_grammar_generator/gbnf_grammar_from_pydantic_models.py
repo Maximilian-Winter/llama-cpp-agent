@@ -540,7 +540,7 @@ integer ::= [0-9]+"""
         file_string_grammar = r'''
 file-string ::= triple-double-quote docstring-content triple-double-quote-2
 docstring-content ::= ( [^`] | "`" [^`] | "\\" "`" "\\" "`" "\\" "`" [^`] )*
-triple-double-quote ::= "```" "python" "\n" | "```" "c" "\n" | "```" "cpp" "\n" | "```" "txt" "\n" | "```" "text" "\n" | "```" "json" "\n" | "```" "javascript" "\n" | "```" "html" "\n"
+triple-double-quote ::= "```" "python" "\n" | "```" "c" "\n" | "```" "cpp" "\n" | "```" "txt" "\n" | "```" "text" "\n" | "```" "json" "\n" | "```" "javascript" "\n" | "```" "html" "\n" | "```" "markdown" "\n"
 triple-double-quote-2 ::= "```"'''
     return "\n" + '\n'.join(additional_grammar) + primitive_grammar + file_string_grammar
 

@@ -36,32 +36,35 @@ main_model = Llama(
     seed=42,
 )
 
-system_prompt = f'''You are an advanced AI agent called AutoPlanner. As AutoPlanner your primary task is to autonomously plan complete software projects based on user specifications. Your output is constrained to write files and performa specific function calls. Here are your available functions:
+system_prompt_planner = f'''You are an advanced AI agent called AutoPlanner. As AutoPlanner your primary task is to autonomously plan complete software projects based on user specifications. You will create a complete development plans.  Your output is constrained to write JSON function call objects. The content of files is constrained to markdown code blocks with different content types like HTML, CSS, Javascript, Python or  Markdown. Here are your available functions:
 
 {documentation}'''.strip()
-system_prompt = f'''You are an advanced AI agent called AutoCoder. As AutoCoder your primary task is to autonomously plan, outline and implement complete software projects based on user specifications. Your output is constrained to write files and performa specific function calls. Here are your available functions:
+system_prompt_coder = f'''You are an advanced AI agent called AutoCoder. As AutoCoder your primary task is to autonomously implement complete software projects based on a development plan. Your output is constrained to write JSON function call objects. The content of files is constrained to markdown code blocks with different content types like HTML, CSS, Javascript, Python or  Markdown. Here are your available functions:
 
 {documentation}'''.strip()
 
-task = 'Implement a chat bot frontend in HTML, CSS and Javascript with a dark UI under the "./workspace" folder without.'
-
+task = 'Create a complete development plan for a chat bot frontend in HTML, CSS and Javascript with a dark UI.'
+task_implement = 'Implement the existing development plan in the "./" folder, for a chat bot frontend in HTML, CSS and Javascript with a dark UI.'
 timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
 
-agent_dev_folder_setup(f"dev_{timestamp}")
-
-wrapped_model = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt=system_prompt,
+# agent_dev_folder_setup(f"dev_{timestamp}")
+agent_dev_folder_setup("dev_2023.12.30_16-51-29")
+planner_agent = LlamaCppAgent(main_model, debug_output=True,
+                              system_prompt=system_prompt_planner,
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
-user_input = task
+coder_agent = LlamaCppAgent(main_model, debug_output=True,
+                              system_prompt=system_prompt_coder,
+                              predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+user_input = task_implement
 while True:
 
     if user_input is None:
         user_input = "Proceed with next step."
 
-    response = wrapped_model.get_chat_response(
+    response = coder_agent.get_chat_response(
         user_input,
-        temperature=0.25, top_p=1.0, top_k=0, tfs_z=0.95, repeat_penalty=1.1, grammar=grammar)
+        temperature=0.25, top_p=1.0, top_k=0, tfs_z=0.95, repeat_penalty=1.12, grammar=grammar)
 
     if "write-text-file" in response:
         response_lines = response.split("\n")

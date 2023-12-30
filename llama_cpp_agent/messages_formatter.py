@@ -46,6 +46,13 @@ ASSISTANT_PROMPT_START_NEURAL_CHAT = """### Assistant:\n"""
 ASSISTANT_PROMPT_END_NEURAL_CHAT = """\n"""
 DEFAULT_NEURAL_CHAT_STOP_SEQUENCES = ["### User:"]
 
+SYS_PROMPT_START_SOLAR = """"""
+SYS_PROMPT_END_SOLAR = """"""
+USER_PROMPT_START_SOLAR = """### User:\n"""
+USER_PROMPT_END_SOLAR = """ \n"""
+ASSISTANT_PROMPT_START_SOLAR = """### Assistant:\n"""
+ASSISTANT_PROMPT_END_SOLAR = """\n"""
+DEFAULT_SOLAR_STOP_SEQUENCES = ["### User:"]
 
 class MessagesFormatterType(Enum):
     MIXTRAL = 1
@@ -54,6 +61,7 @@ class MessagesFormatterType(Enum):
     LLAMA_2 = 4
     SYNTHIA = 5
     NEURAL_CHAT = 6
+    SOLAR = 7
 
 
 class MessagesFormatter:
@@ -120,13 +128,18 @@ synthia_formatter = MessagesFormatter("", SYS_PROMPT_START_SYNTHIA, SYS_PROMPT_E
 neural_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_NEURAL_CHAT, SYS_PROMPT_END_NEURAL_CHAT, USER_PROMPT_START_NEURAL_CHAT,
                                           USER_PROMPT_END_NEURAL_CHAT, ASSISTANT_PROMPT_START_NEURAL_CHAT,
                                           ASSISTANT_PROMPT_END_NEURAL_CHAT, False, DEFAULT_NEURAL_CHAT_STOP_SEQUENCES)
+
+solar_formatter = MessagesFormatter("", SYS_PROMPT_START_SOLAR, SYS_PROMPT_END_SOLAR, USER_PROMPT_START_SOLAR,
+                                          USER_PROMPT_END_SOLAR, ASSISTANT_PROMPT_START_SOLAR,
+                                          ASSISTANT_PROMPT_END_SOLAR, True, DEFAULT_SOLAR_STOP_SEQUENCES)
 predefined_formatter = {
     MessagesFormatterType.MIXTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
     MessagesFormatterType.VICUNA: vicuna_formatter,
     MessagesFormatterType.LLAMA_2: llama_2_formatter,
     MessagesFormatterType.SYNTHIA: synthia_formatter,
-    MessagesFormatterType.NEURAL_CHAT: neural_chat_formatter
+    MessagesFormatterType.NEURAL_CHAT: neural_chat_formatter,
+    MessagesFormatterType.SOLAR: solar_formatter
 }
 
 

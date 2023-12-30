@@ -20,6 +20,7 @@ class LlamaCppAgent:
         self.name = name
         self.system_prompt = system_prompt
         self.debug_output = debug_output
+        self.messages = []
         if predefined_messages_formatter_type:
             self.messages_formatter = get_predefined_messages_formatter(predefined_messages_formatter_type)
         else:

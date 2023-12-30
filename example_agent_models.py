@@ -1,3 +1,4 @@
+import datetime
 import os
 from enum import Enum
 from pathlib import Path
@@ -5,6 +6,17 @@ from pathlib import Path
 from pydantic import Field, BaseModel
 
 base_folder = "dev"
+
+
+def agent_dev_folder_setup():
+    global base_folder
+    timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
+
+    base_folder += f"_{timestamp}"
+    os.mkdir(base_folder)
+
+
+agent_dev_folder_setup()
 
 
 class WriteOperation(Enum):
@@ -49,12 +61,11 @@ class WriteTextFile(BaseModel):
     )
 
     def run(self):
-        if self.file_extension[0] != ".":
-            self.file_extension = "." + self.file_extension
 
         if self.folder == "":
             self.folder = "./"
-
+        if self.file_extension[0] != ".":
+            self.file_extension = "." + self.file_extension
         if self.folder[0] == "." and len(self.folder) == 1:
             self.folder = "./"
 
@@ -69,8 +80,18 @@ class WriteTextFile(BaseModel):
 
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
+        # Determine the write mode based on the write_operation attribute
+        if self.write_operation == WriteOperation.CREATE_FILE:
+            write_mode = 'w'  # Create a new file, error if file exists
+        elif self.write_operation == WriteOperation.APPEND_FILE:
+            write_mode = 'a'  # Append if file exists, create if not
+        elif self.write_operation == WriteOperation.OVERWRITE_FILE:
+            write_mode = 'w'  # Overwrite file if it exists, create if not
+        else:
+            raise ValueError(f"Invalid write operation: {self.write_operation}")
+
         # Write back to file
-        with open(file_path, 'w') as file:
+        with open(file_path, write_mode) as file:
             file.writelines(self.content)
 
         return f"Content written to '{self.file_name_without_extension}{self.file_extension}'."

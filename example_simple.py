@@ -18,4 +18,7 @@ main_model = Llama(
 wrapped_model = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt="You are an advanced AI assistant.", predefined_messages_formatter_type=MessagesFormatterType.LLAMA_2)
 
+
+
+# specified_task = agent_task_specifier.get_chat_response(task_specifier_prompt, temperature=0.65, mirostat_mode=2)
 wrapped_model.get_chat_response('Write a long poem about the USA.', temperature=0.7)

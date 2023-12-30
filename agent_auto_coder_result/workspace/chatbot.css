@@ -1,0 +1,25 @@
+body {
+  background-color: #222;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+input[type="text"],
+textarea {
+  background-color: #333;
+  border: none;
+  color: white;
+  padding: 5px;
+  margin: 5px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+button {
+  background-color: #444;
+  border: none;
+  color: white;
+  padding: 5px;
+  margin: 5px;
+  cursor: pointer;
+}

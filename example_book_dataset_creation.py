@@ -42,7 +42,9 @@ class Book(BaseModel):
 
 
 gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([Book])
-grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
+
+print(gbnf_grammar)
+grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)
 
 
 wrapped_model = LlamaCppAgent(main_model, debug_output=True,

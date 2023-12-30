@@ -1,17 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang='en'>
 <head>
-    <meta charset="utf-8">
-    <title>Chat Bot</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Chatbot</title>
+    <link rel='stylesheet' href='styles.css'>
 </head>
 <body>
-    <div id="chat-interface">
-        <input type="text" id="input-field" placeholder="Enter your message...">
-        <button id="send-button">Send</button>
-        <div id="messages-container">
+    <div id='chatbox'>
+        <div id='messages'></div>
+        <div id='input-container'>
+            <input type='text' id='user-input' placeholder='Type a message...' autocomplete='off' autofocus spellcheck='false'>
+            <button id='send-btn'>Send</button>
         </div>
     </div>
-    <script src="script.js"></script>
+    <script src='script.js'></script>
 </body>
 </html>

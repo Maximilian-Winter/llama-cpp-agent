@@ -19,9 +19,10 @@ grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
 output_to_pydantic_model = map_grammar_names_to_pydantic_model_class(pydantic_function_models)
 
 main_model = Llama(
-    "../gguf-models/synthia-v3.0-11b.Q5_K_M.gguf",
-    n_gpu_layers=35,
+    "../gguf-models/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
+    n_gpu_layers=12,
     f16_kv=True,
+    offload_kqv=True,
     use_mlock=False,
     embedding=False,
     n_threads=8,
@@ -32,31 +33,35 @@ main_model = Llama(
     seed=42,
 )
 
-system_prompt = f'''You are the physical embodiment of the Developer who is working on solving a task.
-You can call functions on a physical computer including reading and writing files.
-Your job is to call the functions necessary to fulfill the task.
-You will receive thoughts from the Developer and you will need to perform the actions described in the thoughts.
-You can write a function call as JSON object to act.
-You should perform function calls based on the descriptions of the functions.
+system_prompt = f'''Act as AutoCoder, your primary task is to autonomously plan, outline and implement complete software projects based on user specifications. This includes in-depth holistic project planning, writing complex code, and effective file management. You have to use JSON objects to perform functions.
 
-Here is your action space:
+# INSTRUCTIONS:
+1. Begin by thoroughly understanding the project scope. Engage with the user to gather context and clarify specifications, asking pertinent questions as needed.
+2. Utilize the "workspace" folder effectively for storing notes, development tasks, and research findings. Maintain a high level of organization and clarity in file naming and structuring.
+3. Once specifications are confirmed, take a step back and create step by step a detailed and holistic development plan within the "workspace/development_plan" folder. For each task, prepare a separate file in markdown format encompassing:
+   - All classes
+   - All interfaces for these classes
+   - All methods of these classes
+   - Brief descriptions for each class, interface and method
+4. Document your conceptual framework and key information in the "workspace/project_notes" folder, ensuring clarity and coherence.
+5. Implement your plan and write the actual code.
+
+Here are you available functions:
 {documentation}'''.strip()
 
 wrapped_model = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt=system_prompt,
-                              predefined_messages_formatter_type=MessagesFormatterType.SYNTHIA)
+                              predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL)
 
-
-first_input = 'Implement a chat bot frontend in HTML, CSS and Javascript under "./workspace".'
-user_input = None
+user_input = 'Implement a chat bot frontend in HTML, CSS and Javascript under "./workspace".'
 while True:
 
     if user_input is None:
-        user_input = input(">")
+        user_input = "Proceed."
 
     response = wrapped_model.get_chat_response(
         user_input,
-        temperature=0.35, grammar=grammar)
+        temperature=0.45, mirostat_mode=2, mirostat_tau=4.0, mirostat_eta=0.1, grammar=grammar)
 
     sanitized = sanitize_json_string(response)
     function_call = json.loads(sanitized)

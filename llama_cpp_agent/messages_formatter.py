@@ -2,11 +2,11 @@ from enum import Enum
 from typing import List, Dict, Tuple
 
 SYS_PROMPT_START_MIXTRAL = """"""
-SYS_PROMPT_END_MIXTRAL = """"""
+SYS_PROMPT_END_MIXTRAL = """\n"""
 USER_PROMPT_START_MIXTRAL = """[INST] """
 USER_PROMPT_END_MIXTRAL = """ [/INST]"""
 ASSISTANT_PROMPT_START_MIXTRAL = """"""
-ASSISTANT_PROMPT_END_MIXTRAL = """"""
+ASSISTANT_PROMPT_END_MIXTRAL = """ </s>"""
 DEFAULT_MIXTRAL_STOP_SEQUENCES = ["</s>"]
 
 SYS_PROMPT_START_CHATML = """<|im_start|>system\n"""

@@ -95,7 +95,8 @@ class ReadTextFile(BaseModel):
             return f"File '{self.folder}/{self.file_name}' doesn't exists!"
         with open(f"{base_folder}/{self.folder}/{self.file_name}", "r", encoding="utf-8") as f:
             content = f.read()
-
+        if content.strip() == "":
+            return f"File '{self.file_name}' is empty!"
         return f"File '{self.file_name}':\n{content}"
 
 
@@ -113,18 +114,21 @@ class GetFileList(BaseModel):
         filenames = "File List:\n"
         counter = 1
         base_path = Path(base_folder) / self.folder
+
         for root, _, files in os.walk(os.path.join(base_folder, self.folder)):
             for file in files:
                 relative_root = Path(root).relative_to(base_path)
                 filenames += f"{counter}. {relative_root / file}\n"
                 counter += 1
 
+        if counter == 1:
+            return f"Folder '{self.folder}' is empty!"
         return filenames
 
 
 class SendMessageToUser(BaseModel):
     """
-    Send a message to the user.
+    Send a message to the Developer.
     """
 
     chain_of_thought: str = Field(...,

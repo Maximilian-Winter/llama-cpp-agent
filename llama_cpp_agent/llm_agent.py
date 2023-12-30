@@ -1,3 +1,4 @@
+import json
 from typing import List, Dict, Literal
 
 from llama_cpp import Llama, LlamaGrammar
@@ -145,3 +146,20 @@ class LlamaCppAgent:
 
         # Remove the last k elements
         self.messages = self.messages[:-k] if k > 0 else self.messages
+
+    def save_messages(self, file_path: str):
+        """
+        Save the current state of messages to a file in JSON format.
+        :param file_path: The path of the file where messages will be saved.
+        """
+        with open(file_path, 'w') as file:
+            json.dump(self.messages, file, indent=4)
+
+    def load_messages(self, file_path: str):
+        """
+        Load messages from a file and append them to the current messages list.
+        :param file_path: The path of the file from which messages will be loaded.
+        """
+        with open(file_path, 'r') as file:
+            loaded_messages = json.load(file)
+            self.messages.extend(loaded_messages)

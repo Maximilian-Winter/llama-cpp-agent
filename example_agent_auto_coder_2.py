@@ -22,7 +22,7 @@ grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
 output_to_pydantic_model = map_grammar_names_to_pydantic_model_class(pydantic_function_models)
 
 main_model = Llama(
-    "../gguf-models/openhermes-2.5-mistral-7b-16k.Q8_0.gguf",
+    "../gguf-models/neuralhermes-2.5-mistral-7b.Q8_0.gguf",
     n_gpu_layers=46,
     f16_kv=True,
     offload_kqv=True,
@@ -62,7 +62,7 @@ while True:
 
     response = planner_agent.get_chat_response(
         user_input,
-        temperature=0.25, top_p=1.0, top_k=0, tfs_z=0.95, repeat_penalty=1.12, grammar=grammar)
+        temperature=0.45, top_p=1.0, top_k=0, tfs_z=0.95, repeat_penalty=1.12, grammar=grammar)
 
     if "write-text-file" in response:
         response_lines = response.split("\n")

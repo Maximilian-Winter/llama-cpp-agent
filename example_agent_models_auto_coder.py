@@ -79,7 +79,7 @@ class WriteTextFile(BaseModel):
             raise ValueError(f"Invalid write operation: {self.write_operation}")
 
         # Write back to file
-        with open(file_path, write_mode) as file:
+        with open(file_path, write_mode, encoding="utf-8") as file:
             file.writelines(self.file_string)
 
         return f"Content written to '{self.file_name_without_extension}{self.file_extension}'."

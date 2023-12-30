@@ -456,7 +456,7 @@ def generate_gbnf_grammar(model: Type[BaseModel], look_for_file_string, processe
 
 
 def generate_gbnf_grammar_from_pydantic(models: List[Type[BaseModel]], look_for_file_string=False, root_rule_class: str = None,
-                                        root_rule_content: str = None) -> str:
+                                        root_rule_content: str = None, allow_one_and_more: bool = False, allow_none_and_more: bool = False) -> str:
     """
     Generate GBNF Grammar from Pydantic Models.
 
@@ -492,9 +492,16 @@ def generate_gbnf_grammar_from_pydantic(models: List[Type[BaseModel]], look_for_
         all_rules.insert(0, root_rule)
         return "\n".join(all_rules)
     elif root_rule_class is not None:
-        root_rule = f"root ::= {format_model_and_field_name(root_rule_class)}\n"
+        root_rule = f"root ::= {format_model_and_field_name(root_rule_class)}"
 
-        model_rule = fr'{format_model_and_field_name(root_rule_class)} ::= "{{" ws "\"{root_rule_class}\"" ":" ws grammar-models ws '
+        if allow_one_and_more or allow_none_and_more:
+            if allow_one_and_more:
+                root_rule += "+\n"
+            else:
+                root_rule += "*\n"
+        else:
+            root_rule += "\n"
+        model_rule = fr'{format_model_and_field_name(root_rule_class)} ::= "{{" ws "\"{root_rule_class}\"" ":" ws grammar-models'
         if not look_for_file_string:
             model_rule += '"}"'
         fields_joined = " | ".join(
@@ -541,7 +548,7 @@ integer ::= [0-9]+"""
 file-string ::= triple-double-quote docstring-content triple-double-quote-2
 docstring-content ::= ( [^`] | "`" [^`] | "\\" "`" "\\" "`" "\\" "`" [^`] )*
 triple-double-quote ::= "```" "python" "\n" | "```" "c" "\n" | "```" "cpp" "\n" | "```" "txt" "\n" | "```" "text" "\n" | "```" "json" "\n" | "```" "javascript" "\n" | "```" "html" "\n" | "```" "markdown" "\n"
-triple-double-quote-2 ::= "```"'''
+triple-double-quote-2 ::= "```" "\n"'''
     return "\n" + '\n'.join(additional_grammar) + primitive_grammar + file_string_grammar
 
 
@@ -683,9 +690,9 @@ def generate_and_save_gbnf_grammar_and_documentation(pydantic_model_list, look_f
                                                      documentation_file_path="./generated_grammar_documentation.md",
                                                      root_rule_class: str = None, root_rule_content: str = None,
                                                      model_prefix: str = "Output Model",
-                                                     fields_prefix: str = "Output Fields"):
+                                                     fields_prefix: str = "Output Fields", allow_one_and_more: bool = False, allow_none_and_more: bool = False ):
     documentation = generate_text_documentation(pydantic_model_list, model_prefix, fields_prefix)
-    grammar = generate_gbnf_grammar_from_pydantic(pydantic_model_list, look_file_string, root_rule_class, root_rule_content)
+    grammar = generate_gbnf_grammar_from_pydantic(pydantic_model_list, look_file_string, root_rule_class, root_rule_content, allow_one_and_more, allow_none_and_more)
     grammar = remove_empty_lines(grammar)
     print(grammar)
     save_gbnf_grammar_and_documentation(grammar, documentation, grammar_file_path, documentation_file_path)
@@ -694,9 +701,9 @@ def generate_and_save_gbnf_grammar_and_documentation(pydantic_model_list, look_f
 def generate_gbnf_grammar_and_documentation(pydantic_model_list, look_file_string=False, root_rule_class: str = None,
                                             root_rule_content: str = None,
                                             model_prefix: str = "Output Model",
-                                            fields_prefix: str = "Output Fields"):
+                                            fields_prefix: str = "Output Fields", allow_one_and_more: bool = False, allow_none_and_more: bool = False ):
     documentation = generate_text_documentation(pydantic_model_list, model_prefix, fields_prefix)
-    grammar = generate_gbnf_grammar_from_pydantic(pydantic_model_list, look_file_string, root_rule_class, root_rule_content)
+    grammar = generate_gbnf_grammar_from_pydantic(pydantic_model_list, look_file_string, root_rule_class, root_rule_content, allow_one_and_more, allow_none_and_more)
     grammar = remove_empty_lines(grammar + get_primitive_grammar(grammar))
     return grammar, documentation
 

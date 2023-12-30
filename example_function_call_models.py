@@ -58,7 +58,7 @@ class WriteTextFile(BaseModel):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
         # Write back to file
-        with open(file_path, 'w') as file:
+        with open(file_path, 'w', encoding="utf-8") as file:
             file.writelines(self.content)
 
         return f"Content written to '{self.file_name_without_extension}{self.file_extension}'."

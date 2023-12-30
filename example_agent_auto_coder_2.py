@@ -30,9 +30,9 @@ main_model = Llama(
     embedding=False,
     n_threads=8,
     n_batch=1024,
-    n_ctx=16384,
+    n_ctx=8192,
     last_n_tokens_size=1024,
-    verbose=False,
+    verbose=True,
     seed=42,
 )
 
@@ -43,8 +43,9 @@ system_prompt_coder = f'''You are an advanced AI agent called AutoCoder. As Auto
 
 {documentation}'''.strip()
 
-task = 'Create a complete development plan for a fullstack chat bot system, based on a backend using huggingface transformers library.'
-task_implement = 'Implement the existing development plan in the "./" folder, for a chat bot frontend in HTML, CSS and Javascript with a dark UI.'
+task = 'Craft a development plan for a fullstack chat bot system with a backend using huggingface transformers library in the current working directory, which is empty.'
+
+task_implement = 'Implement a aesthetic chat bot frontend in HTML, CSS and Javascript with a dark UI and a connection to a fake backend.'
 timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
 
 agent_dev_folder_setup(f"dev_{timestamp}")
@@ -53,9 +54,6 @@ planner_agent = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt=system_prompt_planner,
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
-coder_agent = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt=system_prompt_coder,
-                              predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 user_input = task
 while True:
 

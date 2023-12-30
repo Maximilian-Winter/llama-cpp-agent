@@ -52,3 +52,86 @@ Function: write-text-file-section
 <|im_start|>user
 Write a long poem about the USA in the "HelloUSA.txt" file?<|im_end|>
 <|im_start|>assistant{ "function": "write-text-file-section","function_params":{ "chain_of_thought": "I will write a long poem about the USA in the HelloUSA.txt file. First, I need to create the file if it doesn’t exist. Then, I will write the poem as a text section in the file.", "folder": ".", "file_name": "HelloUSA", "file_extension": ".txt", "section": "poem", "body": "In the land of the free and the home of the brave,\nA nation that stands tall, proud and brave.\nFrom sea to shining sea, a land of opportunity,\nA melting pot of dreams, a land of liberty.\n\nFrom the rugged mountains to the golden plains,\nA land of diverse beauty, a land of gains.\nA nation built on values, a beacon of hope,\nA land that inspires, a land that does cope.\n\nFrom the founding fathers to the modern age,\nA nation that has faced many a rage.\nBut through it all, a nation has stood tall,\nA land that has weathered many a storm, a land that does enthrall.\n\nA land of innovation, a land of dreams,\nA land that has conquered many a scheme.\nA land that has given so much to the world,\nA land that has changed the course, a land that does unfurl.\n\nOh, land that I love, a land that is free,\nA land that has been, and will always be.\nA land that I am proud to call my own,\nA land that I will cherish, a land that does grow."}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SYSTEM: You are the physical embodiment of the Developer who is working on solving a task.
+You can call functions on a physical computer including reading and writing files.
+Your job is to call the functions necessary to fulfill the task.
+You will receive thoughts from the Developer and you will need to perform the actions described in the thoughts.
+You can write a function call as JSON object to act.
+You should perform function calls based on the descriptions of the functions.
+
+Here is your action space:
+Function: send-message-to-user
+  Description:
+        Send a message to the user.
+
+  Function Parameter:
+    chain_of_thought (str):
+      Description: Your inner thoughts or chain of thoughts while writing the message to the user.
+    message (str):
+      Description: Message you want to send to the user.
+
+Function: get-file-list
+  Description:
+        Scans a specified directory and creates a list of all files within that directory, including files in its subdirectories.
+
+  Function Parameter:
+    folder (str):
+      Description: Path to the directory where files will be listed. This path can include subdirectories to be scanned.
+
+Function: read-text-file
+  Description:
+        Reads the text content of a specified file and returns it.
+
+  Function Parameter:
+    folder (str):
+      Description: Path to the folder containing the file.
+    file_name (str):
+      Description: The name of the file to be read, including its extension (e.g., 'document.txt').
+
+Function: write-text-file
+  Description:
+        Handles writing or modifying specific files.
+
+  Function Parameter:
+    chain_of_thought (str):
+      Description: Detailed, step-by-step reasoning about the content of the file.
+    reasoning (str):
+      Description: Reasoning for the content of this file.
+    folder (str):
+      Description: Path to the folder where the file is located or will be created. It should be a valid directory path.
+    file_name_without_extension (str):
+      Description: Name of the target file without the file extension.
+    file_extension (str):
+      Description: File extension indicating the file type, such as '.txt', '.py', '.md', etc.
+    write_operation (WriteOperation):
+      Description: Write operation performed, 'create-file', 'append-file' or 'overwrite-file'
+    content (str):
+      Description: The actual content to be written into the file.
+USER: Implement a chat bot frontend in HTML, CSS and Javascript under "./workspace".
+ASSISTANT:{ "function": "send-message-to-user","function_params": { "chain_of_thought": "I am thinking about how to create a chat bot frontend in HTML, CSS and Javascript. I need to create a web page that can communicate with a backend service through AJAX or WebSockets. I will need to use Javascript to handle the user input and to send messages to the backend. I will also need to use CSS to style the chat interface and make it user-friendly.", "message": "Let's get started on implementing a chat bot frontend in HTML, CSS, and Javascript. We'll create a simple chat interface and connect it to a backend service." } }
+USER: Continue.
+ASSISTANT:{ "function": "get-file-list","function_params": { "folder": "./workspace" } }
+USER: File List:
+ASSISTANT:{ "function": "read-text-file","function_params": { "folder": "./workspace", "file_name": "index.html" } }
+USER: File './workspace/index.html' doesn't exists!
+ASSISTANT:{ "function": "write-text-file","function_params": { "chain_of_thought": "I am creating a new HTML file from scratch. I will need to include the necessary elements for a chat interface, such as a text input field, a text area for displaying messages, and a button to send messages. I will also need to include references to CSS and JavaScript files.", "reasoning": "The reasoning behind this file is to provide the structure for the chat bot frontend.", "folder": "./workspace", "file_name_without_extension": "index", "file_extension": ".html", "write_operation": "create-file", "content": "<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"utf-8\">\n    <title>Chat Bot</title>\n    <link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <div id=\"chat-interface\">\n        <input type=\"text\" id=\"input-field\" placeholder=\"Enter your message...\">\n        <button id=\"send-button\">Send</button>\n        <div id=\"messages-container\">\n        </div>\n    </div>\n    <script src=\"script.js\"></script>\n</body>\n</html>" } }
+USER: Content written to 'index.html'.
+ASSISTANT:{ "function": "write-text-file","function_params": { "chain_of_thought": "I am creating a new CSS file to style the chat interface. I will need to define colors, fonts, and layout for the elements.", "reasoning": "The reasoning behind this file is to make the chat interface visually appealing and user-friendly.", "folder": "./workspace", "file_name_without_extension": "style", "file_extension": ".css", "write_operation": "create-file", "content": ".chat-interface {\n    background-color: #f5f5f5;\n    padding: 20px;\n    border: 1px solid #ccc;\n}\n#input-field {\n    width: 100%;\n    padding: 12px 20px;\n    margin: 8px 0;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n}\n#send-button {\n    background-color: #4CAF50;\n    color: white;\n    padding: 12px 20px;\n    margin: 8px 0;\n    border: none;\n    border-radius: 4px;\n    cursor: pointer;\n}\n#messages-container {\n    overflow: auto;\n    height: 200px;\n}\n#messages-container p {\n    padding: 10px;\n    border: 1px solid #ccc;\n    margin-bottom: 10px;\n}\n#messages-container p:nth-child(even) {\n    background-color: #f9f9f9;\n}" } }
+USER: Content written to 'style.css'.
+ASSISTANT:{"function": "write-text-file","function_params": { "chain_of_thought": "I am creating a new JavaScript file to handle the user input and communication with the backend service.", "reasoning": "The reasoning behind this file is to provide the logic for the chat bot.", "folder": "./workspace", "file_name_without_extension": "script", "file_extension": ".js", "write_operation": "create-file", "content": "document.getElementById('send-button').addEventListener('click', function() {\n    var message = document.getElementById('input-field').value;\n    if (message) {\n        document.getElementById('messages-container').innerHTML += '<p>' + message + '</p>';\n        document.getElementById('input-field').value = '';\n    }\n});" } }
+USER: Content written to 'script.js'.
+ASSISTANT:{"function": "send-message-to-user","function_params": { "chain_of_thought": "I have created the basic structure for the chat bot frontend in HTML, CSS, and Javascript. Now, I need to add functionality to connect to the backend service and handle the actual chat.", "message": "The basic structure for the chat bot frontend is now in place. We'll continue to add features and connect it to the backend in the next steps." } }

@@ -436,7 +436,7 @@ def generate_gbnf_grammar(model: Type[BaseModel], processed_models: set, created
         nested_rules.extend(additional_rules)
 
     fields_joined = ' ws ", " ws '.join(model_rule_parts)
-    model_rule = f'{model_name} ::= "{{" ws {fields_joined} ws "}}"'
+    model_rule = f'{model_name} ::= ws "{{" ws {fields_joined} ws "}}"'
     all_rules = [model_rule] + nested_rules
 
     return all_rules
@@ -678,6 +678,13 @@ def generate_gbnf_grammar_and_documentation(pydantic_model_list, root_rule_class
     grammar = remove_empty_lines(grammar + get_primitive_grammar(grammar))
     return grammar, documentation
 
+
+def map_grammar_names_to_pydantic_model_class(pydantic_model_list):
+    output = {}
+    for model in pydantic_model_list:
+        output[format_model_and_field_name(model.__name__)] = model
+
+    return output
 
 class YourModel(BaseModel):
     float_field: float = Field(default=..., description="TEST", max_precision=2, min_precision=1)

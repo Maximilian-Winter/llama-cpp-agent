@@ -69,6 +69,7 @@ class LlamaCppAgent:
             tfs_z: float = 1.0,
             stop_sequences: List[str] = None,
             stream: bool = True,
+            k_last_messages: int = -1,
             add_response_to_chat_history: bool = True,
             add_message_to_chat_history: bool = True,
             print_output: bool = True
@@ -97,7 +98,10 @@ class LlamaCppAgent:
                     "content": message.strip(),
                 },
             )
-        messages.extend(self.messages)
+        if k_last_messages > -1:
+            messages.extend(self.messages[-k_last_messages:])
+        else:
+            messages.extend(self.messages)
 
         prompt, response_role = self.messages_formatter.format_messages(messages)
         if self.debug_output:

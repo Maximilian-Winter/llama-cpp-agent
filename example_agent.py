@@ -3,20 +3,16 @@ import json
 from llama_cpp import Llama, LlamaGrammar
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import \
-    generate_gbnf_grammar_and_documentation, sanitize_json_string, map_grammar_names_to_pydantic_model_class
 
 from example_agent_models import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
-pydantic_function_models = [SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile]
+from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
 
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
-    pydantic_function_models, False, "function", "function_params", "Function",
-    "Function Parameter")
-grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
+function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
+                  LlamaCppFunctionTool(WriteTextFile, has_field_string=True)]
 
-output_to_pydantic_model = map_grammar_names_to_pydantic_model_class(pydantic_function_models)
+function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 main_model = Llama(
     "../gguf-models/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
@@ -35,7 +31,7 @@ main_model = Llama(
 
 system_prompt = f'''You are an advanced AI agent called AutoCoder. As AutoCoder your primary task is to autonomously plan, outline and implement complete software projects based on user specifications. You have to use JSON objects to perform functions.
 Here are your available functions:
-{documentation}'''.strip()
+{function_tool_registry.get_documentation()}'''.strip()
 
 wrapped_model = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt=system_prompt,
@@ -47,14 +43,7 @@ while True:
     if user_input is None:
         user_input = "Proceed."
 
-    response = wrapped_model.get_chat_response(
+    user_input = wrapped_model.get_chat_response(
         user_input,
-        temperature=0.35, mirostat_mode=2, mirostat_tau=3.0, mirostat_eta=0.1, grammar=grammar)
-
-    sanitized = sanitize_json_string(response)
-    function_call = json.loads(sanitized)
-    cls = output_to_pydantic_model[function_call["function"]]
-    call_parameters = function_call["function_params"]
-    call = cls(**call_parameters)
-    user_input = call.run()
+        temperature=0.35, mirostat_mode=2, mirostat_tau=3.0, mirostat_eta=0.1, function_tool_registry=function_tool_registry)
 

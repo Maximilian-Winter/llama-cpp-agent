@@ -41,7 +41,7 @@ class Book(BaseModel):
     summary: str = Field(..., description="Summary of the book.")
 
 
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([Book] ,False)
+gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([Book],False)
 
 print(gbnf_grammar)
 grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)

@@ -4,6 +4,7 @@ from typing import List, Dict, Literal
 from llama_cpp import Llama, LlamaGrammar
 
 from .messages_formatter import MessagesFormatterType, get_predefined_messages_formatter, MessagesFormatter
+from .function_call_tools import LlamaCppFunctionTool, LlamaCppFunctionToolRegistry
 
 
 class LlamaCppAgent:
@@ -20,12 +21,41 @@ class LlamaCppAgent:
         else:
             self.messages_formatter = get_predefined_messages_formatter(MessagesFormatterType.CHATML)
 
+    @staticmethod
+    def get_function_tool_registry(function_tool_list: List[LlamaCppFunctionTool]):
+        function_tool_registry = LlamaCppFunctionToolRegistry()
+
+        for function_tool in function_tool_list:
+            function_tool_registry.register_function_tool(function_tool)
+        function_tool_registry.finalize()
+        return function_tool_registry
+
+    def add_message(self, message: str, role: Literal["system"] | Literal["user"] | Literal["assistant"] = "user",
+                    auto_format=False):
+        if len(self.messages) == 0:
+            self.messages.append(
+                {
+                    "role": "user",
+                    "content": message.strip(),
+                },
+            )
+        if auto_format:
+            role = "user" if (self.messages[-1]["role"] == "assistant" or self.messages[-1][
+                "role"] == "system") else "assistant"
+        self.messages.append(
+            {
+                "role": role,
+                "content": message.strip(),
+            },
+        )
+
     def get_chat_response(
             self,
-            message: str,
+            message: str = None,
             role: Literal["system"] | Literal["user"] | Literal["assistant"] = "user",
             system_prompt=None,
-            grammar: LlamaGrammar = None,
+            grammar=None,
+            function_tool_registry=None,
             max_tokens: int = 0,
             temperature: float = 0.4,
             top_k: int = 0,
@@ -40,8 +70,11 @@ class LlamaCppAgent:
             stop_sequences: List[str] = None,
             stream: bool = True,
             add_response_to_chat_history: bool = True,
+            add_message_to_chat_history: bool = True,
             print_output: bool = True
     ):
+        if function_tool_registry is not None:
+            grammar = function_tool_registry.get_grammar()
         if system_prompt is None:
             system_prompt = self.system_prompt
         messages = [
@@ -50,13 +83,20 @@ class LlamaCppAgent:
                 "content": system_prompt.strip(),
             },
         ]
-
-        self.messages.append(
-            {
-                "role": role,
-                "content": message.strip(),
-            },
-        )
+        if message is not None and add_message_to_chat_history:
+            self.messages.append(
+                {
+                    "role": role,
+                    "content": message.strip(),
+                },
+            )
+        if not add_message_to_chat_history and message is not None:
+            messages.append(
+                {
+                    "role": role,
+                    "content": message.strip(),
+                },
+            )
         messages.extend(self.messages)
 
         prompt, response_role = self.messages_formatter.format_messages(messages)
@@ -91,6 +131,7 @@ class LlamaCppAgent:
                     full_response += text
                     print(text, end="")
                 print("")
+
                 if add_response_to_chat_history:
                     self.messages.append(
                         {
@@ -98,12 +139,15 @@ class LlamaCppAgent:
                             "content": full_response.strip(),
                         },
                     )
+                if function_tool_registry is not None:
+                    full_response = function_tool_registry.handle_function_call(full_response)
                 return full_response.strip()
             if stream:
                 full_response = ""
                 for out in completion:
                     text = out['choices'][0]['text']
                     full_response += text
+
                 if add_response_to_chat_history:
                     self.messages.append(
                         {
@@ -111,6 +155,8 @@ class LlamaCppAgent:
                             "content": full_response.strip(),
                         },
                     )
+                if function_tool_registry is not None:
+                    full_response = function_tool_registry.handle_function_call(full_response)
                 return full_response.strip()
             if print_output:
                 text = completion['choices'][0]['text']
@@ -123,6 +169,8 @@ class LlamaCppAgent:
                             "content": text.strip(),
                         },
                     )
+                if function_tool_registry is not None:
+                    text = function_tool_registry.handle_function_call(text)
                 return text.strip()
             text = completion['choices'][0]['text']
             if add_response_to_chat_history:
@@ -132,6 +180,8 @@ class LlamaCppAgent:
                         "content": text.strip(),
                     },
                 )
+            if function_tool_registry is not None:
+                text = function_tool_registry.handle_function_call(text)
             return text.strip()
         return "Error: No model loaded!"
 

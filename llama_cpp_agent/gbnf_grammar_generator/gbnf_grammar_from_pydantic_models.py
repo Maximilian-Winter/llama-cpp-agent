@@ -539,6 +539,7 @@ string ::= "\"" (
         "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
       )* "\"" ws
 ws ::= " "*
+float ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
 fractional-part ::= [0-9]+
 integer-part ::= [0-9]+
 integer ::= [0-9]+"""

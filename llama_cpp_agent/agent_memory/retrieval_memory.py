@@ -22,8 +22,8 @@ class RetrievalMemory:
         """Add a memory with a given description and importance to the memory stream."""
         mem = [description]
         ids = [str(self.generate_unique_id())]
-        metadata = {'memory_id': ids[0], 'memory': description, 'importance': importance, 'creation_timestamp': date,
-                    'last_access_timestamp': date}
+        metadata = {'memory_id': ids[0], 'memory': description, 'importance': importance, 'creation_timestamp': date.strftime("%Y-%m-%d %H:%M:%S"),
+                    'last_access_timestamp': date.strftime("%Y-%m-%d %H:%M:%S")}
         self.collection.add(documents=mem, metadatas=metadata, ids=ids)
         self.next_memory_id += 1
 

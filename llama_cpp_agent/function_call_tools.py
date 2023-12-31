@@ -71,40 +71,44 @@ class LlamaCppFunctionToolRegistry:
         return self.grammar_documentation
 
     def handle_function_call(self, function_call_response: str):
-        for name, tool in self.function_tools_containing_field_string.items():
+        try:
+            for name, tool in self.function_tools_containing_field_string.items():
 
-            if name in function_call_response:
-                response_lines = function_call_response.split("\n")
+                if name in function_call_response:
+                    response_lines = function_call_response.split("\n")
 
-                # Get the first line JSON object
-                response = response_lines[0]
-                # Remove the first line
-                response_lines.pop(0)
-                # Remove the first line Markdown code block marker
-                response_lines.pop(0)
-                # Remove the last line Markdown code block marker
-                response_lines.pop(-1)
-                # Combine lines into a single string
-                content = "\n".join(response_lines)
-                sanitized = sanitize_json_string(response)
-                function_call = json.loads(sanitized)
-                function_tool = self.function_tools_containing_field_string[function_call["function"]]
-                cls = function_tool.model
-                function_call["function_parameters"]["file_string"] = content
+                    # Get the first line JSON object
+                    response = response_lines[0]
+                    # Remove the first line
+                    response_lines.pop(0)
+                    # Remove the first line Markdown code block marker
+                    response_lines.pop(0)
+                    # Remove the last line Markdown code block marker
+                    response_lines.pop(-1)
+                    # Combine lines into a single string
+                    content = "\n".join(response_lines)
+                    sanitized = sanitize_json_string(response)
+                    function_call = json.loads(sanitized)
+                    function_tool = self.function_tools_containing_field_string[function_call["function"]]
+                    cls = function_tool.model
+                    function_call["function_parameters"]["file_string"] = content
 
-                call_parameters = function_call["function_parameters"]
-                call = cls(**call_parameters)
-                output = call.run(**function_tool.additional_parameters)
-                return output
+                    call_parameters = function_call["function_parameters"]
+                    call = cls(**call_parameters)
+                    output = call.run(**function_tool.additional_parameters)
+                    return output
 
-        sanitized = sanitize_json_string(function_call_response)
-        function_call = json.loads(sanitized)
-        function_tool = self.function_tools[function_call["function"]]
-        cls = function_tool.model
-        call_parameters = function_call["function_parameters"]
-        call = cls(**call_parameters)
-        output = call.run(**function_tool.additional_parameters)
-        return output
+            sanitized = sanitize_json_string(function_call_response)
+            function_call = json.loads(sanitized)
+            function_tool = self.function_tools[function_call["function"]]
+            cls = function_tool.model
+            call_parameters = function_call["function_parameters"]
+            call = cls(**call_parameters)
+            output = call.run(**function_tool.additional_parameters)
+            return output
+
+        except AttributeError as e:
+            return f"Error: {e}"
 
 
 

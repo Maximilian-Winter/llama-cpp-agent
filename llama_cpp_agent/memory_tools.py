@@ -60,7 +60,7 @@ class AddRetrievalMemory(BaseModel):
     importance: float = Field(..., description="The importance of the memory to be added to the retrieval memory.")
 
     def run(self, retrieval_memory_manager: RetrievalMemoryManager):
-        return retrieval_memory_manager.retrieve_memories(self.query)
+        return retrieval_memory_manager.add_memory_to_retrieval(self.memory, self.importance)
 
 
 class AgentRetrievalMemory:
@@ -109,3 +109,9 @@ class AgentCoreMemory:
 
     def get_remove_core_memory_tool(self):
         return self.remove_core_memory_tool
+
+    def save_core_memory(self, file_path):
+        self.core_memory_manager.save(file_path)
+
+    def load_core_memory(self, file_path):
+        self.core_memory_manager.load(file_path)

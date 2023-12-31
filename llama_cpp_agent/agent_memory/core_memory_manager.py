@@ -40,11 +40,9 @@ class CoreMemoryManager:
         return context
 
     def load(self, file_path):
-        """Load the content of a JSON file into a dictionary."""
         with open(file_path, 'r', encoding='utf-8') as file:
             self.core_memory = json.load(file)
 
     def save(self, file_path):
-        """Save a dictionary as a JSON file."""
         with open(file_path, 'w', encoding='utf-8') as file:
             json.dump(self.core_memory, file, indent=4)

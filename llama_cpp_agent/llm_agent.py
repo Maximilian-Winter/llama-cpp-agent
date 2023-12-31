@@ -145,7 +145,7 @@ class LlamaCppAgent:
                     )
                 if function_tool_registry is not None:
                     full_response = function_tool_registry.handle_function_call(full_response)
-                return full_response.strip()
+                return full_response.strip() if full_response else None
             if stream:
                 full_response = ""
                 for out in completion:
@@ -161,7 +161,7 @@ class LlamaCppAgent:
                     )
                 if function_tool_registry is not None:
                     full_response = function_tool_registry.handle_function_call(full_response)
-                return full_response.strip()
+                return full_response.strip() if full_response else None
             if print_output:
                 text = completion['choices'][0]['text']
                 print(text)
@@ -175,7 +175,7 @@ class LlamaCppAgent:
                     )
                 if function_tool_registry is not None:
                     text = function_tool_registry.handle_function_call(text)
-                return text.strip()
+                return text.strip() if text else None
             text = completion['choices'][0]['text']
             if add_response_to_chat_history:
                 self.messages.append(
@@ -186,7 +186,7 @@ class LlamaCppAgent:
                 )
             if function_tool_registry is not None:
                 text = function_tool_registry.handle_function_call(text)
-            return text.strip()
+            return text.strip() if text else None
         return "Error: No model loaded!"
 
     def remove_last_k_chat_messages(self, k):

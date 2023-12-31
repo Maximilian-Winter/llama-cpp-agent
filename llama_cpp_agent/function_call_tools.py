@@ -12,7 +12,7 @@ class LlamaCppFunctionTool:
     def __init__(self, pydantic_model: Type[BaseModel], has_field_string=False, **additional_parameters):
         self.model = pydantic_model
         self.look_for_field_string = has_field_string
-        self.additional_parameters = additional_parameters
+        self.additional_parameters = additional_parameters if additional_parameters else {}
 
     def __call__(self, *args, **kwargs):
         return self.model(**kwargs)
@@ -88,20 +88,22 @@ class LlamaCppFunctionToolRegistry:
                 content = "\n".join(response_lines)
                 sanitized = sanitize_json_string(response)
                 function_call = json.loads(sanitized)
-                cls = self.function_tools_containing_field_string[function_call["function"]]
+                function_tool = self.function_tools_containing_field_string[function_call["function"]]
+                cls = function_tool.model
                 function_call["function_parameters"]["file_string"] = content
 
                 call_parameters = function_call["function_parameters"]
                 call = cls(**call_parameters)
-                output = call.run(**call.additional_parameters)
+                output = call.run(**function_tool.additional_parameters)
                 return output
 
         sanitized = sanitize_json_string(function_call_response)
         function_call = json.loads(sanitized)
-        cls = self.function_tools[function_call["function"]]
+        function_tool = self.function_tools[function_call["function"]]
+        cls = function_tool.model
         call_parameters = function_call["function_parameters"]
         call = cls(**call_parameters)
-        output = call.run(**call.additional_parameters)
+        output = call.run(**function_tool.additional_parameters)
         return output
 
 

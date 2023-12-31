@@ -5,8 +5,8 @@ from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
 main_model = Llama(
-    "../gguf-models/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
-    n_gpu_layers=15,
+    "../gguf-models/dolphin-2.6-mixtral-8x7b.Q4_K_M.gguf",
+    n_gpu_layers=13,
     f16_kv=True,
     offload_kqv=True,
     use_mlock=False,

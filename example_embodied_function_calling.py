@@ -10,7 +10,7 @@ from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
 
 function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
-                  LlamaCppFunctionTool(WriteTextFile, has_field_string=True)]
+                  LlamaCppFunctionTool(WriteTextFile)]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 

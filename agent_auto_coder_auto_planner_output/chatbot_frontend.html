@@ -7,15 +7,25 @@
     <title>Dark Theme Chat Bot</title>
 </head>
 <body>
-    <!-- Chat Bot Interface -->
     <div class="container">
-        <h1>Welcome to the Dark Theme Chat Bot</h1>
-        <div class="input-group">
-            <input type="text" id="userInput" placeholder="Type your message here...">
-            <button id="sendButton">Send</button>
-        </div>
-        <div class="conversation" id="conversation"></div>
+        <header>
+            <h1>Welcome to the Dark Theme Chat Bot</h1>
+        </header>
+        <main>
+            <section id="chat-window">
+                <!-- Messages will be displayed here -->
+                <div class="message user">Hello! I'm your AI Chat Bot. How can I assist you today?</div>
+            </section>
+            <aside>
+                <section id="user-input">
+                    <label for="user-message" class="sr-only">Your Message:</label>
+                    <input type="text" id="user-message" placeholder="Type your message here...">
+                    <button id="send-button">Send</button>
+                </section>
+            </aside>
+        </main>
     </div>
     <script src="scripts.js"></script>
 </body>
 </html>
+```

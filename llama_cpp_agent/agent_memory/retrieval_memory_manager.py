@@ -1,5 +1,8 @@
+from retrieval_memory import RetrievalMemory
+
+
 class RetrievalMemoryManager:
-    def __init__(self, retrieval_memory):
+    def __init__(self, retrieval_memory: RetrievalMemory):
         self.retrieval_memory = retrieval_memory
 
     def add_memory_to_retrieval(self, description: str, importance: float = 1.0) -> str:

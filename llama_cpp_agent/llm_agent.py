@@ -196,6 +196,13 @@ class LlamaCppAgent:
         # Remove the last k elements
         self.messages = self.messages[:-k] if k > 0 else self.messages
 
+    def remove_first_k_chat_messages(self, k):
+        # Ensure k is not greater than the length of the messages list
+        k = min(k, len(self.messages))
+
+        # Remove the first k elements
+        self.messages = self.messages[k:] if k > 0 else self.messages
+
     def save_messages(self, file_path: str):
         with open(file_path, 'w') as file:
             json.dump(self.messages, file, indent=4)

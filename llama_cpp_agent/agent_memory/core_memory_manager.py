@@ -1,7 +1,5 @@
 import json
 
-from pydantic import BaseModel, Field
-
 
 class CoreMemoryManager:
     def __init__(self, core_memory: dict):
@@ -40,40 +38,3 @@ class CoreMemoryManager:
         output = json.dumps(self.core_memory, indent=4)
         context = f"# Core-Memory:\n{output if output != '{}' else 'Empty'}"
         return context
-
-
-class AddCoreMemoryModel(BaseModel):
-    """
-    Add a new entry to the core memory.
-    """
-    key: str = Field(..., description="The key identifier for the core memory entry.")
-    field: str = Field(..., description="A secondary key or field within the core memory entry.")
-    value: str = Field(..., description="The value or data to be stored in the specified core memory entry.")
-
-    def run(self, core_memory_manager: CoreMemoryManager):
-        return core_memory_manager.add_to_core_memory(self.key, self.field, self.value)
-
-
-# Replace Core Memory Model
-class ReplaceCoreMemoryModel(BaseModel):
-    """
-    Replace an entry in the core memory.
-    """
-    key: str = Field(..., description="The key identifier for the core memory entry.")
-    field: str = Field(..., description="The specific field within the core memory entry to be replaced.")
-    new_value: str = Field(...,
-                           description="The new value to replace the existing data in the specified core memory field.")
-
-    def run(self, core_memory_manager: CoreMemoryManager):
-        return core_memory_manager.replace_in_core_memory(self.key, self.field, self.value)
-
-
-class RemoveCoreMemoryModel(BaseModel):
-    """
-    Remove an entry in the core memory.
-    """
-    key: str = Field(..., description="The key identifier for the core memory entry to be removed.")
-    field: str = Field(..., description="The specific field within the core memory entry to be removed.")
-
-    def run(self, core_memory_manager: CoreMemoryManager):
-        return core_memory_manager.remove_from_core_memory(self.key, self.field)

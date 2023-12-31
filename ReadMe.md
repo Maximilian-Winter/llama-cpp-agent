@@ -110,21 +110,19 @@ wrapped_model.get_chat_response(text, temperature=0.15, grammar=grammar)
 ### Function Calling Example
 This example shows how to do function calling.
 ```python
-import json
-
-from llama_cpp import Llama, LlamaGrammar
+from llama_cpp import Llama
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import
-    generate_gbnf_grammar_and_documentation, sanitize_json_string
+
 
 from example_function_call_models import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
+from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
 
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
-    [SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile], False,"function", "function_params", "Function",
-    "Function Parameter")
-grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
+function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
+                  LlamaCppFunctionTool(WriteTextFile)]
+
+function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 main_model = Llama(
     "../gguf-models/dolphin-2.6-mistral-7b-Q8_0.gguf",
@@ -140,19 +138,12 @@ main_model = Llama(
     seed=42,
 )
 wrapped_model = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n" + documentation,
+                              system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n" + function_tool_registry.get_documentation(),
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
 response = wrapped_model.get_chat_response('Write a long poem about the USA in the "HelloUSA.txt" file under "./".',
-                                           temperature=0.75, grammar=grammar)
+                                           temperature=0.75, function_tool_registry=function_tool_registry)
 
-sanitized = sanitize_json_string(response)
-function_call = json.loads(sanitized)
-
-if function_call["function"] == "write-text-file":
-    call_parameters = function_call["function_params"]
-    call = WriteTextFile(**call_parameters)
-    call.run()
 
 ```
 
@@ -160,27 +151,21 @@ if function_call["function"] == "write-text-file":
 Auto coding agent example
 ```python
 import datetime
-import json
 
-from llama_cpp import Llama, LlamaGrammar
+from llama_cpp import Llama
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import
-    generate_gbnf_grammar_and_documentation, sanitize_json_string, map_grammar_names_to_pydantic_model_class
 
 from example_agent_models_auto_coder import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile,
     agent_dev_folder_setup
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
-pydantic_function_models = [GetFileList, ReadTextFile, WriteTextFile]
+from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
 
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
-    pydantic_function_models, True, "function", "function_parameters", "Function",
-    "Function Parameter")
+function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
+                  LlamaCppFunctionTool(WriteTextFile, has_field_string=True)]
 
-grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
-
-output_to_pydantic_model = map_grammar_names_to_pydantic_model_class(pydantic_function_models)
+function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 main_model = Llama(
     "../gguf-models/neuralhermes-2.5-mistral-7b.Q8_0.gguf",
@@ -197,59 +182,37 @@ main_model = Llama(
     seed=42,
 )
 
-system_prompt = f'''You are an advanced AI agent called AutoPlanner. As AutoPlanner your primary task is to autonomously plan complete software projects based on user specifications. Your output is constrained to write files and performa specific function calls. Here are your available functions:
+system_prompt_planner = f'''You are an advanced AI agent called AutoPlanner. As AutoPlanner your primary task is to autonomously plan complete software projects based on user specifications. You will create a complete development plans.  Your output is constrained to write JSON function call objects. The content of files is constrained to markdown code blocks with different content types like HTML, CSS, Javascript, Python or  Markdown. Here are your available functions:
 
-{documentation}'''.strip()
-system_prompt = f'''You are an advanced AI agent called AutoCoder. As AutoCoder your primary task is to autonomously plan, outline and implement complete software projects based on user specifications. Your output is constrained to write files and performa specific function calls. Here are your available functions:
+{function_tool_registry.get_documentation()}'''.strip()
+system_prompt_coder = f'''You are an advanced AI agent called AutoCoder. As AutoCoder your primary task is to autonomously implement complete software projects based on a development plan. Your output is constrained to write JSON function call objects. The content of files is constrained to markdown code blocks with different content types like HTML, CSS, Javascript, Python or  Markdown. Here are your available functions:
 
-{documentation}'''.strip()
+{function_tool_registry.get_documentation()}'''.strip()
 
-task = 'Implement a chat bot frontend in HTML, CSS and Javascript with a dark UI under the "./workspace" folder without.'
-
+task = 'Create a complete development plan for a chat bot frontend in HTML, CSS and Javascript with a dark UI.'
+task_implement = 'Implement the existing development plan in the "./" folder, for a chat bot frontend in HTML, CSS and Javascript with a dark UI.'
 timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
 
-agent_dev_folder_setup(f"dev_{timestamp}")
-
-wrapped_model = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt=system_prompt,
+# agent_dev_folder_setup(f"dev_{timestamp}")
+agent_dev_folder_setup("agent_auto_coder_auto_planner_output")
+planner_agent = LlamaCppAgent(main_model, debug_output=True,
+                              system_prompt=system_prompt_planner,
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
-user_input = task
+coder_agent = LlamaCppAgent(main_model, debug_output=True,
+                            system_prompt=system_prompt_coder,
+                            predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+user_input = task_implement
 while True:
 
     if user_input is None:
         user_input = "Proceed with next step."
 
-    response = wrapped_model.get_chat_response(
+    user_input = coder_agent.get_chat_response(
         user_input,
-        temperature=0.25, top_p=1.0, top_k=0, tfs_z=0.95, repeat_penalty=1.1, grammar=grammar)
+        temperature=0.25, top_p=1.0, top_k=0, tfs_z=0.95, repeat_penalty=1.12, function_tool_registry=function_tool_registry)
 
-    if "write-text-file" in response:
-        response_lines = response.split("\n")
 
-        # Get the first line JSON object
-        response = response_lines[0]
-        # Remove the first line
-        response_lines.pop(0)
-        # Remove the first line Markdown code block marker
-        response_lines.pop(0)
-        # Remove the last line Markdown code block marker
-        response_lines.pop(-1)
-        # Combine lines into a single string
-        content = "\n".join(response_lines)
-        sanitized = sanitize_json_string(response)
-        function_call = json.loads(sanitized)
-        cls = output_to_pydantic_model[function_call["function"]]
-        function_call["function_parameters"]["file_string"] = content
-
-    else:
-        sanitized = sanitize_json_string(response)
-        function_call = json.loads(sanitized)
-        cls = output_to_pydantic_model[function_call["function"]]
-
-    call_parameters = function_call["function_parameters"]
-    call = cls(**call_parameters)
-    user_input = call.run()
 
 ```
 

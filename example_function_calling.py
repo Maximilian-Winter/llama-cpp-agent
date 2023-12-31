@@ -1,6 +1,4 @@
-import json
-
-from llama_cpp import Llama, LlamaGrammar
+from llama_cpp import Llama
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 

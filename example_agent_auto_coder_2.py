@@ -17,8 +17,8 @@ function_tools = [LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTe
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 main_model = Llama(
-    "../gguf-models/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
-    n_gpu_layers=13,
+    "../gguf-models/solarc-moe-10.7bx4.Q4_K_M.gguf",
+    n_gpu_layers=25,
     f16_kv=True,
     offload_kqv=True,
     use_mlock=False,
@@ -53,7 +53,7 @@ agent_dev_folder_setup(f"dev_{timestamp}")
 # agent_dev_folder_setup("agent_auto_coder_auto_planner_output")
 planner_agent = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt=system_prompt_coder_planner,
-                              predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+                              predefined_messages_formatter_type=MessagesFormatterType.SOLAR)
 
 user_input = task_implement
 while True:

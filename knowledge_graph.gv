@@ -1,0 +1,23 @@
+// Knowledge Graph
+digraph {
+	0 [label="Quantum Mechanics" color="#6db3f2"]
+	1 [label="Wave-Particle Duality" color="#f28e2c"]
+	2 [label="Quantum Superposition" color="#e15759"]
+	3 [label="Quantum Entanglement" color="#7aa2c2"]
+	4 [label="Schrödinger's Equation" color="#f2b541"]
+	5 [label="Quantum Tunneling" color="#54a0c8"]
+	6 [label="Quantum Field Theory" color="#4bacc6"]
+	7 [label="Uncertainty Principle" color="#f2963f"]
+	8 [label="Matrix Mechanics" color="#a63963"]
+	9 [label="Heisenberg's Uncertainty Principle" color="#62a8ea"]
+	0 -> 1 [label="is a fundamental concept" color="#6db3f2"]
+	0 -> 2 [label="is a fundamental concept" color="#6db3f2"]
+	0 -> 3 [label="is a fundamental concept" color="#6db3f2"]
+	0 -> 4 [label="is described by" color="#6db3f2"]
+	0 -> 5 [label="includes the phenomenon of" color="#6db3f2"]
+	0 -> 6 [label="is an extension of" color="#6db3f2"]
+	1 -> 7 [label="is related to" color="#f28e2c"]
+	2 -> 7 [label="is related to" color="#e15759"]
+	4 -> 8 [label="is based on" color="#f2b541"]
+	7 -> 9 [label="is a specific case of" color="#f2963f"]
+}

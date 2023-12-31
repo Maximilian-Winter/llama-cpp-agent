@@ -1,8 +1,8 @@
 from pydantic import BaseModel, Field
 
-from function_call_tools import LlamaCppFunctionTool
-from agent_memory.core_memory_manager import CoreMemoryManager
-from agent_memory.retrieval_memory_manager import RetrievalMemoryManager, RetrievalMemory
+from .function_call_tools import LlamaCppFunctionTool
+from .agent_memory.core_memory_manager import CoreMemoryManager
+from .agent_memory.retrieval_memory_manager import RetrievalMemoryManager, RetrievalMemory
 
 
 class AddCoreMemory(BaseModel):
@@ -92,10 +92,12 @@ class AgentCoreMemory:
                                                          core_memory_manager=self.core_memory_manager)
         self.replace_core_memory_tool = LlamaCppFunctionTool(ReplaceCoreMemory,
                                                              core_memory_manager=self.core_memory_manager)
-        self.remove_core_memory_tool = LlamaCppFunctionTool(RemoveCoreMemory, core_memory_manager=self.core_memory_manager)
+        self.remove_core_memory_tool = LlamaCppFunctionTool(RemoveCoreMemory,
+                                                            core_memory_manager=self.core_memory_manager)
 
     def get_core_memory_manager(self):
         return self.core_memory_manager
+
     def get_tool_list(self):
         return [self.add_core_memory_tool, self.replace_core_memory_tool, self.remove_core_memory_tool]
 
@@ -107,4 +109,3 @@ class AgentCoreMemory:
 
     def get_remove_core_memory_tool(self):
         return self.remove_core_memory_tool
-

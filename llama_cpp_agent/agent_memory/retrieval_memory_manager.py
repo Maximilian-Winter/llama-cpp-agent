@@ -1,4 +1,4 @@
-from retrieval_memory import RetrievalMemory
+from .retrieval_memory import RetrievalMemory
 
 
 class RetrievalMemoryManager:

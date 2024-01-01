@@ -9,7 +9,8 @@ from llama_cpp import Llama, LlamaGrammar
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import generate_gbnf_grammar_and_documentation
+from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import \
+    generate_gbnf_grammar_and_documentation
 
 main_model = Llama(
     "../gguf-models/solarc-moe-10.7bx4.Q4_K_M.gguf",
@@ -25,6 +26,7 @@ main_model = Llama(
     verbose=True,
     seed=42,
 )
+
 
 class Node(BaseModel):
     id: int
@@ -44,18 +46,16 @@ class KnowledgeGraph(BaseModel):
     edges: List[Edge] = Field(..., default_factory=list)
 
 
-
-
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([KnowledgeGraph],False)
+gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([KnowledgeGraph], False,
+                                                                      model_prefix="Response Model",
+                                                                      fields_prefix="Response Model Field")
 
 print(gbnf_grammar)
 grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)
 
-
 wrapped_model = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt="You are an advanced AI assistant, developed by OpenAI, responding in JSON format.\n\nAvailable JSON response models:\n\n" + documentation,
                               predefined_messages_formatter_type=MessagesFormatterType.SOLAR)
-
 
 from graphviz import Digraph
 

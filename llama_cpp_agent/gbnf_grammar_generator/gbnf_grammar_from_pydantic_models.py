@@ -2,6 +2,7 @@ import inspect
 import json
 import re
 import typing
+from copy import copy
 from inspect import isclass, getdoc
 from types import NoneType
 
@@ -34,6 +35,7 @@ class PydanticDataType(Enum):
     OBJECT = "object"
     ARRAY = "array"
     ENUM = "enum"
+    ANY = "any"
     CUSTOM_CLASS = "custom-class"
 
 
@@ -48,6 +50,7 @@ def map_pydantic_type_to_gbnf(pydantic_type: Type[Any]) -> str:
         return PydanticDataType.FLOAT.value
     elif isclass(pydantic_type) and issubclass(pydantic_type, Enum):
         return PydanticDataType.ENUM.value
+
     elif isclass(pydantic_type) and issubclass(pydantic_type, BaseModel):
         return format_model_and_field_name(pydantic_type.__name__)
     elif get_origin(pydantic_type) == list:
@@ -105,10 +108,15 @@ def get_members_structure(cls, rule_name):
         result += '", "'.join(members)
         result += ' ws "}"'
         return result, type_list_rules
+    elif rule_name == "custom-class-any":
+        result = f'{rule_name} ::=  '
+        result += 'string | boolean | integer | float '
+        type_list_rules = []
+        return result, type_list_rules
     else:
         init_signature = inspect.signature(cls.__init__)
         parameters = init_signature.parameters
-        result = f'{cls.__name__.lower()} ::= "{{"'
+        result = f'{rule_name} ::=  "{{"'
         type_list_rules = []
         # Modify this comprehension too
         members = [f' ws \"\\\"{name}\\\"\" ws ":" ws {map_pydantic_type_to_gbnf(param.annotation)}'
@@ -285,6 +293,7 @@ def generate_gbnf_rule_for_type(model_name, look_for_file_string, field_name, fi
         array_rule = f"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* ws "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
+
     elif gbnf_type.startswith("custom-class-"):
         nested_model_rules, field_types = get_members_structure(field_type, gbnf_type)
         rules.append(nested_model_rules)
@@ -620,6 +629,10 @@ def generate_text_documentation(pydantic_models: List[Type[BaseModel]], model_pr
         documentation += f"  {fields_prefix}:\n"
         if isclass(model) and issubclass(model, BaseModel):
             for name, field_type in model.__annotations__.items():
+                if get_origin(field_type) == list:
+                    element_type = get_args(field_type)[0]
+                    if isclass(element_type) and issubclass(element_type, BaseModel):
+                        pydantic_models.append(element_type)
                 documentation += generate_field_text(name, field_type, model)
             documentation += "\n"
 
@@ -634,7 +647,11 @@ def generate_text_documentation(pydantic_models: List[Type[BaseModel]], model_pr
 
 def generate_field_text(field_name: str, field_type: Type[Any], model: Type[BaseModel], depth=1) -> str:
     indent = '    ' * depth
-    field_text = f"{indent}{field_name} ({field_type.__name__}): \n"
+    if get_origin(field_type) == list:
+        element_type = get_args(field_type)[0]
+        field_text = f"{indent}{field_name} ({format_model_and_field_name(field_type.__name__)} of {format_model_and_field_name(element_type.__name__)}): \n"
+    else:
+        field_text = f"{indent}{field_name} ({format_model_and_field_name(field_type.__name__)}): \n"
 
     field_info = model.model_fields.get(field_name)
     field_description = field_info.description if field_info and field_info.description else "No description available."
@@ -654,6 +671,8 @@ def generate_field_text(field_name: str, field_type: Type[Any], model: Type[Base
         field_text += f"{indent}  Details:\n"
         for name, type_ in field_type.__annotations__.items():
             field_text += generate_field_text(name, type_, field_type, depth + 2)
+
+
 
     return field_text
 
@@ -703,9 +722,9 @@ def generate_gbnf_grammar_and_documentation(pydantic_model_list, look_file_strin
                                             root_rule_content: str = None,
                                             model_prefix: str = "Output Model",
                                             fields_prefix: str = "Output Fields", allow_one_and_more: bool = False, allow_none_and_more: bool = False ):
-    documentation = generate_text_documentation(pydantic_model_list, model_prefix, fields_prefix)
+    documentation = generate_text_documentation(copy(pydantic_model_list), model_prefix, fields_prefix)
     grammar = generate_gbnf_grammar_from_pydantic(pydantic_model_list, look_file_string, root_rule_class, root_rule_content, allow_one_and_more, allow_none_and_more)
-    grammar = remove_empty_lines(grammar + get_primitive_grammar(grammar))
+    grammar = remove_empty_lines(grammar.replace("ws", 'ws|"\\n" ', 1) + get_primitive_grammar(grammar))
     return grammar, documentation
 
 

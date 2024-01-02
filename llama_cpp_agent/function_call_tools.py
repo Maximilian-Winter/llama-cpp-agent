@@ -79,7 +79,7 @@ class LlamaCppFunctionToolRegistry:
                     function_call, content = parse_json_response_with_file_string(function_call_response)
                     function_call["function_parameters"]["file_string"] = content
 
-                    output = self.intern_function_call(function_call)
+                    output = self.intern_function_call(function_call, with_file_string=True)
                     return output
 
             function_call = parse_json_response(function_call_response)
@@ -89,9 +89,12 @@ class LlamaCppFunctionToolRegistry:
         except AttributeError as e:
             return f"Error: {e}"
 
-    def intern_function_call(self, function_call: dict):
-        try:
+    def intern_function_call(self, function_call: dict, with_file_string=False):
+        if with_file_string:
+            function_tool = self.function_tools_containing_field_string[function_call["function"]]
+        else:
             function_tool = self.function_tools[function_call["function"]]
+        try:
             cls = function_tool.model
             call_parameters = function_call["function_parameters"]
             call = cls(**call_parameters)

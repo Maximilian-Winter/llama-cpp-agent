@@ -3,7 +3,7 @@ from llama_cpp import Llama
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
 
-from example_function_call_models import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile
+from example_advanced_function_call_models import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
 
@@ -25,10 +25,10 @@ main_model = Llama(
     verbose=False,
     seed=42,
 )
-wrapped_model = LlamaCppAgent(main_model, debug_output=True,
+llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n" + function_tool_registry.get_documentation(),
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
-response = wrapped_model.get_chat_response('Write a long poem about the USA in the "HelloUSA.txt" file under "./".',
+response = llama_cpp_agent.get_chat_response('Write a long poem about the USA in the "HelloUSA.txt" file under "./".',
                                            temperature=0.75, function_tool_registry=function_tool_registry)
 

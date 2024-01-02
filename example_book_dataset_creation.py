@@ -47,9 +47,9 @@ print(gbnf_grammar)
 grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)
 
 
-wrapped_model = LlamaCppAgent(main_model, debug_output=True,
+llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt="You are an advanced AI, tasked to create JSON database entries for books.\n\n\n" + documentation)
 
 
-wrapped_model.get_chat_response(text, temperature=0.15, grammar=grammar)
+llama_cpp_agent.get_chat_response(text, temperature=0.15, grammar=grammar)
 

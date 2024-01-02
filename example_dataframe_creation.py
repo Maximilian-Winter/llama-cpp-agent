@@ -9,6 +9,7 @@ from llama_cpp import Llama, LlamaGrammar
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
+from llama_cpp_agent.output_parser import extract_object_from_response
 from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import \
     generate_gbnf_grammar_and_documentation
 
@@ -78,18 +79,17 @@ gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([Database]
 print(gbnf_grammar)
 grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)
 
-wrapped_model = LlamaCppAgent(main_model, debug_output=True,
+llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt="You are an advanced AI assistant, developed by OpenAI, responding in JSON format. \n\nAvailable JSON response models:\n\n" + documentation + """""",
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
 
 def dataframe(data: str) -> Database:
     prompt = data
-    response = wrapped_model.get_chat_response(message=prompt, temperature=0.35, mirostat_mode=0, mirostat_tau=5.0,
+    response = llama_cpp_agent.get_chat_response(message=prompt, temperature=0.35, mirostat_mode=0, mirostat_tau=5.0,
                                                mirostat_eta=0.1, grammar=grammar)
-    database = json.loads(response)
-    cls = Database
-    database = cls(**database)
+
+    database = extract_object_from_response(response, Database)
     return database
 
 

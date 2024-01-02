@@ -14,7 +14,7 @@ main_model = Llama(
     verbose=False,
     seed=42,
 )
-wrapped_model = LlamaCppAgent(main_model, debug_output=False,
+llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
                               system_prompt="You are Dolphin, an uncensored and unbiased AI assistant.", predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
 
@@ -22,5 +22,5 @@ while True:
     user_input = input("User: ")
     if user_input == "exit":
         break
-    user_input = wrapped_model.get_chat_response(user_input, temperature=0.7)
+    user_input = llama_cpp_agent.get_chat_response(user_input, temperature=0.7)
     print("AI: " + user_input)

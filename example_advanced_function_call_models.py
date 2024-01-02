@@ -118,3 +118,6 @@ class SendMessageToUser(BaseModel):
     chain_of_thought: str = Field(...,
                                   description="Your inner thoughts or chain of thoughts while writing the message to the user.")
     message: str = Field(..., description="Message you want to send to the user.")
+
+    def run(self):
+        return print(self.message)

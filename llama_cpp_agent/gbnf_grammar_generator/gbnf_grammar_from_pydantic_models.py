@@ -464,8 +464,8 @@ def generate_gbnf_grammar(model: Type[BaseModel], look_for_file_string, processe
     return all_rules
 
 
-def generate_gbnf_grammar_from_pydantic(models: List[Type[BaseModel]], look_for_file_string=False, root_rule_class: str = None,
-                                        root_rule_content: str = None, allow_one_and_more: bool = False, allow_none_and_more: bool = False) -> str:
+def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], look_for_file_string=False, root_rule_class: str = None,
+                                               root_rule_content: str = None, list_of_outputs: bool = False) -> str:
     """
     Generate GBNF Grammar from Pydantic Models.
 
@@ -497,20 +497,13 @@ def generate_gbnf_grammar_from_pydantic(models: List[Type[BaseModel]], look_for_
             model_rules = generate_gbnf_grammar(model, look_for_file_string, processed_models, created_rules)
             all_rules.extend(model_rules)
 
-        root_rule = "root ::= " + " | ".join([format_model_and_field_name(model.__name__) for model in models])
+        root_rule = "root ::= grammar-models\n" + "grammar-models ::= " + " | ".join([format_model_and_field_name(model.__name__) for model in models])
         all_rules.insert(0, root_rule)
-        return "\n".join(all_rules)
+        return ("\n".join(all_rules)).replace("ws", '(ws | "\\n")', 1)
     elif root_rule_class is not None:
-        root_rule = f"root ::= {format_model_and_field_name(root_rule_class)}"
+        root_rule = f"root ::= {format_model_and_field_name(root_rule_class)}\n"
 
-        if allow_one_and_more or allow_none_and_more:
-            if allow_one_and_more:
-                root_rule += "+\n"
-            else:
-                root_rule += "*\n"
-        else:
-            root_rule += "\n"
-        model_rule = fr'{format_model_and_field_name(root_rule_class)} ::= "{{" ws "\"{root_rule_class}\"" ":" ws grammar-models'
+        model_rule = fr'{format_model_and_field_name(root_rule_class)} ::= (ws | "\n") "{{" ws "\"{root_rule_class}\"" ":" ws grammar-models'
         if not look_for_file_string:
             model_rule += '"}"'
         fields_joined = " | ".join(
@@ -710,21 +703,20 @@ def generate_and_save_gbnf_grammar_and_documentation(pydantic_model_list, look_f
                                                      documentation_file_path="./generated_grammar_documentation.md",
                                                      root_rule_class: str = None, root_rule_content: str = None,
                                                      model_prefix: str = "Output Model",
-                                                     fields_prefix: str = "Output Fields", allow_one_and_more: bool = False, allow_none_and_more: bool = False ):
+                                                     fields_prefix: str = "Output Fields", list_of_outputs: bool = False ):
     documentation = generate_text_documentation(pydantic_model_list, model_prefix, fields_prefix)
-    grammar = generate_gbnf_grammar_from_pydantic(pydantic_model_list, look_file_string, root_rule_class, root_rule_content, allow_one_and_more, allow_none_and_more)
+    grammar = generate_gbnf_grammar_from_pydantic_models(pydantic_model_list, look_file_string, root_rule_class, root_rule_content, list_of_outputs)
     grammar = remove_empty_lines(grammar)
-    print(grammar)
     save_gbnf_grammar_and_documentation(grammar, documentation, grammar_file_path, documentation_file_path)
 
 
 def generate_gbnf_grammar_and_documentation(pydantic_model_list, look_file_string=False, root_rule_class: str = None,
                                             root_rule_content: str = None,
                                             model_prefix: str = "Output Model",
-                                            fields_prefix: str = "Output Fields", allow_one_and_more: bool = False, allow_none_and_more: bool = False ):
+                                            fields_prefix: str = "Output Fields", list_of_outputs: bool = False ):
     documentation = generate_text_documentation(copy(pydantic_model_list), model_prefix, fields_prefix)
-    grammar = generate_gbnf_grammar_from_pydantic(pydantic_model_list, look_file_string, root_rule_class, root_rule_content, allow_one_and_more, allow_none_and_more)
-    grammar = remove_empty_lines(grammar.replace("ws", 'ws|"\\n" ', 1) + get_primitive_grammar(grammar))
+    grammar = generate_gbnf_grammar_from_pydantic_models(pydantic_model_list, look_file_string, root_rule_class, root_rule_content, list_of_outputs)
+    grammar = remove_empty_lines(grammar + get_primitive_grammar(grammar))
     return grammar, documentation
 
 
@@ -736,15 +728,3 @@ def map_grammar_names_to_pydantic_model_class(pydantic_model_list):
     return output
 
 
-class YourModel(BaseModel):
-    float_field: float = Field(default=..., description="TEST", max_precision=2, min_precision=1)
-    integer_field: int = Field(default=..., description="TEST", max_digit=5, min_digit=3)
-    float_field2: float = Field(default=..., description="TEST", max_digit=5, min_digit=3, max_precision=2,
-                                min_precision=1)
-    integer_field2: int = Field(default=..., description="TEST", max_digit=5, min_digit=3)
-
-
-# generate_and_save_gbnf_grammar_and_documentation([YourModel])
-def sanitize_json_string(s):
-    # Escaping newlines, quotes, and backslashes
-    return s.replace('\n', '\\n').replace('\r', '\\r')

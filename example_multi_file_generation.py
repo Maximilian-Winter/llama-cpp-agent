@@ -61,14 +61,14 @@ gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(pydantic_m
 print(gbnf_grammar)
 grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)
 
-wrapped_model = LlamaCppAgent(main_model, debug_output=True,
+llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt="You are a world class programming AI capable of writing correct python scripts and modules. You will name files correct, include __init__.py files and write correct python code with correct imports.\n\nYou are responding in JSON format.\n\nAvailable JSON response models:\n\n" + documentation.strip() + "\n\nAlways provide full implementation to the user!!!!",
                               predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL)
 
 
 def develop(data: str) -> Program:
     prompt = data
-    response = wrapped_model.get_chat_response(message=prompt, temperature=0.35, mirostat_mode=2, mirostat_tau=4.0,
+    response = llama_cpp_agent.get_chat_response(message=prompt, temperature=0.35, mirostat_mode=2, mirostat_tau=4.0,
                                                mirostat_eta=0.1, grammar=grammar)
     json_obj = json.loads(response)
     cls = Program

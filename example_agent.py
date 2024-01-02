@@ -33,7 +33,7 @@ system_prompt = f'''You are an advanced AI agent called AutoCoder. As AutoCoder 
 Here are your available functions:
 {function_tool_registry.get_documentation()}'''.strip()
 
-wrapped_model = LlamaCppAgent(main_model, debug_output=True,
+llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt=system_prompt,
                               predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL)
 
@@ -43,7 +43,7 @@ while True:
     if user_input is None:
         user_input = "Proceed."
 
-    user_input = wrapped_model.get_chat_response(
+    user_input = llama_cpp_agent.get_chat_response(
         user_input,
         temperature=0.35, mirostat_mode=2, mirostat_tau=3.0, mirostat_eta=0.1, function_tool_registry=function_tool_registry)
 

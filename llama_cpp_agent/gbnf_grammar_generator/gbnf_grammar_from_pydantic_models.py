@@ -1,13 +1,10 @@
 import inspect
 import json
-import re
-import typing
 from copy import copy
 from inspect import isclass, getdoc
 from types import NoneType
 
-from pydantic import BaseModel, Field
-from pydantic.fields import FieldInfo
+from pydantic import BaseModel
 from typing import Any, Type, List, get_args, get_origin, Tuple, Union, Optional
 from enum import Enum
 
@@ -497,9 +494,13 @@ def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], lo
             model_rules = generate_gbnf_grammar(model, look_for_file_string, processed_models, created_rules)
             all_rules.extend(model_rules)
 
-        root_rule = "root ::= grammar-models\n" + "grammar-models ::= " + " | ".join([format_model_and_field_name(model.__name__) for model in models])
+        if list_of_outputs:
+            root_rule = 'root ::=  (ws | "\\n") "[" ws grammar-models ("," ws grammar-models)* ws "]"\n'
+        else:
+            root_rule = 'root ::= (ws | "\\n") grammar-models\n'
+        root_rule += "grammar-models ::= " + " | ".join([format_model_and_field_name(model.__name__) for model in models])
         all_rules.insert(0, root_rule)
-        return ("\n".join(all_rules)).replace("ws", '(ws | "\\n")', 1)
+        return "\n".join(all_rules)
     elif root_rule_class is not None:
         root_rule = f"root ::= {format_model_and_field_name(root_rule_class)}\n"
 
@@ -608,8 +609,12 @@ def format_json_example(example: dict, depth: int) -> str:
 def generate_text_documentation(pydantic_models: List[Type[BaseModel]], model_prefix="Model",
                                 fields_prefix="Fields") -> str:
     documentation = ""
-    for model in pydantic_models:
-        documentation += f"{model_prefix}: {format_model_and_field_name(model.__name__)}\n"
+    pyd_models = [(model, True) for model in pydantic_models]
+    for model, add_prefix in pyd_models:
+        if add_prefix:
+            documentation += f"{model_prefix}: {format_model_and_field_name(model.__name__)}\n"
+        else:
+            documentation += f"Model: {format_model_and_field_name(model.__name__)}\n"
 
         # Handling multi-line model description with proper indentation
         documentation += "  Description: "
@@ -618,14 +623,17 @@ def generate_text_documentation(pydantic_models: List[Type[BaseModel]], model_pr
         class_description = class_doc if class_doc and class_doc != base_class_doc else "No specific description available."
         documentation += "\n" + format_multiline_description(class_description, 2) + "\n\n"
 
-        # Indenting the fields section
-        documentation += f"  {fields_prefix}:\n"
+        if add_prefix:
+            # Indenting the fields section
+            documentation += f"  {fields_prefix}:\n"
+        else:
+            documentation += f"  Fields:\n"
         if isclass(model) and issubclass(model, BaseModel):
             for name, field_type in model.__annotations__.items():
                 if get_origin(field_type) == list:
                     element_type = get_args(field_type)[0]
                     if isclass(element_type) and issubclass(element_type, BaseModel):
-                        pydantic_models.append(element_type)
+                        pyd_models.append((element_type, False))
                 documentation += generate_field_text(name, field_type, model)
             documentation += "\n"
 

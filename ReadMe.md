@@ -266,7 +266,8 @@ def generate_graph(user_input: str) -> KnowledgeGraph:
 graph = generate_graph("Teach me about quantum mechanics")
 visualize_knowledge_graph(graph)
 ```
-
+Example Output:
+![KG](https://raw.githubusercontent.com/Maximilian-Winter/llama-cpp-agent/master/generated_knowledge_graph_example/knowledge_graph.png)
 ### Auto coding agent
 Auto coding agent example
 ```python

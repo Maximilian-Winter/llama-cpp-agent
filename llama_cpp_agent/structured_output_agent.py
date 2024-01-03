@@ -46,5 +46,5 @@ class StructuredOutputAgent:
         else:
             prompt = self.creation_prompter.generate_prompt({"user_input": data})
 
-        response = self.llama_cpp_agent.get_chat_response(prompt, temperature=0.35, system_prompt=system_prompt, grammar=llama_grammar, add_response_to_chat_history=False, add_message_to_chat_history=False)
+        response = self.llama_cpp_agent.get_chat_response(prompt, temperature=0.25, system_prompt=system_prompt, grammar=llama_grammar, add_response_to_chat_history=False, add_message_to_chat_history=False)
         return extract_object_from_response(response, model)

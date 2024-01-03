@@ -141,39 +141,25 @@ visualize_knowledge_graph(graph)
 ```
 
 ### Structured Output
-This example shows how to get structured JSON output.
+This example shows how to get structured JSON output using the StructureOutputAgent class.
 ```python
+# Example agent that uses the StructuredOutputAgent class to create a dataset entry of a book out of unstructured data.
+
 from enum import Enum
 
-from llama_cpp import Llama, LlamaGrammar
+from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import generate_gbnf_grammar_and_documentation
-
-main_model = Llama(
-    "../gguf-models/dpopenhermes-7b-v2.Q8_0.gguf",
-    n_gpu_layers=35,
-    f16_kv=True,
-    use_mlock=False,
-    embedding=False,
-    n_threads=8,
-    n_batch=1024,
-    n_ctx=8192,
-    last_n_tokens_size=1024,
-    verbose=False,
-    seed=-1,
-)
+from llama_cpp_agent.structured_output_agent import StructuredOutputAgent
 
 
-text = """The Feynman Lectures on Physics is a physics textbook based on some lectures by Richard Feynman, a Nobel laureate who has sometimes been called "The Great Explainer". The lectures were presented before undergraduate students at the California Institute of Technology (Caltech), during 1961–1963. The book's co-authors are Feynman, Robert B. Leighton, and Matthew Sands."""
-
-
+# Example enum for our output model
 class Category(Enum):
     Fiction = "Fiction"
     NonFiction = "Non-Fiction"
 
 
+# Example output model
 class Book(BaseModel):
     """
     Represents an entry about a book.
@@ -186,19 +172,25 @@ class Book(BaseModel):
     summary: str = Field(..., description="Summary of the book.")
 
 
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([Book] ,False)
+main_model = Llama(
+    "../gguf-models/nous-hermes-2-solar-10.7b.Q6_K.gguf",
+    n_gpu_layers=49,
+    offload_kqv=True,
+    f16_kv=True,
+    use_mlock=False,
+    embedding=False,
+    n_threads=8,
+    n_batch=1024,
+    n_ctx=4096,
+    last_n_tokens_size=1024,
+    verbose=False,
+    seed=42,
+)
 
-print(gbnf_grammar)
-grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)
+structured_output_agent = StructuredOutputAgent(main_model, debug_output=True)
 
-
-llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt="You are an advanced AI, tasked to create JSON database entries for books.\n\n\n" + documentation)
-
-
-llama_cpp_agent.get_chat_response(text, temperature=0.15, grammar=grammar)
-
-
+text = """The Feynman Lectures on Physics is a physics textbook based on some lectures by Richard Feynman, a Nobel laureate who has sometimes been called "The Great Explainer". The lectures were presented before undergraduate students at the California Institute of Technology (Caltech), during 1961–1963. The book's co-authors are Feynman, Robert B. Leighton, and Matthew Sands."""
+print(structured_output_agent.create_object(Book, text))
 ```
 
 

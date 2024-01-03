@@ -15,6 +15,7 @@ class StructuredOutputAgent:
 
     def __init__(self, llama_llm: Llama, messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
                  debug_output: bool = False):
+        self.grammar_cache = {}
         self.system_prompter = Prompter.from_string(
             "You are an advanced AI agent. You are tasked to assist the user by creating structured output in JSON format.\n\n{documentation}")
         self.creation_prompter = Prompter.from_string(
@@ -30,15 +31,20 @@ class StructuredOutputAgent:
         :param data: The data to create the object from.
         :return: The created object.
         """
-        grammar, documentation = generate_gbnf_grammar_and_documentation([model], False,
-                                                                         model_prefix="Response Model",
-                                                                         fields_prefix="Response Model Field")
+        if model not in self.grammar_cache:
+            grammar, documentation = generate_gbnf_grammar_and_documentation([model], False,
+                                                                             model_prefix="Response Model",
+                                                                             fields_prefix="Response Model Field")
+            llama_grammar = LlamaGrammar.from_string(grammar, verbose=False)
+            self.grammar_cache[model] = grammar, documentation, llama_grammar
+        else:
+            grammar, documentation, llama_grammar = self.grammar_cache[model]
+
         system_prompt = self.system_prompter.generate_prompt({"documentation": documentation})
-        grammar = LlamaGrammar.from_string(grammar, verbose=False)
         if data == "":
             prompt = "Create a random JSON response based on the response model."
         else:
             prompt = self.creation_prompter.generate_prompt({"user_input": data})
 
-        response = self.llama_cpp_agent.get_chat_response(prompt, temperature=0.35, system_prompt=system_prompt, grammar=grammar, add_response_to_chat_history=False, add_message_to_chat_history=False)
+        response = self.llama_cpp_agent.get_chat_response(prompt, temperature=0.35, system_prompt=system_prompt, grammar=llama_grammar, add_response_to_chat_history=False, add_message_to_chat_history=False)
         return extract_object_from_response(response, model)

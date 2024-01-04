@@ -48,7 +48,6 @@ class WriteTextFile(BaseModel):
 
     file_string: str = Field(...,
                              description="Special markdown code block for unconstrained output.")
-
     def run(self):
 
         if self.directory == "":

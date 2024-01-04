@@ -551,7 +551,7 @@ integer ::= [0-9]+"""
         file_string_grammar = r'''
 file-string ::= triple-double-quote docstring-content triple-double-quote-2
 docstring-content ::= ( [^`] | "`" [^`] |  "`"  "`" [^`]  )*
-triple-double-quote ::= "```" "python" "\n" | "```" "c" "\n" | "```" "cpp" "\n" | "```" "txt" "\n" | "```" "text" "\n" | "```" "json" "\n" | "```" "javascript" "\n" | "```" "html" "\n" | "```" "markdown" "\n"
+triple-double-quote ::= "```" "python" "\n" | "```" "c" "\n" | "```" "cpp" "\n" | "```" "txt" "\n" | "```" "text" "\n" | "```" "json" "\n" | "```" "javascript" "\n" | "```" "css" "\n" | "```" "html" "\n" | "```" "markdown" "\n"
 triple-double-quote-2 ::= "```" "\n"'''
     return "\n" + '\n'.join(additional_grammar) + primitive_grammar + file_string_grammar
 
@@ -630,6 +630,8 @@ def generate_text_documentation(pydantic_models: List[Type[BaseModel]], model_pr
             documentation += f"  Fields:\n"
         if isclass(model) and issubclass(model, BaseModel):
             for name, field_type in model.__annotations__.items():
+                #if name == "file_string":
+                #    continue
                 if get_origin(field_type) == list:
                     element_type = get_args(field_type)[0]
                     if isclass(element_type) and issubclass(element_type, BaseModel):

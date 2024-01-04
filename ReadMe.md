@@ -100,7 +100,7 @@ After passing the list of `LlamaCppFunctionTool` instances to the `get_function_
 
 ## Usage Examples
 The following examples demonstrate the usage of the llama-cpp-agent framework.
-You can find more examples in the `examples` folder.
+You can find a lot more examples in the `examples` folder.
 
 ### Simple Chat Example
 This example demonstrates how to initiate a chat with an LLM model.

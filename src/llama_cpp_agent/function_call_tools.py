@@ -4,15 +4,18 @@ from typing import Type
 from llama_cpp import LlamaGrammar
 from pydantic import BaseModel
 
-from .output_parser import parse_json_response_with_file_string, sanitize_json_string, parse_json_response
+from .output_parser import parse_json_response_with_markdown_code_block, parse_json_response
 from .gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import format_model_and_field_name, \
     generate_gbnf_grammar_and_documentation
 
 
 class LlamaCppFunctionTool:
-    def __init__(self, pydantic_model: Type[BaseModel], has_field_string=False, **additional_parameters):
+    def __init__(self, pydantic_model: Type[BaseModel], has_markdown_code_block=False, has_triple_quoted_string=False,
+                 **additional_parameters):
         self.model = pydantic_model
-        self.look_for_field_string = has_field_string
+        self.look_for_field_string = has_markdown_code_block or has_triple_quoted_string
+        self.has_markdown_code_block = has_markdown_code_block
+        self.has_triple_quoted_string = has_triple_quoted_string
         self.additional_parameters = additional_parameters if additional_parameters else {}
 
     def __call__(self, *args, **kwargs):
@@ -48,17 +51,18 @@ class LlamaCppFunctionToolRegistry:
 
     def finalize(self):
         pydantic_function_models = []
-        look_file_string = False
+        look_markdown_code_block = False
         for function_tool in self.function_tools.values():
             pydantic_function_models.append(function_tool.model)
             if function_tool.look_for_field_string:
-                look_file_string = True
+                look_markdown_code_block = True
         for function_tool in self.function_tools_containing_field_string.values():
             pydantic_function_models.append(function_tool.model)
             if function_tool.look_for_field_string:
-                look_file_string = True
+                look_markdown_code_block = True
         gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
-            pydantic_function_models, look_file_string, self.tool_root, self.tool_rule_content, self.model_prefix,
+            pydantic_function_models, look_markdown_code_block, look_markdown_code_block, self.tool_root,
+            self.tool_rule_content, self.model_prefix,
             self.fields_prefix)
 
         self.grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
@@ -76,10 +80,13 @@ class LlamaCppFunctionToolRegistry:
             for name, tool in self.function_tools_containing_field_string.items():
 
                 if name in function_call_response:
-                    function_call, content = parse_json_response_with_file_string(function_call_response)
-                    function_call["function_parameters"]["file_string"] = content
+                    function_call, content = parse_json_response_with_markdown_code_block(function_call_response)
+                    if self.function_tools_containing_field_string[function_call["function"]].has_markdown_code_block:
+                        function_call["function_parameters"]["markdown_code_block"] = content
+                    elif self.function_tools_containing_field_string[function_call["function"]].has_triple_quoted_string:
+                        function_call["function_parameters"]["triple_quoted_string"] = content
 
-                    output = self.intern_function_call(function_call, with_file_string=True)
+                    output = self.intern_function_call(function_call, with_markdown_code_block=True)
                     return output
 
             function_call = parse_json_response(function_call_response)
@@ -89,8 +96,8 @@ class LlamaCppFunctionToolRegistry:
         except AttributeError as e:
             return f"Error: {e}"
 
-    def intern_function_call(self, function_call: dict, with_file_string=False):
-        if with_file_string:
+    def intern_function_call(self, function_call: dict, with_markdown_code_block=False):
+        if with_markdown_code_block:
             function_tool = self.function_tools_containing_field_string[function_call["function"]]
         else:
             function_tool = self.function_tools[function_call["function"]]

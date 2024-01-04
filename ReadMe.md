@@ -94,8 +94,8 @@ This will return an instance of the pydantic class.
 ## Function Calling Usage
 To utilize function calling with an LLM model, you can use the get_chat_response method of a `LlamaCppAgent` with a `function_tool_registry`. The `function_tool_registry` is an instance of the `LlamaCppFunctionToolRegistry` class. You can create a `LlamaCppFunctionToolRegistry` instance by passing a list of `LlamaCppFunctionTool` instances to the static `get_function_tool_registry` method of the `LlamaCppAgent` class. The `LlamaCppFunctionTool` class takes the following parameters:
 - `model`: The pydantic class defining the function call, it must have a `run` to actually execute the function call.
-- `has_field_string`: Whether the model has a `field_string` field. Defaults to `False`. A `field_string` field is a special field used to allow the LLM to write relatively unconstrained output by letting it write the `field_string` as a Markdown code block. Which is useful for file writing.
-
+- `has_markdown_code_block`: Whether the model has a `markdown_code_block` field. Defaults to `False`. A `markdown_code_block` field is a special field used to allow the LLM to write relatively unconstrained output by letting it write the `markdown_code_block` as a Markdown code block. Which is useful for file writing.
+- `has_triple_quoted_string`: Whether the model has a `triple_quoted_string` field. Defaults to `False`. A `triple_quoted_string` field is a special field used to allow the LLM to write relatively unconstrained output by letting it write the `triple_quoted_string` as a triple quoted string. Which is useful for file writing.
 After passing the list of `LlamaCppFunctionTool` instances to the `get_function_tool_registry` method, you can use the returned `LlamaCppFunctionToolRegistry` instance as the `function_tool_registry` parameter of the `get_chat_response` method of the `LlamaCppAgent` class.
 
 ## Usage Examples

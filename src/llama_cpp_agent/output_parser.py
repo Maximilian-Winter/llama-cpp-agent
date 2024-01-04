@@ -16,8 +16,8 @@ def parse_json_response(response: str):
     return json_object
 
 
-def parse_json_response_with_file_string(file_string):
-    response_lines = file_string.split("\n")
+def parse_json_response_with_markdown_code_block(markdown_code_block):
+    response_lines = markdown_code_block.split("\n")
 
     if is_empty_or_whitespace(response_lines[0]):
         response_lines.pop(0)
@@ -31,10 +31,10 @@ def parse_json_response_with_file_string(file_string):
     response_lines.pop(-1)
     response_lines.pop(-1)
     # Combine lines into a single string
-    file_string_content = "\n".join(response_lines)
+    markdown_code_block_content = "\n".join(response_lines)
     json_object = parse_json_response(response)
 
-    return json_object, file_string_content
+    return json_object, markdown_code_block_content
 
 
 def extract_object_from_response(response: str, object_clas: type):

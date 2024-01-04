@@ -46,8 +46,8 @@ class WriteTextFile(BaseModel):
 
     # Allow free output for the File Content to Enhance LLM Output
 
-    file_string: str = Field(...,
-                             description="Special markdown code block for unconstrained output.")
+    triple_quoted_string: str = Field(...,
+                             description="Triple quoted string for unconstrained output.")
     def run(self):
 
         if self.directory == "":
@@ -84,7 +84,7 @@ class WriteTextFile(BaseModel):
 
         # Write back to file
         with open(file_path, write_mode, encoding="utf-8") as file:
-            file.writelines(self.file_string)
+            file.writelines(self.triple_quoted_string)
 
         return f"Content written to '{self.filename_without_extension}{self.filename_extension}'."
 

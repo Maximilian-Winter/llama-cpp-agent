@@ -11,12 +11,12 @@ from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
 
 function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
-                  LlamaCppFunctionTool(WriteTextFile, has_field_string=True)]
+                  LlamaCppFunctionTool(WriteTextFile, has_triple_quoted_string=True)]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 main_model = Llama(
-    "../gguf-models/neuralhermes-2.5-mistral-7b.Q8_0.gguf",
+    "../../gguf-models/neuralhermes-2.5-mistral-7b.Q8_0.gguf",
     n_gpu_layers=46,
     f16_kv=True,
     offload_kqv=True,
@@ -58,5 +58,5 @@ while True:
 
     user_input = coder_agent.get_chat_response(
         user_input,
-        temperature=0.25, top_p=1.0, top_k=0, tfs_z=0.95, repeat_penalty=1.12, function_tool_registry=function_tool_registry)
+        temperature=0.75, top_p=0.5, top_k=0, tfs_z=0.975, function_tool_registry=function_tool_registry)
 

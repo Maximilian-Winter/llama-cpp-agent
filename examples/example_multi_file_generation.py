@@ -40,7 +40,7 @@ class File(BaseModel):
         ..., description="The name of the file including the extension"
     )
 
-    # file_string is a special field used to give the LLM relatively free output to generate the file contents
+    # markdown_code_block is a special field used to give the LLM relatively free output to generate the file contents
     file_content: str = Field(..., description="Correct contents of a file")
 
     def save(self):
@@ -56,7 +56,7 @@ class Program(BaseModel):
     files: List[File] = Field(..., description="List of files")
 
 
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(pydantic_model_list=[Program], look_file_string=False)
+gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(pydantic_model_list=[Program], look_markdown_code_block=False)
 
 print(gbnf_grammar)
 grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)

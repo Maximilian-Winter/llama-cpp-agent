@@ -11,9 +11,10 @@ from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
 
 function_tools = [LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
-                  LlamaCppFunctionTool(WriteTextFile, True)]
+                  LlamaCppFunctionTool(WriteTextFile, has_triple_quoted_string=True)]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
+
 
 main_model = Llama(
     "../../gguf-models/neuralhermes-2.5-mistral-7b.Q8_0.gguf",

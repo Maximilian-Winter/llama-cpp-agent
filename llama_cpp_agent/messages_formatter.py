@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import List, Dict, Tuple
 
+
 SYS_PROMPT_START_MIXTRAL = """"""
 SYS_PROMPT_END_MIXTRAL = """\n"""
 USER_PROMPT_START_MIXTRAL = """[INST] """
@@ -54,6 +55,14 @@ ASSISTANT_PROMPT_START_SOLAR = """### Assistant:\n"""
 ASSISTANT_PROMPT_END_SOLAR = """\n"""
 DEFAULT_SOLAR_STOP_SEQUENCES = ["### User:"]
 
+SYS_PROMPT_START_OPEN_CHAT = """"""
+SYS_PROMPT_END_OPEN_CHAT = """  """
+USER_PROMPT_START_OPEN_CHAT = """GPT4 Correct User:"""
+USER_PROMPT_END_OPEN_CHAT = """<|end_of_turn|>"""
+ASSISTANT_PROMPT_START_OPEN_CHAT = """GPT4 Correct Assistant:"""
+ASSISTANT_PROMPT_END_OPEN_CHAT = """<|end_of_turn|>"""
+DEFAULT_OPEN_CHAT_STOP_SEQUENCES = ["<|end_of_turn|>"]
+
 class MessagesFormatterType(Enum):
     MIXTRAL = 1
     CHATML = 2
@@ -62,7 +71,7 @@ class MessagesFormatterType(Enum):
     SYNTHIA = 5
     NEURAL_CHAT = 6
     SOLAR = 7
-
+    OPEN_CHAT = 8
 
 class MessagesFormatter:
     def __init__(self, PRE_PROMPT: str, SYS_PROMPT_START: str, SYS_PROMPT_END: str, USER_PROMPT_START: str,
@@ -132,6 +141,8 @@ neural_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_NEURAL_CHAT, SYS_
 solar_formatter = MessagesFormatter("", SYS_PROMPT_START_SOLAR, SYS_PROMPT_END_SOLAR, USER_PROMPT_START_SOLAR,
                                           USER_PROMPT_END_SOLAR, ASSISTANT_PROMPT_START_SOLAR,
                                           ASSISTANT_PROMPT_END_SOLAR, True, DEFAULT_SOLAR_STOP_SEQUENCES)
+
+open_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_OPEN_CHAT, SYS_PROMPT_END_OPEN_CHAT, USER_PROMPT_START_OPEN_CHAT, USER_PROMPT_END_OPEN_CHAT, ASSISTANT_PROMPT_START_OPEN_CHAT, ASSISTANT_PROMPT_END_OPEN_CHAT, True, DEFAULT_OPEN_CHAT_STOP_SEQUENCES)
 predefined_formatter = {
     MessagesFormatterType.MIXTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
@@ -139,7 +150,8 @@ predefined_formatter = {
     MessagesFormatterType.LLAMA_2: llama_2_formatter,
     MessagesFormatterType.SYNTHIA: synthia_formatter,
     MessagesFormatterType.NEURAL_CHAT: neural_chat_formatter,
-    MessagesFormatterType.SOLAR: solar_formatter
+    MessagesFormatterType.SOLAR: solar_formatter,
+    MessagesFormatterType.OPEN_CHAT: open_chat_formatter
 }
 
 

@@ -1,12 +1,10 @@
-import json
-
-from llama_cpp import Llama, LlamaGrammar
+from llama_cpp import Llama
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
-from example_agent_models_auto_coder import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile
+from example_agent_models_auto_coder import SendMessageToUser
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.memory_tools import AgentRetrievalMemory
+from llama_cpp_agent.agent_memory.memory_tools import AgentRetrievalMemory
 from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
 
 agent_retrieval_memory = AgentRetrievalMemory()
@@ -32,7 +30,6 @@ main_model = Llama(
 )
 
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
-                                system_prompt=system_prompt2,
                                 predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
 user_input = 'Add my Birthday the 1991.12.11 to the retrieval memory.'

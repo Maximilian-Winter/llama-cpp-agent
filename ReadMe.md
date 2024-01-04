@@ -35,7 +35,8 @@ The llama-cpp-agent framework uses custom messages formatters to format messages
 - `MessagesFormatterType.SYNTHIA`: Formats messages using the SYNTHIA format.
 - `MessagesFormatterType.NEURAL_CHAT`: Formats messages using the NEURAL CHAT format.
 - `MessagesFormatterType.SOLAR`: Formats messages using the SOLAR format.
-
+- `MessagesFormatterType.OPEN_CHAT`: Formats messages using the OPEN CHAT format.
+- 
 You can also define your own custom messages formatter by creating an instance of the `MessagesFormatter` class.
 The `MessagesFormatter` class takes the following parameters:
 - `PRE_PROMPT`: The pre-prompt to use for the messages. 
@@ -98,6 +99,8 @@ To utilize function calling with an LLM model, you can use the get_chat_response
 After passing the list of `LlamaCppFunctionTool` instances to the `get_function_tool_registry` method, you can use the returned `LlamaCppFunctionToolRegistry` instance as the `function_tool_registry` parameter of the `get_chat_response` method of the `LlamaCppAgent` class.
 
 ## Usage Examples
+The following examples demonstrate the usage of the llama-cpp-agent framework.
+You can find more examples in the `examples` folder.
 
 ### Simple Chat Example
 This example demonstrates how to initiate a chat with an LLM model.

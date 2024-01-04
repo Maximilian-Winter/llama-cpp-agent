@@ -9,7 +9,7 @@ from .function_call_tools import LlamaCppFunctionTool, LlamaCppFunctionToolRegis
 
 class LlamaCppAgent:
 
-    def __init__(self, model, name="llamacpp_model", system_prompt="You are helpful assistant.",
+    def __init__(self, model, name="llamacpp_agent", system_prompt="You are helpful assistant.",
                  predefined_messages_formatter_type: MessagesFormatterType = None, debug_output=False):
         self.model = model
         self.name = name

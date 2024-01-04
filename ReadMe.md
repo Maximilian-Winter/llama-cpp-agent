@@ -15,6 +15,88 @@ To get started with the llama-cpp-agent LLM framework, follow these steps:
 2. Clone the repository from [GitHub link](https://github.com/Maximilian-Winter/llama-cpp-agent).
 3. Install the necessary dependencies as listed in the `requirements.txt` file.
 
+## Usage
+The llama-cpp-agent framework is designed to be easy to use. The following sections will guide you through the process of using the framework.
+
+### Chat usage
+To chat with an LLM model, you need to create an instance of the `LlamaCppAgent` class. The constructor takes the following parameters:
+- `main_model`: The LLM model to use for the chat. This is an instance of the `Llama` class from the llama-cpp-python library.
+- `name`: The name of the agent. Defaults to `llamacpp_agent`.
+- `system_prompt`: The system prompt to use for the chat. Defaults to `You are a helpful assistant.`.
+- `predefined_messages_formatter_type`: The type of predefined messages formatter to use. Defaults to `MessagesFormatterType.CHATML`.
+- `debug_output`: Whether to print debug output to the console. Defaults to `False`.
+
+#### Predefined Messages Formatter
+The llama-cpp-agent framework uses custom messages formatters to format messages for the LLM model. The `MessagesFormatterType` enum defines the available predefined formatters. The following predefined formatters are available:
+- `MessagesFormatterType.CHATML`: Formats messages using the CHATML format.
+- `MessagesFormatterType.MIXTRAL`: Formats messages using the MIXTRAL format.
+- `MessagesFormatterType.VICUNA`: Formats messages using the VICUNA format.
+- `MessagesFormatterType.LLAMA_2`: Formats messages using the LLAMA 2 format.
+- `MessagesFormatterType.SYNTHIA`: Formats messages using the SYNTHIA format.
+- `MessagesFormatterType.NEURAL_CHAT`: Formats messages using the NEURAL CHAT format.
+- `MessagesFormatterType.SOLAR`: Formats messages using the SOLAR format.
+
+You can also define your own custom messages formatter by creating an instance of the `MessagesFormatter` class.
+The `MessagesFormatter` class takes the following parameters:
+- `PRE_PROMPT`: The pre-prompt to use for the messages. 
+- `SYS_PROMPT_START`: The system prompt start to use for the messages.
+- `SYS_PROMPT_END`: The system prompt end to use for the messages.
+- `USER_PROMPT_START`: The user prompt start to use for the messages.
+- `USER_PROMPT_END`: The user prompt end to use for the messages.
+- `ASSISTANT_PROMPT_START`: The assistant prompt start to use for the messages.
+- `ASSISTANT_PROMPT_END`: The assistant prompt end to use for the messages.
+- `INCLUDE_SYS_PROMPT_IN_MESSAGE`: Whether to include the system prompt in the message.
+- `DEFAULT_STOP_SEQUENCES`: The default stop sequences to use for the messages.
+
+After creating an instance of the `MessagesFormatter` class, you can use it by setting the `messages_formatter` of the `LlamaCppAgent` instance to the instance of the `MessagesFormatter` class.
+
+#### Chatting
+To chat with the LLM model, you can use the `get_chat_response` method of the `LlamaCppAgent` class. The `get_chat_response` method takes the following parameters:
+- `message`: The message to send to the LLM model. Defaults to `None`.
+- `role`: The role of the message. Defaults to `user`.
+- `system_prompt`: A override for the system prompt. Defaults to `None` and uses the agent system prompt passed at creation.
+- `grammar`: The grammar to use for constraining the LLM response. Defaults to `None`.
+- `function_tool_registry`: The function tool registry to use for the chat. Defaults to `None`.
+- `max_tokens`: The maximum number of tokens to use for the chat. Defaults to `0`.
+- `temperature`: The temperature to use for the chat. Defaults to `0.4`.
+- `top_k`: The top k to use for the chat. Defaults to `0`.
+- `top_p`: The top p to use for the chat. Defaults to `1.0`.
+- `min_p`: The min p to use for the chat. Defaults to `0.05`.
+- `typical_p`: The typical p to use for the chat. Defaults to `1.0`.              
+- `repeat_penalty`: The repeat penalty to use for the chat. Defaults to `1.0`.
+- `mirostat_mode`: The mirostat mode to use for the chat. Defaults to `0`.
+- `mirostat_tau`: The mirostat tau to use for the chat. Defaults to `5.0`.
+- `mirostat_eta`: The mirostat eta to use for the chat. Defaults to `0.1`.
+- `tfs_z`: The tfs z to use for the chat. Defaults to `1.0`.
+- `stop_sequences`: The stop sequences to use for the chat. Defaults to `None`.
+- `stream`: Whether to stream the chat. Defaults to `True`.
+- `k_last_messages`: The k last messages to use for the chat. Defaults to `-1` which takes all messages in the chat history.
+- `add_response_to_chat_history`: Whether to add the response to the chat history. Defaults to `True`.
+- `add_message_to_chat_history`: Whether to add the message to the chat history. Defaults to `True`.
+- `print_output`: Whether to print the output. Defaults to `True`.
+
+## Structured Output Usage
+To get structured output from an LLM model, you can use an instance of the `StructuredOutputAgent` class. The constructor takes the following parameters:
+- `main_model`: The LLM model to use for the structured output. This is an instance of the `Llama` class from the llama-cpp-python library.
+- `messages_formatter_type`: The type of messages formatter to use. Defaults to `MessagesFormatterType.CHATML`.
+- `debug_output`: Whether to print debug output to the console. Defaults to `False`.
+
+To set a custom messages formatter, you can use the `llama_cpp_agent.messages_formatter` property of the `StructuredOutputAgent` class.
+
+#### Structured Output
+To create structured output from the LLM model, you can use the `create_object` method of the `StructuredOutputAgent` class. The `create_object` method takes the following parameters:
+- `cls`: The pydantic class used for creating the structured output.
+- `data`: The data to use for the structured output. Defaults to `None` which creates a random object of cls class.
+
+This will return an instance of the pydantic class.
+
+## Function Calling Usage
+To utilize function calling with an LLM model, you can use the get_chat_response method of a `LlamaCppAgent` with a `function_tool_registry`. The `function_tool_registry` is an instance of the `LlamaCppFunctionToolRegistry` class. You can create a `LlamaCppFunctionToolRegistry` instance by passing a list of `LlamaCppFunctionTool` instances to the static `get_function_tool_registry` method of the `LlamaCppAgent` class. The `LlamaCppFunctionTool` class takes the following parameters:
+- `model`: The pydantic class defining the function call, it must have a `run` to actually execute the function call.
+- `has_field_string`: Whether the model has a `field_string` field. Defaults to `False`. A `field_string` field is a special field used to allow the LLM to write relatively unconstrained output by letting it write the `field_string` as a Markdown code block. Which is useful for file writing.
+
+After passing the list of `LlamaCppFunctionTool` instances to the `get_function_tool_registry` method, you can use the returned `LlamaCppFunctionToolRegistry` instance as the `function_tool_registry` parameter of the `get_chat_response` method of the `LlamaCppAgent` class.
+
 ## Usage Examples
 
 ### Simple Chat Example
@@ -274,19 +356,173 @@ visualize_knowledge_graph(graph)
 Example Output:
 ![KG](https://raw.githubusercontent.com/Maximilian-Winter/llama-cpp-agent/master/generated_knowledge_graph_example/knowledge_graph.png)
 ### Auto coding agent
-Auto coding agent example
+Auto coding agent example with `field_string`
 ```python
-import datetime
-
 from llama_cpp import Llama
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
-from example_agent_models_auto_coder import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile,
-    agent_dev_folder_setup
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
 from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
+
+
+import datetime
+import os
+from enum import Enum
+from pathlib import Path
+
+from pydantic import Field, BaseModel
+
+base_folder = "dev"
+
+
+
+def agent_dev_folder_setup(custom_base_folder=None):
+    global base_folder
+    base_folder = custom_base_folder
+    os.makedirs(base_folder, exist_ok=True)
+
+
+class WriteOperation(Enum):
+    CREATE_FILE = "create-file"
+    APPEND_FILE = "append-file"
+    OVERWRITE_FILE = "overwrite-file"
+
+
+class WriteTextFile(BaseModel):
+    """
+    Open file for writing and modification.
+    """
+
+    directory: str = Field(
+        ...,
+        description="Path to the directory where the file is located or will be created. Without filename !!!!"
+    )
+
+    filename_without_extension: str = Field(
+        ...,
+        description="Name of the target file without the file extension."
+    )
+
+    filename_extension: str = Field(
+        ...,
+        description="File extension indicating the file type, such as '.txt', '.py', '.md', etc."
+    )
+
+    write_operation: WriteOperation = Field(...,
+                                            description="Write operation performed, 'create-file', 'append-file' or 'overwrite-file'")
+
+    # Allow free output for the File Content to Enhance LLM Output
+
+    file_string: str = Field(...,
+                             description="Special markdown code block for unconstrained output.")
+
+    def run(self):
+
+        if self.directory == "":
+            self.directory = "./"
+        if self.filename_extension == "":
+            self.filename_extension = ".txt"
+        if self.filename_extension[0] != ".":
+            self.filename_extension = "." + self.filename_extension
+        if self.directory[0] == "." and len(self.directory) == 1:
+            self.directory = "./"
+
+        if self.directory[0] == "." and len(self.directory) > 1 and self.directory[1] != "/":
+            self.directory = "./" + self.directory[1:]
+
+        if self.directory[0] == "/":
+            self.directory = self.directory[1:]
+
+        if self.directory.endswith(f"{self.filename_without_extension}{self.filename_extension}"):
+            self.directory = self.directory.replace(f"{self.filename_without_extension}{self.filename_extension}", "")
+        file_path = os.path.join(self.directory, f"{self.filename_without_extension}{self.filename_extension}")
+        file_path = os.path.join(base_folder, file_path)
+
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        # Determine the write mode based on the write_operation attribute
+        if self.write_operation == WriteOperation.CREATE_FILE:
+            write_mode = 'w'  # Create a new file, error if file exists
+        elif self.write_operation == WriteOperation.APPEND_FILE:
+            write_mode = 'a'  # Append if file exists, create if not
+        elif self.write_operation == WriteOperation.OVERWRITE_FILE:
+            write_mode = 'w'  # Overwrite file if it exists, create if not
+        else:
+            raise ValueError(f"Invalid write operation: {self.write_operation}")
+
+        # Write back to file
+        with open(file_path, write_mode, encoding="utf-8") as file:
+            file.writelines(self.file_string)
+
+        return f"Content written to '{self.filename_without_extension}{self.filename_extension}'."
+
+
+class ReadTextFile(BaseModel):
+    """
+    Reads the text content of a specified file and returns it.
+    """
+
+    directory: str = Field(
+        description="Path to the directory containing the file. Without filename !!!!"
+    )
+
+    file_name: str = Field(
+        ...,
+        description="The name of the file to be read, including its extension (e.g., 'document.txt')."
+    )
+
+    def run(self):
+        try:
+            if self.directory.endswith(f"{self.file_name}"):
+                self.directory = self.directory.replace(f"{self.file_name}", "")
+            if not os.path.exists(f"{base_folder}/{self.directory}/{self.file_name}"):
+                return f"File '{self.directory}/{self.file_name}' doesn't exists!"
+            with open(f"{base_folder}/{self.directory}/{self.file_name}", "r", encoding="utf-8") as f:
+                content = f.read()
+            if content.strip() == "":
+                return f"File '{self.file_name}' is empty!"
+        except Exception as e:
+            return f"Error reading file '{self.file_name}': {e}"
+        return f"File '{self.file_name}':\n{content}"
+
+
+class GetFileList(BaseModel):
+    """
+    Scans a specified directory and creates a list of all files within that directory, including files in its subdirectories.
+    """
+
+    directory: str = Field(
+
+        description="Path to the directory where files will be listed. This path can include subdirectories to be scanned."
+    )
+
+    def run(self):
+        filenames = "File List:\n"
+        counter = 1
+        base_path = Path(base_folder) / self.directory
+
+        for root, _, files in os.walk(os.path.join(base_folder, self.directory)):
+            for file in files:
+                relative_root = Path(root).relative_to(base_path)
+                filenames += f"{counter}. {relative_root / file}\n"
+                counter += 1
+
+        if counter == 1:
+            return f"Directory '{self.directory}' is empty!"
+        return filenames
+
+
+class SendMessageToUser(BaseModel):
+    """
+    Send a message to the User.
+    """
+
+    message: str = Field(..., description="Message you want to send to the user.")
+
+    def run(self):
+        print("Message: " + self.message)
 
 function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
                   LlamaCppFunctionTool(WriteTextFile, has_field_string=True)]

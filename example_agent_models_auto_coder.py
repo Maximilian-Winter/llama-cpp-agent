@@ -8,6 +8,7 @@ from pydantic import Field, BaseModel
 base_folder = "dev"
 
 
+
 def agent_dev_folder_setup(custom_base_folder=None):
     global base_folder
     base_folder = custom_base_folder
@@ -25,17 +26,17 @@ class WriteTextFile(BaseModel):
     Open file for writing and modification.
     """
 
-    folder: str = Field(
+    directory: str = Field(
         ...,
-        description="Path to the folder where the file is located or will be created. It should be a valid directory path."
+        description="Path to the directory where the file is located or will be created. Without filename !!!!"
     )
 
-    file_name_without_extension: str = Field(
+    filename_without_extension: str = Field(
         ...,
         description="Name of the target file without the file extension."
     )
 
-    file_extension: str = Field(
+    filename_extension: str = Field(
         ...,
         description="File extension indicating the file type, such as '.txt', '.py', '.md', etc."
     )
@@ -43,27 +44,31 @@ class WriteTextFile(BaseModel):
     write_operation: WriteOperation = Field(...,
                                             description="Write operation performed, 'create-file', 'append-file' or 'overwrite-file'")
 
-    # Not visible to the AI. Allow free output for the File Content to Enhance LLM Output
+    # Allow free output for the File Content to Enhance LLM Output
 
     file_string: str = Field(...,
-                             description="Special Markdown Code Block for free File Content Writing to Enhance LLM output")
+                             description="Special markdown code block for unconstrained output.")
 
     def run(self):
 
-        if self.folder == "":
-            self.folder = "./"
-        if self.file_extension[0] != ".":
-            self.file_extension = "." + self.file_extension
-        if self.folder[0] == "." and len(self.folder) == 1:
-            self.folder = "./"
+        if self.directory == "":
+            self.directory = "./"
+        if self.filename_extension == "":
+            self.filename_extension = ".txt"
+        if self.filename_extension[0] != ".":
+            self.filename_extension = "." + self.filename_extension
+        if self.directory[0] == "." and len(self.directory) == 1:
+            self.directory = "./"
 
-        if self.folder[0] == "." and len(self.folder) > 1 and self.folder[1] != "/":
-            self.folder = "./" + self.folder[1:]
+        if self.directory[0] == "." and len(self.directory) > 1 and self.directory[1] != "/":
+            self.directory = "./" + self.directory[1:]
 
-        if self.folder[0] == "/":
-            self.folder = self.folder[1:]
+        if self.directory[0] == "/":
+            self.directory = self.directory[1:]
 
-        file_path = os.path.join(self.folder, f"{self.file_name_without_extension}{self.file_extension}")
+        if self.directory.endswith(f"{self.filename_without_extension}{self.filename_extension}"):
+            self.directory = self.directory.replace(f"{self.filename_without_extension}{self.filename_extension}", "")
+        file_path = os.path.join(self.directory, f"{self.filename_without_extension}{self.filename_extension}")
         file_path = os.path.join(base_folder, file_path)
 
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -82,7 +87,7 @@ class WriteTextFile(BaseModel):
         with open(file_path, write_mode, encoding="utf-8") as file:
             file.writelines(self.file_string)
 
-        return f"Content written to '{self.file_name_without_extension}{self.file_extension}'."
+        return f"Content written to '{self.filename_without_extension}{self.filename_extension}'."
 
 
 class ReadTextFile(BaseModel):
@@ -90,8 +95,8 @@ class ReadTextFile(BaseModel):
     Reads the text content of a specified file and returns it.
     """
 
-    folder: str = Field(
-        description="Path to the folder containing the file."
+    directory: str = Field(
+        description="Path to the directory containing the file. Without filename !!!!"
     )
 
     file_name: str = Field(
@@ -100,12 +105,17 @@ class ReadTextFile(BaseModel):
     )
 
     def run(self):
-        if not os.path.exists(f"{base_folder}/{self.folder}/{self.file_name}"):
-            return f"File '{self.folder}/{self.file_name}' doesn't exists!"
-        with open(f"{base_folder}/{self.folder}/{self.file_name}", "r", encoding="utf-8") as f:
-            content = f.read()
-        if content.strip() == "":
-            return f"File '{self.file_name}' is empty!"
+        try:
+            if self.directory.endswith(f"{self.file_name}"):
+                self.directory = self.directory.replace(f"{self.file_name}", "")
+            if not os.path.exists(f"{base_folder}/{self.directory}/{self.file_name}"):
+                return f"File '{self.directory}/{self.file_name}' doesn't exists!"
+            with open(f"{base_folder}/{self.directory}/{self.file_name}", "r", encoding="utf-8") as f:
+                content = f.read()
+            if content.strip() == "":
+                return f"File '{self.file_name}' is empty!"
+        except Exception as e:
+            return f"Error reading file '{self.file_name}': {e}"
         return f"File '{self.file_name}':\n{content}"
 
 
@@ -114,7 +124,7 @@ class GetFileList(BaseModel):
     Scans a specified directory and creates a list of all files within that directory, including files in its subdirectories.
     """
 
-    folder: str = Field(
+    directory: str = Field(
 
         description="Path to the directory where files will be listed. This path can include subdirectories to be scanned."
     )
@@ -122,16 +132,16 @@ class GetFileList(BaseModel):
     def run(self):
         filenames = "File List:\n"
         counter = 1
-        base_path = Path(base_folder) / self.folder
+        base_path = Path(base_folder) / self.directory
 
-        for root, _, files in os.walk(os.path.join(base_folder, self.folder)):
+        for root, _, files in os.walk(os.path.join(base_folder, self.directory)):
             for file in files:
                 relative_root = Path(root).relative_to(base_path)
                 filenames += f"{counter}. {relative_root / file}\n"
                 counter += 1
 
         if counter == 1:
-            return f"Folder '{self.folder}' is empty!"
+            return f"Directory '{self.directory}' is empty!"
         return filenames
 
 

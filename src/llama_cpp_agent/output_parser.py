@@ -29,6 +29,7 @@ def parse_json_response_with_file_string(file_string):
     response_lines.pop(0)
     # Remove the last line Markdown code block marker
     response_lines.pop(-1)
+    response_lines.pop(-1)
     # Combine lines into a single string
     file_string_content = "\n".join(response_lines)
     json_object = parse_json_response(response)

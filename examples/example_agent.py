@@ -57,7 +57,7 @@ llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
 timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
 
 agent_dev_folder_setup(f"dev_{timestamp}")
-user_input = 'Write a chat bot frontend in HTML, CSS and Javascript with a dark UI under the "./workspace" folder.'
+user_input = 'Write a chat bot frontend in HTML, CSS and Javascript with a dark UI using Bootstrap under the "./workspace" folder.'
 while True:
 
     if user_input is None:

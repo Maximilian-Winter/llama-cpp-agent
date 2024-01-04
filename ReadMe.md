@@ -10,10 +10,10 @@ The llama-cpp-agent framework is a tool designed for easy interaction with Large
 - **Flexibility**: Suited for various applications from casual chatting to specific function executions.
 
 ## Installation
-To get started with the llama-cpp-agent LLM framework, follow these steps:
-1. Ensure you have Python installed on your system.
-2. Clone the repository from [GitHub link](https://github.com/Maximilian-Winter/llama-cpp-agent).
-3. Install the necessary dependencies as listed in the `requirements.txt` file.
+The llama-cpp-agent framework can be installed using pip:
+```shell
+pip install llama-cpp-agent
+```
 
 ## Usage
 The llama-cpp-agent framework is designed to be easy to use. The following sections will guide you through the process of using the framework.

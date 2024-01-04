@@ -1,6 +1,4 @@
-import json
-
-from llama_cpp import Llama, LlamaGrammar
+from llama_cpp import Llama
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
@@ -15,7 +13,7 @@ function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 main_model = Llama(
-    "../gguf-models/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
+    "../../gguf-models/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
     n_gpu_layers=12,
     f16_kv=True,
     offload_kqv=True,

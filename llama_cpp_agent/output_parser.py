@@ -30,7 +30,7 @@ def parse_json_response_with_file_string(file_string):
     # Remove the last line Markdown code block marker
     response_lines.pop(-1)
     # Combine lines into a single string
-    file_string_content = sanitize_json_string("\n".join(response_lines))
+    file_string_content = "\n".join(response_lines)
     json_object = parse_json_response(response)
 
     return json_object, file_string_content

@@ -1,2 +1,0 @@
-pydantic==2.5.3
-llama-cpp-python

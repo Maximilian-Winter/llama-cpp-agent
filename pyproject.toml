@@ -16,3 +16,5 @@ email = "maximilian.winter.91@gmail.com"
 [project.urls]
 Homepage = "https://github.com/Maximilian-Winter/llama-cpp-agent"
 "Bug Tracker" = "https://github.com/Maximilian-Winter/llama-cpp-agent/issues"
+[tool.setuptools]
+packages = ["llama_cpp_agent", "llama_cpp_agent.agent_memory", "llama_cpp_agent.gbnf_grammar_generator"]

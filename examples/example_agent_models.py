@@ -30,12 +30,6 @@ class WriteTextFile(BaseModel):
     Handles writing or modifying specific files.
     """
 
-    chain_of_thought: str = Field(
-        ...,
-        description="Detailed, step-by-step reasoning about the content of the file."
-    )
-
-    reasoning: str = Field(..., description="Reasoning for the content of this file.")
 
     folder: str = Field(
         ...,
@@ -152,8 +146,7 @@ class SendMessageToUser(BaseModel):
     Send a message to the Developer.
     """
 
-    chain_of_thought: str = Field(...,
-                                  description="Your inner thoughts or chain of thoughts while writing the message to the user.")
+
     message: str = Field(..., description="Message you want to send to the user.")
 
     def run(self):

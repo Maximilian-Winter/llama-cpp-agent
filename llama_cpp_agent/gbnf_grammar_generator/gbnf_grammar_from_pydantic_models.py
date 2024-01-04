@@ -550,7 +550,7 @@ integer ::= [0-9]+"""
     if "file-string" in grammar:
         file_string_grammar = r'''
 file-string ::= triple-double-quote docstring-content triple-double-quote-2
-docstring-content ::= ( [^`] | "`" [^`] | "\\" "`" "\\" "`" "\\" "`" [^`] )*
+docstring-content ::= ( [^`] | "`" [^`] |  "`"  "`" [^`]  )*
 triple-double-quote ::= "```" "python" "\n" | "```" "c" "\n" | "```" "cpp" "\n" | "```" "txt" "\n" | "```" "text" "\n" | "```" "json" "\n" | "```" "javascript" "\n" | "```" "html" "\n" | "```" "markdown" "\n"
 triple-double-quote-2 ::= "```" "\n"'''
     return "\n" + '\n'.join(additional_grammar) + primitive_grammar + file_string_grammar

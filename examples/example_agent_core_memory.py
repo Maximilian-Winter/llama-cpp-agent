@@ -1,6 +1,4 @@
-import json
-
-from llama_cpp import Llama, LlamaGrammar
+from llama_cpp import Llama
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
@@ -17,7 +15,7 @@ function_tools.extend(agent_core_memory.get_tool_list())
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 main_model = Llama(
-    "../gguf-models/openhermes-2.5-mistral-7b.Q8_0.gguf",
+    "../../gguf-models/openhermes-2.5-mistral-7b.Q8_0.gguf",
     n_gpu_layers=45,
     f16_kv=True,
     offload_kqv=True,
@@ -41,7 +39,7 @@ llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt=system_prompt2,
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
-user_input = 'Add "Be friendly" under "Core-Guidelines" to your core memory.'
+user_input = 'Add the value "Be friendly" under key "Core-Guidelines" and field "Behavior" to your core memory.'
 while True:
 
     if user_input is None:
@@ -50,5 +48,5 @@ while True:
     user_input = llama_cpp_agent.get_chat_response(
         user_input,
         system_prompt=f"You are a advanced helpful AI assistant interacting through calling functions in form of JSON objects.\n\n{agent_core_memory.get_core_memory_manager().build_core_memory_context()}\n\nHere are your available functions:\n\n" + function_tool_registry.get_documentation(),
-        temperature=1.25, function_tool_registry=function_tool_registry)
+        temperature=0.65, function_tool_registry=function_tool_registry)
 

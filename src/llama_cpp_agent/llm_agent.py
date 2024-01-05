@@ -215,7 +215,6 @@ class LlamaCppAgent:
         with open(file_path, 'r') as file:
             loaded_messages = json.load(file)
             self.messages.extend(loaded_messages)
-
     @staticmethod
     def agent_conversation(
             agent_1,
@@ -244,3 +243,28 @@ class LlamaCppAgent:
             current_agent, next_agent = next_agent, current_agent
 
         print("Conversation ended.")
+
+    @staticmethod
+    def group_conversation(
+            agent_list: list,
+            initial_message,
+            number_of_turns=4
+    ):
+        responses = [{
+            "role": "user",
+            "content": initial_message,
+        }]
+        last_role = "user"
+        for _ in range(number_of_turns):
+
+            for a in agent_list:
+                a.messages = responses
+                response = a.get_chat_response(add_response_to_chat_history=False, add_message_to_chat_history=False)
+                response = f"{a.name}: {response}" if not response.strip().startswith(a.name) else response
+                responses.append({
+                    "role": "user" if last_role == "assistant" else "assistant",
+                    "content": response,
+                })
+                last_role = responses[-1]["role"]
+        print("Conversation ended.")
+

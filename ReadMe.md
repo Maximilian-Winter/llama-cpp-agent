@@ -2,7 +2,7 @@
 
 ## Introduction
 The llama-cpp-agent framework is a tool designed for easy interaction with Large Language Models (LLMs). It provides a simple yet robust interface using llama-cpp-python, allowing users to chat with LLM models, execute structured function calls and get structured output.
-
+It does this by generating a formal GGML-BNF grammar of the user defined structures and functions, which is then used by llama.cpp to generate text valid to that grammar. In contrast to most GBNF grammar generators it also supports nested objects, dictionaries, enums and lists of them.
 ## Key Features
 - **Simple Chat Interface**: Engage in seamless conversations with LLMs.
 - **Structured Output**: Get structured output from LLMs.

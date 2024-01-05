@@ -93,7 +93,7 @@ This will return an instance of the pydantic class.
 
 ## Function Calling Usage
 To utilize function calling with an LLM model, you can use the get_chat_response method of a `LlamaCppAgent` with a `function_tool_registry`. The `function_tool_registry` is an instance of the `LlamaCppFunctionToolRegistry` class. You can create a `LlamaCppFunctionToolRegistry` instance by passing a list of `LlamaCppFunctionTool` instances to the static `get_function_tool_registry` method of the `LlamaCppAgent` class. The `LlamaCppFunctionTool` class takes the following parameters:
-- `model`: The pydantic class defining the function call, it must have a `run` to actually execute the function call.
+- `model`: The pydantic class defining the function call, it must have a `run` method to actually execute the function call. You can also convert Python functions with type hints, automatically to pydantic models using the function: `create_dynamic_model_from_function` under: `llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models`
 - `has_markdown_code_block`: Whether the model has a `markdown_code_block` field. Defaults to `False`. A `markdown_code_block` field is a special field used to allow the LLM to write relatively unconstrained output by letting it write the `markdown_code_block` as a Markdown code block. Which is useful for file writing.
 - `has_triple_quoted_string`: Whether the model has a `triple_quoted_string` field. Defaults to `False`. A `triple_quoted_string` field is a special field used to allow the LLM to write relatively unconstrained output by letting it write the `triple_quoted_string` as a triple quoted string. Which is useful for file writing.
 After passing the list of `LlamaCppFunctionTool` instances to the `get_function_tool_registry` method, you can use the returned `LlamaCppFunctionToolRegistry` instance as the `function_tool_registry` parameter of the `get_chat_response` method of the `LlamaCppAgent` class.
@@ -195,7 +195,9 @@ title='The Feynman Lectures on Physics' author='Richard Feynman, Robert B. Leigh
 ```
 
 ### Function Calling Example
-This example shows how to do function calling.
+This example shows how to do function calling pydantic models.
+You can also convert Python functions with type hints, automatically to pydantic models using the function:
+`create_dynamic_model_from_function` under: `llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models`
 ```python
 from enum import Enum
 
@@ -265,6 +267,57 @@ Example output
 ```text
 { "function": "calculator","function_parameters": { "number_one": 42.00000 ,  "operation": "multiply" ,  "number_two": 42.00000 }}
 1764.0
+```
+
+### Function Calling with Python Function Example
+This example shows how to do function calling using actual Python functions.
+```python
+from llama_cpp import Llama
+from typing import Union
+import math
+
+from llama_cpp_agent.llm_agent import LlamaCppAgent
+
+from llama_cpp_agent.messages_formatter import MessagesFormatterType
+from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
+from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import create_dynamic_model_from_function
+
+
+def calculate_a_to_the_power_b(a: Union[int | float], b: Union[int | float]):
+    print(f"Result: {math.pow(a, b)}")
+
+
+DynamicSampleModel = create_dynamic_model_from_function(calculate_a_to_the_power_b)
+
+
+function_tools = [LlamaCppFunctionTool(DynamicSampleModel)]
+
+function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
+
+main_model = Llama(
+    "../gguf-models/dolphin-2.6-mistral-7b-Q8_0.gguf",
+    n_gpu_layers=35,
+    f16_kv=True,
+    use_mlock=False,
+    embedding=False,
+    n_threads=8,
+    n_batch=1024,
+    n_ctx=8192,
+    last_n_tokens_size=1024,
+    verbose=False,
+    seed=42,
+)
+llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
+                                system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n" + function_tool_registry.get_documentation(),
+                                predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+user_input = "a= 5, b = 42"
+print(llama_cpp_agent.get_chat_response(user_input, temperature=0.45, function_tool_registry=function_tool_registry))
+
+```
+Example output
+```text
+{ "function": "calculate-a-to-the-power-b","function_parameters": { "a": 5 ,  "b": 42  }}
+Result: 2.2737367544323207e+29
 ```
 ### Knowledge Graph Creation Example
 This example, based on an example of the Instructor library for OpenAI,

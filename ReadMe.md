@@ -283,20 +283,20 @@ from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
 from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import create_dynamic_model_from_function
 
 
-def calculate_a_to_the_power_b(a: Union[int | float], b: Union[int | float]):
-    print(f"Result: {math.pow(a, b)}")
+def calculate_a_to_the_power_b(a: Union[int, float], b: Union[int, float]):
+    return f"Result: {math.pow(a, b)}"
 
 
 DynamicSampleModel = create_dynamic_model_from_function(calculate_a_to_the_power_b)
-
 
 function_tools = [LlamaCppFunctionTool(DynamicSampleModel)]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 main_model = Llama(
-    "../gguf-models/dolphin-2.6-mistral-7b-Q8_0.gguf",
-    n_gpu_layers=35,
+    "../../gguf-models/openhermes-2.5-mistral-7b-16k.Q8_0.gguf",
+    n_gpu_layers=49,
+    offload_kqv=True,
     f16_kv=True,
     use_mlock=False,
     embedding=False,
@@ -307,12 +307,14 @@ main_model = Llama(
     verbose=False,
     seed=42,
 )
-llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
-                                system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n" + function_tool_registry.get_documentation(),
-                                predefined_messages_formatter_type=MessagesFormatterType.CHATML)
-user_input = "a= 5, b = 42"
-print(llama_cpp_agent.get_chat_response(user_input, temperature=0.45, function_tool_registry=function_tool_registry))
 
+llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
+                                system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n" + function_tool_registry.get_documentation(),
+                                predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+user_input = "a = 5, b = 42"
+
+# Set repeat_penalty high to avoid endless zeroes as output when using floats.
+print(llama_cpp_agent.get_chat_response(user_input, temperature=0.6, repeat_penalty=1.35, function_tool_registry=function_tool_registry))
 ```
 Example output
 ```text

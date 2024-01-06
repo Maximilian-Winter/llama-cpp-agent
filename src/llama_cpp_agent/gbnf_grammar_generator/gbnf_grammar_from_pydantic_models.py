@@ -85,7 +85,7 @@ def generate_list_rule(element_type):
     """
     rule_name = f"{map_pydantic_type_to_gbnf(element_type)}-list"
     element_rule = map_pydantic_type_to_gbnf(element_type)
-    list_rule = f"{rule_name} ::= \"[\" ws ( {element_rule} (\",\" ws {element_rule})*  )? \"]\""
+    list_rule = fr'{rule_name} ::= "["  {element_rule} (","  {element_rule})* "]"'
     return list_rule
 
 
@@ -98,12 +98,12 @@ def get_members_structure(cls, rule_name):
         result = f'{rule_name} ::= "{{"'
         type_list_rules = []
         # Modify this comprehension
-        members = [f' ws \"\\\"{name}\\\"\" ws ":" ws {map_pydantic_type_to_gbnf(param_type)}'
+        members = [f'  \"\\\"{name}\\\"\" ":"  {map_pydantic_type_to_gbnf(param_type)}'
                    for name, param_type in cls.__annotations__.items()
                    if name != 'self']
 
-        result += '", "'.join(members)
-        result += ' ws "}"'
+        result += '"," '.join(members)
+        result += '  "}"'
         return result, type_list_rules
     elif rule_name == "custom-class-any":
         result = f'{rule_name} ::=  '
@@ -116,12 +116,12 @@ def get_members_structure(cls, rule_name):
         result = f'{rule_name} ::=  "{{"'
         type_list_rules = []
         # Modify this comprehension too
-        members = [f' ws \"\\\"{name}\\\"\" ws ":" ws {map_pydantic_type_to_gbnf(param.annotation)}'
+        members = [f'  \"\\\"{name}\\\"\" ":"  {map_pydantic_type_to_gbnf(param.annotation)}'
                    for name, param in parameters.items()
                    if name != 'self' and param.annotation != inspect.Parameter.empty]
 
         result += '", "'.join(members)
-        result += ' ws "}"'
+        result += '  "}"'
         return result, type_list_rules
 
 
@@ -292,7 +292,7 @@ def generate_gbnf_rule_for_type(model_name, look_for_markdown_code_block, look_f
                                                                           element_type, is_optional, processed_models,
                                                                           created_rules)
         rules.extend(additional_rules)
-        array_rule = f"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* ws "]" """
+        array_rule = f"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})*  "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 
@@ -314,7 +314,7 @@ def generate_gbnf_rule_for_type(model_name, look_for_markdown_code_block, look_f
                                                                                     f"{field_name}-value-type",
                                                                                     value_type, is_optional,
                                                                                     processed_models, created_rules)
-        gbnf_type = fr'{gbnf_type} ::= "{{" ws ( {additional_key_type} ":" ws {additional_value_type} ("," ws {additional_key_type} ":" ws {additional_value_type})*  )? "}}" ws'
+        gbnf_type = fr'{gbnf_type} ::= "{{"  ( {additional_key_type} ":"  {additional_value_type} (","  {additional_key_type} ":"  {additional_value_type})*  )? "}}" '
 
         rules.extend(additional_key_rules)
         rules.extend(additional_value_rules)
@@ -460,19 +460,18 @@ def generate_gbnf_grammar(model: Type[BaseModel], look_for_markdown_code_block, 
                 not look_for_triple_quoted_string)):
             if rule_name not in created_rules:
                 created_rules[rule_name] = additional_rules
-            model_rule_parts.append(f'\"\\\"{field_name}\\\"\" ":" ws {rule_name}')  # Adding escaped quotes
+            model_rule_parts.append(f' ws \"\\\"{field_name}\\\"\" ": "  {rule_name}')  # Adding escaped quotes
             nested_rules.extend(additional_rules)
         else:
             has_triple_quoted_string = look_for_triple_quoted_string and field_name == "triple_quoted_string" and look_for_triple_quoted_string
             has_markdown_code_block = look_for_markdown_code_block and field_name == "markdown_code_block" and look_for_markdown_code_block
 
-    fields_joined = ' ws ", " ws '.join(model_rule_parts)
-    model_rule = f'{model_name} ::= ws "{{" ws {fields_joined} ws "}}'
+    fields_joined = r' "," "\n" '.join(model_rule_parts)
+    model_rule = fr'{model_name} ::= "{{" "\n" {fields_joined} "\n" ws "}}"'
 
     if look_for_markdown_code_block or look_for_triple_quoted_string:
-        model_rule += '}"'
-    else:
-        model_rule += '"'
+        model_rule += ' ws "}"'
+
     if has_triple_quoted_string:
         model_rule += '"\\n" triple-quoted-string'
     if has_markdown_code_block:
@@ -520,9 +519,9 @@ def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], lo
             all_rules.extend(model_rules)
 
         if list_of_outputs:
-            root_rule = 'root ::=  (ws | "\\n") "[" ws grammar-models ("," ws grammar-models)* ws "]"\n'
+            root_rule = r'root ::= ws "["  grammar-models (","  grammar-models)*  "]"' + "\n"
         else:
-            root_rule = 'root ::= (ws | "\\n") grammar-models\n'
+            root_rule = r'root ::= ws grammar-models' + "\n"
         root_rule += "grammar-models ::= " + " | ".join(
             [format_model_and_field_name(model.__name__) for model in models])
         all_rules.insert(0, root_rule)
@@ -530,17 +529,17 @@ def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], lo
     elif root_rule_class is not None:
         root_rule = f"root ::= {format_model_and_field_name(root_rule_class)}\n"
 
-        model_rule = fr'{format_model_and_field_name(root_rule_class)} ::= (ws | "\n") "{{" ws "\"{root_rule_class}\"" ":" ws grammar-models'
+        model_rule = fr'{format_model_and_field_name(root_rule_class)} ::= ws "{{" ws "\"{root_rule_class}\""  ": "  grammar-models'
         if not look_for_markdown_code_block and not look_for_triple_quoted_string:
-            model_rule += '"}"'
+            model_rule += ' ws "}"'
         fields_joined = " | ".join(
             [fr'{format_model_and_field_name(model.__name__)}-grammar-model' for model in models])
 
         grammar_model_rules = f'\ngrammar-models ::= {fields_joined}'
         mod_rules = []
         for model in models:
-            mod_rule = fr'{format_model_and_field_name(model.__name__)}-grammar-model ::= '
-            mod_rule += fr'"\"{format_model_and_field_name(model.__name__)}\"" "," "\"{root_rule_content}\"" ":"  {format_model_and_field_name(model.__name__)}' + '\n'
+            mod_rule = fr'{format_model_and_field_name(model.__name__)}-grammar-model ::= ws'
+            mod_rule += fr'"\"{format_model_and_field_name(model.__name__)}\"" "," ws "\"{root_rule_content}\"" ws ":" ws {format_model_and_field_name(model.__name__)}' + '\n'
             mod_rules.append(mod_rule)
         grammar_model_rules += "\n" + "\n".join(mod_rules)
         for model in models:
@@ -568,10 +567,9 @@ string ::= "\"" (
         [^"\\] |
         "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
       )* "\"" ws
-ws ::= " "
+ws ::= ([ \t\n] ws)?
 float ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
-fractional-part ::= [0-9]+
-integer-part ::= [0-9]+
+
 integer ::= [0-9]+"""
     markdown_code_block_grammar = ""
     if "markdown-code-block" in grammar:
@@ -835,6 +833,7 @@ def create_dynamic_model_from_function(func: Callable):
     # Creating the dynamic model
     DynamicModel = create_model(f'{func.__name__}', **dynamic_fields)
 
+    DynamicModel.__doc__ = getdoc(func)
     # Wrapping the original function to handle instance 'self'
     def run_method_wrapper(self, *args, **kwargs):
         func_args = {name: getattr(self, name) for name in type_hints}

@@ -13,8 +13,8 @@ from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models im
     generate_gbnf_grammar_and_documentation
 
 main_model = Llama(
-    "../gguf-models/dolphin-2.7-mixtral-8x7b.Q4_K_M.gguf",
-    n_gpu_layers=13,
+    "../../gguf-models/openhermes-2.5-mistral-7b.Q8_0.gguf",
+    n_gpu_layers=35,
     f16_kv=True,
     use_mlock=False,
     embedding=False,
@@ -54,7 +54,7 @@ print(gbnf_grammar)
 grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)
 
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt="You are an advanced AI assistant, developed by OpenAI, responding in JSON format.\n\nAvailable JSON response models:\n\n" + documentation,
+                              system_prompt="You are an advanced AI assistant responding in JSON format.\n\nAvailable JSON response models:\n\n" + documentation,
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
 from graphviz import Digraph

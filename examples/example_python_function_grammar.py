@@ -10,6 +10,9 @@ from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models im
 
 
 def calculate_a_to_the_power_b(a: Union[int, float], b: Union[int, float]):
+    """
+    Calculates 'a' to the power 'b' and returns the result
+    """
     return f"Result: {math.pow(a, b)}"
 
 
@@ -18,7 +21,7 @@ DynamicSampleModel = create_dynamic_model_from_function(calculate_a_to_the_power
 function_tools = [LlamaCppFunctionTool(DynamicSampleModel)]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
-
+print(function_tool_registry.gbnf_grammar)
 main_model = Llama(
     "../../gguf-models/openhermes-2.5-mistral-7b-16k.Q8_0.gguf",
     n_gpu_layers=49,
@@ -30,14 +33,13 @@ main_model = Llama(
     n_batch=1024,
     n_ctx=8192,
     last_n_tokens_size=1024,
-    verbose=False,
+    verbose=True,
     seed=42,
 )
 
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
-                                system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n" + function_tool_registry.get_documentation(),
+                                system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format. The following are the available functions and their parameters and types:\n\n" + function_tool_registry.get_documentation(),
                                 predefined_messages_formatter_type=MessagesFormatterType.CHATML)
-user_input = "a = 5, b = 42"
+user_input = "a = 5.0505, b = 42"
 
-# Set repeat_penalty high to avoid endless zeroes as output when using floats.
-print(llama_cpp_agent.get_chat_response(user_input, temperature=0.6, repeat_penalty=1.35, function_tool_registry=function_tool_registry))
+print(llama_cpp_agent.get_chat_response(user_input, temperature=0.45, function_tool_registry=function_tool_registry))

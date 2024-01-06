@@ -3,7 +3,7 @@ import json
 
 def sanitize_json_string(s):
     # Escaping newlines, quotes, and backslashes
-    return s.replace('\n', '\\n').replace('\r', '\\r')
+    return s.replace('\n', '').replace('\r', '')
 
 
 def is_empty_or_whitespace(s):

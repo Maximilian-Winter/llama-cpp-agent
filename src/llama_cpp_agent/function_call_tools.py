@@ -25,7 +25,7 @@ class LlamaCppFunctionTool:
 class LlamaCppFunctionToolRegistry:
     def __init__(self):
         self.tool_root = "function"
-        self.tool_rule_content = "function_parameters"
+        self.tool_rule_content = "function-parameters"
         self.model_prefix = "Function"
         self.fields_prefix = "Function Parameters"
         self.function_tools = {}
@@ -81,10 +81,10 @@ class LlamaCppFunctionToolRegistry:
 
                 if name in function_call_response:
                     function_call, content = parse_json_response_with_markdown_code_block(function_call_response)
-                    if self.function_tools_containing_field_string[function_call["function"]].has_markdown_code_block:
-                        function_call["function_parameters"]["markdown_code_block"] = content
-                    elif self.function_tools_containing_field_string[function_call["function"]].has_triple_quoted_string:
-                        function_call["function_parameters"]["triple_quoted_string"] = content
+                    if self.function_tools_containing_field_string[function_call[self.tool_root]].has_markdown_code_block:
+                        function_call[self.tool_rule_content]["markdown_code_block"] = content
+                    elif self.function_tools_containing_field_string[function_call[self.tool_root]].has_triple_quoted_string:
+                        function_call[self.tool_rule_content]["triple_quoted_string"] = content
 
                     output = self.intern_function_call(function_call, with_markdown_code_block=True)
                     return output
@@ -98,12 +98,12 @@ class LlamaCppFunctionToolRegistry:
 
     def intern_function_call(self, function_call: dict, with_markdown_code_block=False):
         if with_markdown_code_block:
-            function_tool = self.function_tools_containing_field_string[function_call["function"]]
+            function_tool = self.function_tools_containing_field_string[function_call[self.tool_root]]
         else:
-            function_tool = self.function_tools[function_call["function"]]
+            function_tool = self.function_tools[function_call[self.tool_root]]
         try:
             cls = function_tool.model
-            call_parameters = function_call["function_parameters"]
+            call_parameters = function_call[self.tool_rule_content]
             call = cls(**call_parameters)
             output = call.run(**function_tool.additional_parameters)
             return output

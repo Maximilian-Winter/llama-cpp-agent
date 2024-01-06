@@ -21,7 +21,7 @@ DynamicSampleModel = create_dynamic_model_from_function(calculate_a_to_the_power
 function_tools = [LlamaCppFunctionTool(DynamicSampleModel)]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
-print(function_tool_registry.gbnf_grammar)
+
 main_model = Llama(
     "../../gguf-models/openhermes-2.5-mistral-7b-16k.Q8_0.gguf",
     n_gpu_layers=49,

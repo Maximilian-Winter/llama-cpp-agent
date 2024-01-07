@@ -65,12 +65,12 @@ class LlamaCppAgent:
     def get_chat_response(
             self,
             message: str = None,
-            role: Literal["system"] | Literal["user"] | Literal["assistant"] = "user",
+            role: Literal["system", "user", "assistant", "function"] = "user",
             system_prompt: str = None,
             add_message_to_chat_history: bool = True,
             add_response_to_chat_history: bool = True,
             grammar: LlamaGrammar = None,
-            function_tool_registry: LlamaCppFunctionToolRegistry=None,
+            function_tool_registry: LlamaCppFunctionToolRegistry = None,
             streaming_callback: Callable[[StreamingResponse], None] = None,
             max_tokens: int = 0,
             temperature: float = 0.4,
@@ -87,7 +87,7 @@ class LlamaCppAgent:
             stream: bool = True,
             print_output: bool = True,
             k_last_messages: int = 0
-    ):
+    ) :
         if function_tool_registry is not None:
             grammar = function_tool_registry.get_grammar()
         if system_prompt is None:

@@ -1,6 +1,6 @@
 import json
 from copy import copy
-from typing import Type, List, Callable, Union
+from typing import Type, List, Callable, Union, Literal
 
 from llama_cpp import Llama, LlamaGrammar
 from pydantic import BaseModel
@@ -112,11 +112,17 @@ class FunctionCallingAgent:
         while message:
             if count > 0:
                 message = f"Function Call Result: {message}"
-            message = self.llama_cpp_agent.get_chat_response(message, system_prompt=self.system_prompt,
-                                                             function_tool_registry=self.tool_registry,
-                                                             streaming_callback=self.streaming_callback,
-                                                             k_last_messages=self.k_last_messages_from_chat_history,
-                                                             **self.llama_generation_settings.as_dict())
+                message = self.llama_cpp_agent.get_chat_response(message, role="function", system_prompt=self.system_prompt,
+                                                                 function_tool_registry=self.tool_registry,
+                                                                 streaming_callback=self.streaming_callback,
+                                                                 k_last_messages=self.k_last_messages_from_chat_history,
+                                                                 **self.llama_generation_settings.as_dict())
+            else:
+                message = self.llama_cpp_agent.get_chat_response(message, role="user", system_prompt=self.system_prompt,
+                                                                 function_tool_registry=self.tool_registry,
+                                                                 streaming_callback=self.streaming_callback,
+                                                                 k_last_messages=self.k_last_messages_from_chat_history,
+                                                                 **self.llama_generation_settings.as_dict())
             count += 1
 
     def send_message_to_user(self, message: str):

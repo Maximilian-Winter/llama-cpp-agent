@@ -8,7 +8,7 @@ from example_agent_models_auto_coder import SendMessageToUser, GetFileList, Read
     agent_dev_folder_setup
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
-from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
+from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 
 function_tools = [LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
                   LlamaCppFunctionTool(WriteTextFile, has_triple_quoted_string=True)]

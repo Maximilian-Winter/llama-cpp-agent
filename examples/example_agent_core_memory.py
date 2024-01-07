@@ -5,7 +5,7 @@ from llama_cpp_agent.llm_agent import LlamaCppAgent
 from example_agent_models_auto_coder import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.agent_memory.memory_tools import AgentCoreMemory
-from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
+from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 
 agent_core_memory = AgentCoreMemory()
 

@@ -1,25 +1,38 @@
 import json
-from typing import List, Dict, Literal
+from dataclasses import dataclass
+from typing import List, Dict, Literal, Callable, Union
 
 from llama_cpp import Llama, LlamaGrammar
 
+from .llm_settings import LlamaLLMSettings
 from .messages_formatter import MessagesFormatterType, get_predefined_messages_formatter, MessagesFormatter
-from .function_call_tools import LlamaCppFunctionTool, LlamaCppFunctionToolRegistry
+from .function_calling import LlamaCppFunctionTool, LlamaCppFunctionToolRegistry
+
+
+@dataclass
+class StreamingResponse:
+    text: str
+    is_last_response: bool
 
 
 class LlamaCppAgent:
-
-    def __init__(self, model, name="llamacpp_agent", system_prompt="You are helpful assistant.",
-                 predefined_messages_formatter_type: MessagesFormatterType = None, debug_output=False):
+    """
+    A base agent that can be used for chat, structured output and function calling. Is used as part of all other agents.
+    """
+    def __init__(self, model: Union[Llama, LlamaLLMSettings], name: str = "llamacpp_agent", system_prompt: str = "You are helpful assistant.",
+                 predefined_messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
+                 custom_messages_formatter: MessagesFormatter = None, debug_output: bool = False):
+        if isinstance(model, LlamaLLMSettings):
+            model = Llama(**model.as_dict())
         self.model = model
         self.name = name
         self.system_prompt = system_prompt
         self.debug_output = debug_output
         self.messages = []
-        if predefined_messages_formatter_type:
-            self.messages_formatter = get_predefined_messages_formatter(predefined_messages_formatter_type)
+        if custom_messages_formatter is not None:
+            self.messages_formatter = custom_messages_formatter
         else:
-            self.messages_formatter = get_predefined_messages_formatter(MessagesFormatterType.CHATML)
+            self.messages_formatter = get_predefined_messages_formatter(predefined_messages_formatter_type)
 
     @staticmethod
     def get_function_tool_registry(function_tool_list: List[LlamaCppFunctionTool]):
@@ -53,9 +66,12 @@ class LlamaCppAgent:
             self,
             message: str = None,
             role: Literal["system"] | Literal["user"] | Literal["assistant"] = "user",
-            system_prompt=None,
-            grammar=None,
-            function_tool_registry=None,
+            system_prompt: str = None,
+            add_message_to_chat_history: bool = True,
+            add_response_to_chat_history: bool = True,
+            grammar: LlamaGrammar = None,
+            function_tool_registry: LlamaCppFunctionToolRegistry=None,
+            streaming_callback: Callable[[StreamingResponse], None] = None,
             max_tokens: int = 0,
             temperature: float = 0.4,
             top_k: int = 0,
@@ -69,10 +85,8 @@ class LlamaCppAgent:
             tfs_z: float = 1.0,
             stop_sequences: List[str] = None,
             stream: bool = True,
-            k_last_messages: int = -1,
-            add_response_to_chat_history: bool = True,
-            add_message_to_chat_history: bool = True,
-            print_output: bool = True
+            print_output: bool = True,
+            k_last_messages: int = 0
     ):
         if function_tool_registry is not None:
             grammar = function_tool_registry.get_grammar()
@@ -98,7 +112,7 @@ class LlamaCppAgent:
                     "content": message.strip(),
                 },
             )
-        if k_last_messages > -1:
+        if k_last_messages > 0:
             messages.extend(self.messages[-k_last_messages:])
         else:
             messages.extend(self.messages)
@@ -133,7 +147,11 @@ class LlamaCppAgent:
                 for out in completion:
                     text = out['choices'][0]['text']
                     full_response += text
+                    if streaming_callback is not None:
+                        streaming_callback(StreamingResponse(text=text, is_last_response=False))
                     print(text, end="")
+                if streaming_callback is not None:
+                    streaming_callback(StreamingResponse(text="", is_last_response=True))
                 print("")
 
                 if add_response_to_chat_history:
@@ -152,7 +170,10 @@ class LlamaCppAgent:
                 for out in completion:
                     text = out['choices'][0]['text']
                     full_response += text
-
+                    if streaming_callback is not None:
+                        streaming_callback(StreamingResponse(text=text, is_last_response=False))
+                if streaming_callback is not None:
+                    streaming_callback(StreamingResponse(text="", is_last_response=True))
                 if add_response_to_chat_history:
                     self.messages.append(
                         {
@@ -193,14 +214,14 @@ class LlamaCppAgent:
             return text.strip() if text else None
         return "Error: No model loaded!"
 
-    def remove_last_k_chat_messages(self, k):
+    def remove_last_k_chat_messages(self, k: int):
         # Ensure k is not greater than the length of the messages list
         k = min(k, len(self.messages))
 
         # Remove the last k elements
         self.messages = self.messages[:-k] if k > 0 else self.messages
 
-    def remove_first_k_chat_messages(self, k):
+    def remove_first_k_chat_messages(self, k: int):
         # Ensure k is not greater than the length of the messages list
         k = min(k, len(self.messages))
 
@@ -208,19 +229,20 @@ class LlamaCppAgent:
         self.messages = self.messages[k:] if k > 0 else self.messages
 
     def save_messages(self, file_path: str):
-        with open(file_path, 'w') as file:
+        with open(file_path, 'w', encoding="utf-8") as file:
             json.dump(self.messages, file, indent=4)
 
     def load_messages(self, file_path: str):
-        with open(file_path, 'r') as file:
+        with open(file_path, 'r', encoding="utf-8") as file:
             loaded_messages = json.load(file)
             self.messages.extend(loaded_messages)
+
     @staticmethod
     def agent_conversation(
-            agent_1,
-            agent_2,
-            agent_1_initial_message,
-            number_of_exchanges=15
+            agent_1: "LlamaCppAgent",
+            agent_2: "LlamaCppAgent",
+            agent_1_initial_message: str,
+            number_of_exchanges: int = 15
     ):
         current_message = agent_1_initial_message
         current_agent, next_agent = agent_2, agent_1
@@ -246,9 +268,9 @@ class LlamaCppAgent:
 
     @staticmethod
     def group_conversation(
-            agent_list: list,
-            initial_message,
-            number_of_turns=4
+            agent_list: list["LlamaCppAgent"],
+            initial_message: str,
+            number_of_turns: int = 4
     ):
         responses = [{
             "role": "user",
@@ -267,4 +289,3 @@ class LlamaCppAgent:
                 })
                 last_role = responses[-1]["role"]
         print("Conversation ended.")
-

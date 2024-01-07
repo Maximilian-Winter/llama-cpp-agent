@@ -721,8 +721,6 @@ def generate_field_text(field_name: str, field_type: Type[Any], model: Type[Base
     if not documentation_with_field_description:
         return field_text
 
-
-
     if field_description != "":
         field_text += f"{indent}  Description: " + field_description + "\n"
 
@@ -834,10 +832,11 @@ def create_dynamic_model_from_function(func: Callable):
     DynamicModel = create_model(f'{func.__name__}', **dynamic_fields)
 
     DynamicModel.__doc__ = getdoc(func)
+
     # Wrapping the original function to handle instance 'self'
-    def run_method_wrapper(self, *args, **kwargs):
+    def run_method_wrapper(self):
         func_args = {name: getattr(self, name) for name in type_hints}
-        return func(**func_args, **kwargs)
+        return func(**func_args)
 
     # Adding the wrapped function as a 'run' method
     setattr(DynamicModel, 'run', run_method_wrapper)

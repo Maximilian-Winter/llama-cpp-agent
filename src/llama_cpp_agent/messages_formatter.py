@@ -1,6 +1,6 @@
+import json
 from enum import Enum
 from typing import List, Dict, Tuple
-
 
 SYS_PROMPT_START_MIXTRAL = """"""
 SYS_PROMPT_END_MIXTRAL = """\n"""
@@ -63,6 +63,7 @@ ASSISTANT_PROMPT_START_OPEN_CHAT = """GPT4 Correct Assistant:"""
 ASSISTANT_PROMPT_END_OPEN_CHAT = """<|end_of_turn|>"""
 DEFAULT_OPEN_CHAT_STOP_SEQUENCES = ["<|end_of_turn|>"]
 
+
 class MessagesFormatterType(Enum):
     MIXTRAL = 1
     CHATML = 2
@@ -73,12 +74,13 @@ class MessagesFormatterType(Enum):
     SOLAR = 7
     OPEN_CHAT = 8
 
+
 class MessagesFormatter:
     def __init__(self, PRE_PROMPT: str, SYS_PROMPT_START: str, SYS_PROMPT_END: str, USER_PROMPT_START: str,
                  USER_PROMPT_END: str,
                  ASSISTANT_PROMPT_START: str,
                  ASSISTANT_PROMPT_END: str,
-                 INCLUDE_SYS_PROMPT_IN_MESSAGE: bool,
+                 INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE: bool,
                  DEFAULT_STOP_SEQUENCES: List[str]):
         self.PRE_PROMPT = PRE_PROMPT
         self.SYS_PROMPT_START = SYS_PROMPT_START
@@ -87,7 +89,7 @@ class MessagesFormatter:
         self.USER_PROMPT_END = USER_PROMPT_END
         self.ASSISTANT_PROMPT_START = ASSISTANT_PROMPT_START
         self.ASSISTANT_PROMPT_END = ASSISTANT_PROMPT_END
-        self.INCLUDE_SYS_PROMPT_IN_MESSAGE = INCLUDE_SYS_PROMPT_IN_MESSAGE
+        self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE = INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE
         self.DEFAULT_STOP_SEQUENCES = DEFAULT_STOP_SEQUENCES
 
     def format_messages(self, messages: List[Dict[str, str]]) -> Tuple[str, str]:
@@ -98,13 +100,13 @@ class MessagesFormatter:
             if message["role"] == "system":
                 formatted_messages += self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
                 last_role = "system"
-                if self.INCLUDE_SYS_PROMPT_IN_MESSAGE:
+                if self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE:
                     formatted_messages = self.USER_PROMPT_START + formatted_messages
                     no_user_prompt_start = True
             elif message["role"] == "user":
                 if no_user_prompt_start:
                     no_user_prompt_start = False
-                    formatted_messages += " " + message["content"] + self.USER_PROMPT_END
+                    formatted_messages += message["content"] + self.USER_PROMPT_END
                 else:
                     formatted_messages += self.USER_PROMPT_START + message["content"] + self.USER_PROMPT_END
                 last_role = "user"
@@ -114,6 +116,23 @@ class MessagesFormatter:
         if last_role == "system" or last_role == "user":
             return formatted_messages + self.ASSISTANT_PROMPT_START.strip(), "assistant"
         return formatted_messages + self.USER_PROMPT_START.strip(), "user"
+
+    def save(self, file_path: str):
+        with open(file_path, 'w', encoding="utf-8") as file:
+            json.dump(self.as_dict(), file, indent=4)
+
+    @staticmethod
+    def load_from_file(file_path: str) -> "MessagesFormatter":
+        with open(file_path, 'r', encoding="utf-8") as file:
+            loaded_messages_formatter = json.load(file)
+            return MessagesFormatter(**loaded_messages_formatter)
+
+    @staticmethod
+    def load_from_dict(loaded_messages_formatter: dict) -> "MessagesFormatter":
+        return MessagesFormatter(**loaded_messages_formatter)
+
+    def as_dict(self) -> dict:
+        return self.__dict__
 
 
 mixtral_formatter = MessagesFormatter("", SYS_PROMPT_START_MIXTRAL, SYS_PROMPT_END_MIXTRAL, USER_PROMPT_START_MIXTRAL,
@@ -134,15 +153,19 @@ synthia_formatter = MessagesFormatter("", SYS_PROMPT_START_SYNTHIA, SYS_PROMPT_E
                                       USER_PROMPT_END_SYNTHIA, ASSISTANT_PROMPT_START_SYNTHIA,
                                       ASSISTANT_PROMPT_END_SYNTHIA, False, DEFAULT_VICUNA_STOP_SEQUENCES)
 
-neural_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_NEURAL_CHAT, SYS_PROMPT_END_NEURAL_CHAT, USER_PROMPT_START_NEURAL_CHAT,
+neural_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_NEURAL_CHAT, SYS_PROMPT_END_NEURAL_CHAT,
+                                          USER_PROMPT_START_NEURAL_CHAT,
                                           USER_PROMPT_END_NEURAL_CHAT, ASSISTANT_PROMPT_START_NEURAL_CHAT,
                                           ASSISTANT_PROMPT_END_NEURAL_CHAT, False, DEFAULT_NEURAL_CHAT_STOP_SEQUENCES)
 
 solar_formatter = MessagesFormatter("", SYS_PROMPT_START_SOLAR, SYS_PROMPT_END_SOLAR, USER_PROMPT_START_SOLAR,
-                                          USER_PROMPT_END_SOLAR, ASSISTANT_PROMPT_START_SOLAR,
-                                          ASSISTANT_PROMPT_END_SOLAR, True, DEFAULT_SOLAR_STOP_SEQUENCES)
+                                    USER_PROMPT_END_SOLAR, ASSISTANT_PROMPT_START_SOLAR,
+                                    ASSISTANT_PROMPT_END_SOLAR, True, DEFAULT_SOLAR_STOP_SEQUENCES)
 
-open_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_OPEN_CHAT, SYS_PROMPT_END_OPEN_CHAT, USER_PROMPT_START_OPEN_CHAT, USER_PROMPT_END_OPEN_CHAT, ASSISTANT_PROMPT_START_OPEN_CHAT, ASSISTANT_PROMPT_END_OPEN_CHAT, True, DEFAULT_OPEN_CHAT_STOP_SEQUENCES)
+open_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_OPEN_CHAT, SYS_PROMPT_END_OPEN_CHAT,
+                                        USER_PROMPT_START_OPEN_CHAT, USER_PROMPT_END_OPEN_CHAT,
+                                        ASSISTANT_PROMPT_START_OPEN_CHAT, ASSISTANT_PROMPT_END_OPEN_CHAT, True,
+                                        DEFAULT_OPEN_CHAT_STOP_SEQUENCES)
 predefined_formatter = {
     MessagesFormatterType.MIXTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,

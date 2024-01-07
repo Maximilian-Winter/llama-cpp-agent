@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
+from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 
 
 # Simple calculator tool for the agent that can add, subtract, multiply, and divide.

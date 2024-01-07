@@ -15,89 +15,6 @@ The llama-cpp-agent framework can be installed using pip:
 pip install llama-cpp-agent
 ```
 
-## Usage
-The llama-cpp-agent framework is designed to be easy to use. The following sections will guide you through the process of using the framework.
-
-### Chat usage
-To chat with an LLM model, you need to create an instance of the `LlamaCppAgent` class. The constructor takes the following parameters:
-- `main_model`: The LLM model to use for the chat. This is an instance of the `Llama` class from the llama-cpp-python library.
-- `name`: The name of the agent. Defaults to `llamacpp_agent`.
-- `system_prompt`: The system prompt to use for the chat. Defaults to `You are a helpful assistant.`.
-- `predefined_messages_formatter_type`: The type of predefined messages formatter to use. Defaults to `MessagesFormatterType.CHATML`.
-- `debug_output`: Whether to print debug output to the console. Defaults to `False`.
-
-#### Predefined Messages Formatter
-The llama-cpp-agent framework uses custom messages formatters to format messages for the LLM model. The `MessagesFormatterType` enum defines the available predefined formatters. The following predefined formatters are available:
-- `MessagesFormatterType.CHATML`: Formats messages using the CHATML format.
-- `MessagesFormatterType.MIXTRAL`: Formats messages using the MIXTRAL format.
-- `MessagesFormatterType.VICUNA`: Formats messages using the VICUNA format.
-- `MessagesFormatterType.LLAMA_2`: Formats messages using the LLAMA 2 format.
-- `MessagesFormatterType.SYNTHIA`: Formats messages using the SYNTHIA format.
-- `MessagesFormatterType.NEURAL_CHAT`: Formats messages using the NEURAL CHAT format.
-- `MessagesFormatterType.SOLAR`: Formats messages using the SOLAR format.
-- `MessagesFormatterType.OPEN_CHAT`: Formats messages using the OPEN CHAT format.
-- 
-You can also define your own custom messages formatter by creating an instance of the `MessagesFormatter` class.
-The `MessagesFormatter` class takes the following parameters:
-- `PRE_PROMPT`: The pre-prompt to use for the messages. 
-- `SYS_PROMPT_START`: The system prompt start to use for the messages.
-- `SYS_PROMPT_END`: The system prompt end to use for the messages.
-- `USER_PROMPT_START`: The user prompt start to use for the messages.
-- `USER_PROMPT_END`: The user prompt end to use for the messages.
-- `ASSISTANT_PROMPT_START`: The assistant prompt start to use for the messages.
-- `ASSISTANT_PROMPT_END`: The assistant prompt end to use for the messages.
-- `INCLUDE_SYS_PROMPT_IN_MESSAGE`: Whether to include the system prompt in the message.
-- `DEFAULT_STOP_SEQUENCES`: The default stop sequences to use for the messages.
-
-After creating an instance of the `MessagesFormatter` class, you can use it by setting the `messages_formatter` of the `LlamaCppAgent` instance to the instance of the `MessagesFormatter` class.
-
-#### Chatting
-To chat with the LLM model, you can use the `get_chat_response` method of the `LlamaCppAgent` class. The `get_chat_response` method takes the following parameters:
-- `message`: The message to send to the LLM model. Defaults to `None`.
-- `role`: The role of the message. Defaults to `user`.
-- `system_prompt`: A override for the system prompt. Defaults to `None` and uses the agent system prompt passed at creation.
-- `grammar`: The grammar to use for constraining the LLM response. Defaults to `None`.
-- `function_tool_registry`: The function tool registry to use for the chat. Defaults to `None`.
-- `max_tokens`: The maximum number of tokens to use for the chat. Defaults to `0`.
-- `temperature`: The temperature to use for the chat. Defaults to `0.4`.
-- `top_k`: The top k to use for the chat. Defaults to `0`.
-- `top_p`: The top p to use for the chat. Defaults to `1.0`.
-- `min_p`: The min p to use for the chat. Defaults to `0.05`.
-- `typical_p`: The typical p to use for the chat. Defaults to `1.0`.              
-- `repeat_penalty`: The repeat penalty to use for the chat. Defaults to `1.0`.
-- `mirostat_mode`: The mirostat mode to use for the chat. Defaults to `0`.
-- `mirostat_tau`: The mirostat tau to use for the chat. Defaults to `5.0`.
-- `mirostat_eta`: The mirostat eta to use for the chat. Defaults to `0.1`.
-- `tfs_z`: The tfs z to use for the chat. Defaults to `1.0`.
-- `stop_sequences`: The stop sequences to use for the chat. Defaults to `None`.
-- `stream`: Whether to stream the chat. Defaults to `True`.
-- `k_last_messages`: The k last messages to use for the chat. Defaults to `-1` which takes all messages in the chat history.
-- `add_response_to_chat_history`: Whether to add the response to the chat history. Defaults to `True`.
-- `add_message_to_chat_history`: Whether to add the message to the chat history. Defaults to `True`.
-- `print_output`: Whether to print the output. Defaults to `True`.
-
-## Structured Output Usage
-To get structured output from an LLM model, you can use an instance of the `StructuredOutputAgent` class. The constructor takes the following parameters:
-- `main_model`: The LLM model to use for the structured output. This is an instance of the `Llama` class from the llama-cpp-python library.
-- `messages_formatter_type`: The type of messages formatter to use. Defaults to `MessagesFormatterType.CHATML`.
-- `debug_output`: Whether to print debug output to the console. Defaults to `False`.
-
-To set a custom messages formatter, you can use the `llama_cpp_agent.messages_formatter` property of the `StructuredOutputAgent` class.
-
-#### Structured Output
-To create structured output from the LLM model, you can use the `create_object` method of the `StructuredOutputAgent` class. The `create_object` method takes the following parameters:
-- `cls`: The pydantic class used for creating the structured output.
-- `data`: The data to use for the structured output. Defaults to `None` which creates a random object of cls class.
-
-This will return an instance of the pydantic class.
-
-## Function Calling Usage
-To utilize function calling with an LLM model, you can use the get_chat_response method of a `LlamaCppAgent` with a `function_tool_registry`. The `function_tool_registry` is an instance of the `LlamaCppFunctionToolRegistry` class. You can create a `LlamaCppFunctionToolRegistry` instance by passing a list of `LlamaCppFunctionTool` instances to the static `get_function_tool_registry` method of the `LlamaCppAgent` class. The `LlamaCppFunctionTool` class takes the following parameters:
-- `model`: The pydantic class defining the function call, it must have a `run` method to actually execute the function call. You can also convert Python functions with type hints, automatically to pydantic models using the function: `create_dynamic_model_from_function` under: `llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models`
-- `has_markdown_code_block`: Whether the model has a `markdown_code_block` field. Defaults to `False`. A `markdown_code_block` field is a special field used to allow the LLM to write relatively unconstrained output by letting it write the `markdown_code_block` as a Markdown code block. Which is useful for file writing.
-- `has_triple_quoted_string`: Whether the model has a `triple_quoted_string` field. Defaults to `False`. A `triple_quoted_string` field is a special field used to allow the LLM to write relatively unconstrained output by letting it write the `triple_quoted_string` as a triple quoted string. Which is useful for file writing.
-After passing the list of `LlamaCppFunctionTool` instances to the `get_function_tool_registry` method, you can use the returned `LlamaCppFunctionToolRegistry` instance as the `function_tool_registry` parameter of the `get_chat_response` method of the `LlamaCppAgent` class.
-
 ## Usage Examples
 The following examples demonstrate the usage of the llama-cpp-agent framework.
 You can find a lot more examples in the `examples` folder.
@@ -133,8 +50,111 @@ while True:
     print("AI: " + user_input)
 
 ```
+
+### Function Calling Agent Example
+This example shows how to use the FunctionCallingAgent for function calling with normal python functions and functions defined as pydantic models.
+
+```python
+# Example that uses the FunctionCallingAgent class to create a function calling agent.
+
+from enum import Enum
+
+from llama_cpp import Llama
+from pydantic import BaseModel, Field
+
+from llama_cpp_agent.llm_settings import LlamaLLMSettings, LlamaLLMGenerationSettings
+
+from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
+
+
+# Write to file function that can be used by the agent. Docstring will be used in system prompt.
+def write_to_file(chain_of_thought: str, file_path: str, file_content: str):
+    """
+    Write file to the user filesystem.
+    :param chain_of_thought: Your chain of thought while writing the file.
+    :param file_path: The file path includes the filename and file ending.
+    :param file_content: The actual content to write.
+    """
+    print(chain_of_thought)
+    with open(file_path, mode="w", encoding="utf-8") as file:
+        file.write(file_content)
+    return f"File {file_path} successfully written."
+
+
+# Read file function that can be used by the agent. Docstring will be used in system prompt.
+def read_file(file_path: str):
+    """
+    Read file from the user filesystem.
+    :param file_path: The file path includes the filename and file ending.
+    :return: File content.
+    """
+    output = ""
+    with open(file_path, mode="r", encoding="utf-8") as file:
+        output = file.read()
+    return f"Content of file '{file_path}':\n\n{output}"
+
+
+# Enum for the calculator tool.
+class MathOperation(Enum):
+    ADD = "add"
+    SUBTRACT = "subtract"
+    MULTIPLY = "multiply"
+    DIVIDE = "divide"
+
+
+# Simple pydantic calculator tool for the agent that can add, subtract, multiply, and divide. Docstring and description of fields will be used in system prompt.
+class Calculator(BaseModel):
+    """
+    Perform a math operation on two numbers.
+    """
+    number_one: float = Field(..., description="First number.", max_precision=5, min_precision=2)
+    operation: MathOperation = Field(..., description="Math operation to perform.")
+    number_two: float = Field(..., description="Second number.", max_precision=5, min_precision=2)
+
+    def run(self):
+        if self.operation == MathOperation.ADD:
+            return self.number_one + self.number_two
+        elif self.operation == MathOperation.SUBTRACT:
+            return self.number_one - self.number_two
+        elif self.operation == MathOperation.MULTIPLY:
+            return self.number_one * self.number_two
+        elif self.operation == MathOperation.DIVIDE:
+            return self.number_one / self.number_two
+        else:
+            raise ValueError("Unknown operation.")
+
+
+# Callback for receiving messages for the user.
+def send_message_to_user_callback(message: str):
+    print(message)
+
+generation_settings = LlamaLLMGenerationSettings(temperature=0.65, top_p=0.5, tfs_z=0.975)
+
+# Can be saved and loaded like that:
+# generation_settings.save("generation_settings.json")
+# generation_settings = LlamaLLMGenerationSettings.load_from_file("generation_settings.json")
+
+function_call_agent = FunctionCallingAgent(LlamaLLMSettings.load_from_file("openhermes-2.5-mistral-7b.Q8_0.json"),  # Can lama-cpp-python Llama class or LlamaLLMSettings class.
+                                           llama_generation_settings=generation_settings,
+                                           python_functions=[write_to_file, read_file],
+                                           pydantic_functions=[Calculator],
+                                           send_message_to_user_callback=send_message_to_user_callback)
+
+while True:
+    user_input = input(">")
+    function_call_agent.generate_response(user_input)
+    function_call_agent.save("function_calling_agent.json")
+
+
+```
+Example output
+```text
+{ "function": "calculator","function_parameters": { "number_one": 42.00000 ,  "operation": "multiply" ,  "number_two": 42.00000 }}
+1764.0
+```
+
 ### Structured Output
-This example shows how to get structured JSON output using the StructureOutputAgent class.
+This example shows how to get structured output objects using the StructureOutputAgent class.
 ```python
 # Example agent that uses the StructuredOutputAgent class to create a dataset entry of a book out of unstructured data.
 
@@ -193,11 +213,11 @@ Example output
 title='The Feynman Lectures on Physics' author='Richard Feynman, Robert B. Leighton, Matthew Sands' published_year=1963 keywords=['physics', 'textbook', 'Nobel laureate', 'The Great Explainer', 'California Institute of Technology', 'undergraduate', 'lectures'] category=<Category.NonFiction: 'Non-Fiction'> summary="The Feynman Lectures on Physics is a physics textbook based on lectures by Nobel laureate Richard Feynman, known as 'The Great Explainer'. The lectures were presented to undergraduate students at Caltech between 1961 and 1963. Co-authors of the book are Feynman, Robert B. Leighton, and Matthew Sands."
 
 ```
-
-### Function Calling Example
-This example shows how to do function calling pydantic models.
+### Manual Function Calling Example
+This example shows how to do function calling with pydantic models.
 You can also convert Python functions with type hints, automatically to pydantic models using the function:
 `create_dynamic_model_from_function` under: `llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models`
+
 ```python
 from enum import Enum
 
@@ -207,7 +227,7 @@ from pydantic import BaseModel, Field
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
+from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 
 
 # Simple calculator tool for the agent that can add, subtract, multiply, and divide.
@@ -269,8 +289,9 @@ Example output
 1764.0
 ```
 
-### Function Calling with Python Function Example
+### Manual Function Calling with Python Function Example
 This example shows how to do function calling using actual Python functions.
+
 ```python
 from llama_cpp import Llama
 from typing import Union
@@ -279,7 +300,7 @@ import math
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
+from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import create_dynamic_model_from_function
 
 
@@ -419,3 +440,27 @@ Example Output:
 
 ## Additional Information
 - **Dependencies**: pydantic for grammars based generation and of course llama-cpp-python.
+
+### Predefined Messages Formatter
+The llama-cpp-agent framework uses custom messages formatters to format messages for the LLM model. The `MessagesFormatterType` enum defines the available predefined formatters. The following predefined formatters are available:
+- `MessagesFormatterType.CHATML`: Formats messages using the CHATML format.
+- `MessagesFormatterType.MIXTRAL`: Formats messages using the MIXTRAL format.
+- `MessagesFormatterType.VICUNA`: Formats messages using the VICUNA format.
+- `MessagesFormatterType.LLAMA_2`: Formats messages using the LLAMA 2 format.
+- `MessagesFormatterType.SYNTHIA`: Formats messages using the SYNTHIA format.
+- `MessagesFormatterType.NEURAL_CHAT`: Formats messages using the NEURAL CHAT format.
+- `MessagesFormatterType.SOLAR`: Formats messages using the SOLAR format.
+- `MessagesFormatterType.OPEN_CHAT`: Formats messages using the OPEN CHAT format.
+-
+You can also define your own custom messages formatter by creating an instance of the `MessagesFormatter` class.
+The `MessagesFormatter` class takes the following parameters:
+- `PRE_PROMPT`: The pre-prompt to use for the messages.
+- `SYS_PROMPT_START`: The system prompt start to use for the messages.
+- `SYS_PROMPT_END`: The system prompt end to use for the messages.
+- `USER_PROMPT_START`: The user prompt start to use for the messages.
+- `USER_PROMPT_END`: The user prompt end to use for the messages.
+- `ASSISTANT_PROMPT_START`: The assistant prompt start to use for the messages.
+- `ASSISTANT_PROMPT_END`: The assistant prompt end to use for the messages.
+- `INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE`: Whether to include the system prompt in the first user message.
+- `DEFAULT_STOP_SEQUENCES`: The default stop sequences to use for the messages.
+

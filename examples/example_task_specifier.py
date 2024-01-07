@@ -1,7 +1,7 @@
 from llama_cpp import Llama
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.llm_prompt_template import Prompter, PromptTemplateFields
+from llama_cpp_agent.llm_prompt_template import PromptTemplate, PromptTemplateFields
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
 main_model = Llama(
@@ -29,6 +29,6 @@ task_specifier_sys_msg = "You are an advanced AI agent that working as a task cr
 task_specifier_prompt_template = """Here is a task: {task}.
 Please split it into manageable sub task. Do not add anything else."""
 
-task_specifier_prompter = Prompter.from_string(task_specifier_prompt_template)
+task_specifier_prompter = PromptTemplate.from_string(task_specifier_prompt_template)
 task_specifier_prompt = task_specifier_prompter.generate_prompt(template_fields.get_fields_dict())
 agent_task_specifier = LlamaCppAgent(model=main_model, debug_output=True, system_prompt=task_specifier_sys_msg, predefined_messages_formatter_type=MessagesFormatterType.SYNTHIA)

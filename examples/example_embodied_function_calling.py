@@ -7,7 +7,7 @@ from llama_cpp_agent.llm_agent import LlamaCppAgent
 
 from example_advanced_function_call_models import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
+from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 
 function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
                   LlamaCppFunctionTool(WriteTextFile)]

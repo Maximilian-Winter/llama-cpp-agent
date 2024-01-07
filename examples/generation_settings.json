@@ -1,0 +1,17 @@
+{
+    "max_tokens": 0,
+    "temperature": 0.65,
+    "top_k": 0,
+    "top_p": 0.5,
+    "min_p": 0.05,
+    "typical_p": 1.0,
+    "repeat_penalty": 1.0,
+    "mirostat_mode": 0,
+    "mirostat_tau": 5.0,
+    "mirostat_eta": 0.1,
+    "tfs_z": 0.975,
+    "stop_sequences": null,
+    "stream": true,
+    "print_output": true,
+    "k_last_messages": 0
+}

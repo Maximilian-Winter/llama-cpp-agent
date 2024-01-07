@@ -5,7 +5,7 @@ import math
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.function_call_tools import LlamaCppFunctionTool
+from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import create_dynamic_model_from_function
 
 

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from ..function_call_tools import LlamaCppFunctionTool
+from ..function_calling import LlamaCppFunctionTool
 from .core_memory_manager import CoreMemoryManager
 from .retrieval_memory_manager import RetrievalMemoryManager, RetrievalMemory
 

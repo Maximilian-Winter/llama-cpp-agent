@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Union
 
 
 @dataclass
@@ -44,7 +44,7 @@ class PromptTemplateFields:
             self.add_field(name, value)
 
 
-class Prompter:
+class PromptTemplate:
     def __init__(self, template_file=None, template_string=None):
         if template_file:
             with open(template_file, "r") as file:
@@ -64,10 +64,33 @@ class Prompter:
             template_string = file.read()
         return cls(template_string=template_string)
 
-    def generate_prompt(self, template_fields):
+    def _remove_empty_placeholders(self, text):
+        # Remove lines that contain only the empty placeholder
+        text = re.sub(rf'^{"__EMPTY_TEMPLATE_FIELD__"}$', '', text, flags=re.MULTILINE)
+        # Remove the empty placeholder from lines with other content
+        text = re.sub(rf'{"__EMPTY_TEMPLATE_FIELD__"}', '', text)
+        return text
+
+    def generate_prompt(self, template_fields: Union[dict, PromptTemplateFields], remove_empty_template_field=True):
+
+        if isinstance(template_fields, PromptTemplateFields):
+            template_fields = template_fields.get_fields_dict()
+
+        if not remove_empty_template_field:
+            def replace_placeholder(match):
+                placeholder = match.group(1)
+                return template_fields.get(placeholder, match.group(0))
+
+            prompt = re.sub(r"\{(\w+)\}", replace_placeholder, self.template)
+            return prompt
+
         def replace_placeholder(match):
             placeholder = match.group(1)
-            return template_fields.get(placeholder, match.group(0))
+            if template_fields.get(placeholder, match.group(0)) != '':
+                return template_fields.get(placeholder, match.group(0))
+            return "__EMPTY_TEMPLATE_FIELD__"
 
-        prompt = re.sub(r"\{(\w+)}", replace_placeholder, self.template)
-        return prompt
+        # Initial placeholder replacement
+        prompt = re.sub(r"\{(\w+)\}", replace_placeholder, self.template)
+
+        return self._remove_empty_placeholders(prompt)

@@ -1,4 +1,4 @@
-# Example agent that uses the StructuredOutputAgent class to create a dataset entry of a book out of unstructured data.
+# Example that uses the StructuredOutputAgent class to create a dataset entry of a book, out of unstructured data.
 
 from enum import Enum
 

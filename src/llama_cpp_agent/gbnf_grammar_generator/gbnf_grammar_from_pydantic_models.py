@@ -4,7 +4,7 @@ from copy import copy
 from inspect import isclass, getdoc
 from types import NoneType
 
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel, create_model, Field
 from typing import Any, Type, List, get_args, get_origin, Tuple, Union, Optional
 from enum import Enum
 from typing import get_type_hints, Callable
@@ -13,7 +13,7 @@ import re
 
 class PydanticDataType(Enum):
     """
-    Defines the data types supported by Pydantic.
+    Defines the data types supported by the grammar_generator.
 
     Attributes:
         STRING (str): Represents a string data type.
@@ -33,7 +33,10 @@ class PydanticDataType(Enum):
     ARRAY = "array"
     ENUM = "enum"
     ANY = "any"
+    NULL = "null"
     CUSTOM_CLASS = "custom-class"
+    CUSTOM_DICT = "custom-dict"
+    SET = "set"
 
 
 def map_pydantic_type_to_gbnf(pydantic_type: Type[Any]) -> str:
@@ -53,6 +56,9 @@ def map_pydantic_type_to_gbnf(pydantic_type: Type[Any]) -> str:
     elif get_origin(pydantic_type) == list:
         element_type = get_args(pydantic_type)[0]
         return f"{map_pydantic_type_to_gbnf(element_type)}-list"
+    elif get_origin(pydantic_type) == set:
+        element_type = get_args(pydantic_type)[0]
+        return f"{map_pydantic_type_to_gbnf(element_type)}-set"
     elif get_origin(pydantic_type) == Union:
         union_types = get_args(pydantic_type)
         union_rules = [map_pydantic_type_to_gbnf(ut) for ut in union_types]
@@ -106,8 +112,8 @@ def get_members_structure(cls, rule_name):
         result += '  "}"'
         return result, type_list_rules
     elif rule_name == "custom-class-any":
-        result = f'{rule_name} ::=  '
-        result += 'string | boolean | integer | float '
+        result = f'{rule_name} ::= '
+        result += 'value'
         type_list_rules = []
         return result, type_list_rules
     else:
@@ -296,6 +302,18 @@ def generate_gbnf_rule_for_type(model_name, look_for_markdown_code_block, look_f
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 
+    elif get_origin(field_type) == set:  # Array
+        element_type = get_args(field_type)[0]
+        element_rule_name, additional_rules = generate_gbnf_rule_for_type(model_name, look_for_markdown_code_block,
+                                                                          look_for_triple_quoted_string,
+                                                                          f"{field_name}-element",
+                                                                          element_type, is_optional, processed_models,
+                                                                          created_rules)
+        rules.extend(additional_rules)
+        array_rule = f"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})*  "]" """
+        rules.append(array_rule)
+        gbnf_type, rules = model_name + "-" + field_name, rules
+
     elif gbnf_type.startswith("custom-class-"):
         nested_model_rules, field_types = get_members_structure(field_type, gbnf_type)
         rules.append(nested_model_rules)
@@ -335,7 +353,7 @@ def generate_gbnf_rule_for_type(model_name, look_for_markdown_code_block, look_f
 
         # Defining the union grammar rule separately
         if len(union_rules) == 1:
-            union_grammar_rule = f"{model_name}-{field_name}-optional ::= ({' | '.join(union_rules)})?"
+            union_grammar_rule = f"{model_name}-{field_name}-optional ::= {' | '.join(union_rules)} | null"
         else:
             union_grammar_rule = f"{model_name}-{field_name}-union ::= {' | '.join(union_rules)}"
         rules.append(union_grammar_rule)
@@ -382,9 +400,7 @@ def generate_gbnf_rule_for_type(model_name, look_for_markdown_code_block, look_f
     else:
         gbnf_type, rules = gbnf_type, []
 
-    if is_optional:
-        gbnf_type += ")?"
-        gbnf_type = "(" + gbnf_type
+
 
     if gbnf_type not in created_rules:
         return gbnf_type, rules
@@ -563,6 +579,7 @@ def get_primitive_grammar(grammar):
     additional_grammar = [generate_list_rule(t) for t in type_list]
     primitive_grammar = r"""
 boolean ::= "true" | "false"
+null ::= "null"
 string ::= "\"" (
         [^"\\] |
         "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
@@ -571,6 +588,26 @@ ws ::= ([ \t\n] ws)?
 float ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
 
 integer ::= [0-9]+"""
+
+    any_block = ""
+    if "custom-class-any" in grammar:
+        any_block = '''
+value ::= object | array | string | number | boolean | null
+
+object ::=
+  "{" ws (
+            string ":" ws value
+    ("," ws string ":" ws value)*
+  )? "}" ws
+
+array  ::=
+  "[" ws (
+            value
+    ("," ws value)*
+  )? "]" ws
+  
+number ::= integer | float'''
+
     markdown_code_block_grammar = ""
     if "markdown-code-block" in grammar:
         markdown_code_block_grammar = r'''
@@ -584,7 +621,7 @@ closing-triple-ticks ::= "```" "\n"'''
 triple-quoted-string ::= triple-quotes triple-quoted-string-content triple-quotes
 triple-quoted-string-content ::= ( [^'] | "'" [^'] |  "'"  "'" [^']  )*
 triple-quotes ::= "'''" """
-    return "\n" + '\n'.join(additional_grammar) + primitive_grammar + markdown_code_block_grammar
+    return "\n" + '\n'.join(additional_grammar) + any_block + primitive_grammar + markdown_code_block_grammar
 
 
 def generate_field_markdown(field_name: str, field_type: Type[Any], model: Type[BaseModel], depth=1) -> str:

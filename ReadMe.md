@@ -56,9 +56,10 @@ This example shows how to use the FunctionCallingAgent for function calling with
 
 ```python
 # Example that uses the FunctionCallingAgent class to create a function calling agent.
+# Example that uses the FunctionCallingAgent class to create a function calling agent.
 
 from enum import Enum
-from typing import Union
+from typing import Union, Any
 
 from llama_cpp import Llama
 from pydantic import BaseModel, Field
@@ -108,9 +109,9 @@ class Calculator(BaseModel):
     """
     Perform a math operation on two numbers.
     """
-    number_one: Union[int, float] = Field(..., description="First number.")
+    number_one: Any = Field(..., description="First number.")
     operation: MathOperation = Field(..., description="Math operation to perform.")
-    number_two: Union[int, float] = Field(..., description="Second number.")
+    number_two: Any = Field(..., description="Second number.")
 
     def run(self):
         if self.operation == MathOperation.ADD:
@@ -147,10 +148,28 @@ while True:
     function_call_agent.save("function_calling_agent.json")
 
 ```
-Example output
+Example Input
 ```text
-{ "function": "calculator","function_parameters": { "number_one": 42.00000 ,  "operation": "multiply" ,  "number_two": 42.00000 }}
-1764.0
+What is 42 * 42?
+```
+Example output
+```json
+
+{
+  "function": "calculator",
+  "function-parameters": {
+    "number_one": 42,
+    "operation": "multiply",
+    "number_two": 42
+  }
+}
+{
+  "function": "send-message-to-user",
+  "function-parameters": {
+    "message": "Function Call Result: 25"
+  }
+}
+Function Call Result: 25
 ```
 
 ### Structured Output

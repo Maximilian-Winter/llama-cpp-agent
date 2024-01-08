@@ -10,6 +10,10 @@ from enum import Enum
 from typing import get_type_hints, Callable
 import re
 
+pydantic_model_cache = {}
+
+grammar_cache = {}
+
 
 class PydanticDataType(Enum):
     """
@@ -400,8 +404,6 @@ def generate_gbnf_rule_for_type(model_name, look_for_markdown_code_block, look_f
     else:
         gbnf_type, rules = gbnf_type, []
 
-
-
     if gbnf_type not in created_rules:
         return gbnf_type, rules
     else:
@@ -530,8 +532,12 @@ def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], lo
     if root_rule_class is None:
 
         for model in models:
-            model_rules = generate_gbnf_grammar(model, look_for_markdown_code_block, look_for_triple_quoted_string,
-                                                processed_models, created_rules)
+            if model in grammar_cache:
+                model_rules = grammar_cache[model]
+            else:
+                model_rules = generate_gbnf_grammar(model, look_for_markdown_code_block, look_for_triple_quoted_string,
+                                                    processed_models, created_rules)
+                grammar_cache[model] = model_rules
             all_rules.extend(model_rules)
 
         if list_of_outputs:
@@ -559,8 +565,13 @@ def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], lo
             mod_rules.append(mod_rule)
         grammar_model_rules += "\n" + "\n".join(mod_rules)
         for model in models:
-            model_rules = generate_gbnf_grammar(model, look_for_markdown_code_block, look_for_triple_quoted_string,
-                                                processed_models, created_rules)
+            model_name = format_model_and_field_name(model.__name__)
+            if model_name in grammar_cache:
+                model_rules = grammar_cache[model_name]
+            else:
+                model_rules = generate_gbnf_grammar(model, look_for_markdown_code_block, look_for_triple_quoted_string,
+                                                    processed_models, created_rules)
+                grammar_cache[model_name] = model_rules
             all_rules.extend(model_rules)
         all_rules.insert(0, root_rule + model_rule + grammar_model_rules)
         return "\n".join(all_rules)
@@ -839,6 +850,24 @@ def generate_gbnf_grammar_and_documentation(pydantic_model_list, look_for_markdo
     return grammar, documentation
 
 
+def generate_gbnf_grammar_and_documentation_from_dictionaries(dics: List[dict], look_for_markdown_code_block=False,
+                                                              look_for_triple_quoted_string=False,
+                                                              root_rule_class: str = None,
+                                                              root_rule_content: str = None,
+                                                              model_prefix: str = "Output Model",
+                                                              fields_prefix: str = "Output Fields",
+                                                              list_of_outputs: bool = False,
+                                                              documentation_with_field_description=True):
+    pydantic_model_list = create_dynamic_models_from_dictionaries(dics)
+    documentation = generate_text_documentation(copy(pydantic_model_list), model_prefix, fields_prefix,
+                                                documentation_with_field_description=documentation_with_field_description)
+    grammar = generate_gbnf_grammar_from_pydantic_models(pydantic_model_list, look_for_markdown_code_block,
+                                                         look_for_triple_quoted_string, root_rule_class,
+                                                         root_rule_content, list_of_outputs)
+    grammar = remove_empty_lines(grammar + get_primitive_grammar(grammar))
+    return grammar, documentation
+
+
 def create_dynamic_model_from_function(func: Callable):
     """
     Creates a dynamic Pydantic model from a given function's type hints and adds the function as a 'run' method.
@@ -881,9 +910,77 @@ def create_dynamic_model_from_function(func: Callable):
     return DynamicModel
 
 
+def create_dynamic_models_from_dictionaries(funcs: List[dict]):
+    dynamic_models = []
+    for func in funcs:
+        model_name = format_model_and_field_name(func.get("name", ""))
+        if model_name in pydantic_model_cache:
+            dynamic_models.append(pydantic_model_cache[model_name])
+        else:
+            dyn_model = convert_dictionary_to_to_pydantic_model(func, model_name)
+            dynamic_models.append(dyn_model)
+            pydantic_model_cache[model_name] = dyn_model
+    return dynamic_models
+
+
 def map_grammar_names_to_pydantic_model_class(pydantic_model_list):
     output = {}
     for model in pydantic_model_list:
         output[format_model_and_field_name(model.__name__)] = model
 
     return output
+
+
+from enum import Enum
+
+
+def json_schema_to_python_types(schema):
+    type_map = {
+        'any': Any,
+        'string': str,
+        'number': float,
+        'integer': int,
+        'boolean': bool,
+        'array': list,
+    }
+    return type_map[schema]
+
+
+def list_to_enum(enum_name, values):
+    return Enum(enum_name, {value: value for value in values})
+
+
+def convert_dictionary_to_to_pydantic_model(dictionary: dict, model_name: str = 'CustomModel') -> Type[BaseModel]:
+    fields = {}
+
+    if "properties" in dictionary:
+        for field_name, field_data in dictionary.get("properties", {}).items():
+            if field_data == 'object':
+                submodel = convert_dictionary_to_to_pydantic_model(dictionary, f'{model_name}_{field_name}')
+                fields[field_name] = (submodel, ...)
+            else:
+                field_type = field_data.get('type', 'str')
+
+                if field_data.get("enum", []):
+                    fields[field_name] = (list_to_enum(field_name, field_data.get("enum", [])), ...)
+                elif field_type == 'object':
+                    submodel = convert_dictionary_to_to_pydantic_model(field_data, f'{model_name}_{field_name}')
+                    fields[field_name] = (submodel, ...)
+                else:
+                    field_type = json_schema_to_python_types(field_type)
+                    fields[field_name] = (field_type, ...)
+    if "function" in dictionary:
+
+        for field_name, field_data in dictionary.get("function", {}).items():
+            if field_name == "name":
+                model_name = field_data
+            elif field_name == "description":
+                fields["__doc__"] = field_data
+            elif field_name == "parameters":
+                return convert_dictionary_to_to_pydantic_model(field_data, f'{model_name}')
+    if "parameters" in dictionary:
+        field_data = {"function": dictionary}
+        return convert_dictionary_to_to_pydantic_model(field_data, f'{model_name}')
+
+    custom_model = create_model(model_name, **fields)
+    return custom_model

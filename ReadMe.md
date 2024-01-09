@@ -52,10 +52,10 @@ while True:
 ```
 
 ### Function Calling Agent Example
-This example shows how to use the FunctionCallingAgent for function calling with normal python functions and functions defined as pydantic models.
+This example shows how to use the FunctionCallingAgent for function calling with OpenAI like dictionaries, normal python functions and functions defined as pydantic models like in the "Instructor" library.
 
 ```python
-# Example that uses the FunctionCallingAgent class to create a function calling agent.
+
 # Example that uses the FunctionCallingAgent class to create a function calling agent.
 
 from enum import Enum

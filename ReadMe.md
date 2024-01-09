@@ -148,11 +148,11 @@ while True:
     function_call_agent.save("function_calling_agent.json")
 
 ```
-Example Input
+Example Input 1
 ```text
 What is 42 * 42?
 ```
-Example output
+Example output 1
 ```json
 
 {
@@ -166,10 +166,33 @@ Example output
 {
   "function": "send-message-to-user",
   "function-parameters": {
-    "message": "Function Call Result: 25"
+    "message": "Function Call Result: 1764"
   }
 }
-Function Call Result: 25
+Function Call Result: 1764
+```
+Example Input 2
+```text
+What is 42 * 42?
+```
+Example output 2
+```json
+
+{
+  "function": "get-current-weather",
+  "function-parameters": {
+    "location": "London",
+    "unit": "celsius"
+  }
+}
+{
+  "function": "send-message-to-user",
+  "function-parameters": {
+    "message": "The current temperature in London is 42 degrees Celsius."
+  }
+}
+
+The current temperature in London is 42 degrees Celsius.
 ```
 
 ### Structured Output

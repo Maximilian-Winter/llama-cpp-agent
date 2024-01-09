@@ -9,7 +9,8 @@ from .llm_settings import LlamaLLMGenerationSettings, LlamaLLMSettings
 from .llm_agent import LlamaCppAgent, StreamingResponse
 from .messages_formatter import MessagesFormatterType, MessagesFormatter
 from .function_calling import LlamaCppFunctionTool
-from .gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import create_dynamic_model_from_function
+from .gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import create_dynamic_model_from_function, \
+    create_dynamic_models_from_dictionaries, add_run_method_to_dynamic_model
 
 
 class FunctionCallingAgent:
@@ -24,11 +25,12 @@ class FunctionCallingAgent:
                  streaming_callback: Callable[[StreamingResponse], None] = None,
                  k_last_messages_from_chat_history: int = 0,
                  system_prompt: str = None,
+                 open_ai_functions: (List[dict], List[Callable]) = None,
                  python_functions: List[Callable] = None,
                  pydantic_functions: List[Type[BaseModel]] = None,
                  add_send_message_to_user_function: bool = True,
                  send_message_to_user_callback: Callable[[str], None] = None,
-                 debug_output: bool = False,):
+                 debug_output: bool = False, ):
 
         if pydantic_functions is None:
             self.pydantic_functions = []
@@ -38,6 +40,14 @@ class FunctionCallingAgent:
         if python_functions is not None:
             for tool in python_functions:
                 self.pydantic_functions.append(create_dynamic_model_from_function(tool))
+
+        if open_ai_functions is not None:
+            open_ai_models = create_dynamic_models_from_dictionaries(open_ai_functions[0])
+            count = 0
+            for func in open_ai_functions[1]:
+                model = open_ai_models[count]
+                self.pydantic_functions.append(add_run_method_to_dynamic_model(model, func))
+                count += 1
 
         self.send_message_to_user_callback = send_message_to_user_callback
         if add_send_message_to_user_function:
@@ -112,7 +122,8 @@ class FunctionCallingAgent:
         while message:
             if count > 0:
                 message = f"Function Call Result: {message}"
-                message = self.llama_cpp_agent.get_chat_response(message, role="function", system_prompt=self.system_prompt,
+                message = self.llama_cpp_agent.get_chat_response(message, role="function",
+                                                                 system_prompt=self.system_prompt,
                                                                  function_tool_registry=self.tool_registry,
                                                                  streaming_callback=self.streaming_callback,
                                                                  k_last_messages=self.k_last_messages_from_chat_history,

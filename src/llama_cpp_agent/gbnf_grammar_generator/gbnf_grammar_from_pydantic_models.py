@@ -10,10 +10,6 @@ from enum import Enum
 from typing import get_type_hints, Callable
 import re
 
-pydantic_model_cache = {}
-
-grammar_cache = {}
-
 
 class PydanticDataType(Enum):
     """
@@ -532,12 +528,8 @@ def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], lo
     if root_rule_class is None:
 
         for model in models:
-            if model in grammar_cache:
-                model_rules = grammar_cache[model]
-            else:
-                model_rules = generate_gbnf_grammar(model, look_for_markdown_code_block, look_for_triple_quoted_string,
-                                                    processed_models, created_rules)
-                grammar_cache[model] = model_rules
+            model_rules = generate_gbnf_grammar(model, look_for_markdown_code_block, look_for_triple_quoted_string,
+                                                processed_models, created_rules)
             all_rules.extend(model_rules)
 
         if list_of_outputs:
@@ -565,13 +557,8 @@ def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], lo
             mod_rules.append(mod_rule)
         grammar_model_rules += "\n" + "\n".join(mod_rules)
         for model in models:
-            model_name = format_model_and_field_name(model.__name__)
-            if model_name in grammar_cache:
-                model_rules = grammar_cache[model_name]
-            else:
-                model_rules = generate_gbnf_grammar(model, look_for_markdown_code_block, look_for_triple_quoted_string,
-                                                    processed_models, created_rules)
-                grammar_cache[model_name] = model_rules
+            model_rules = generate_gbnf_grammar(model, look_for_markdown_code_block, look_for_triple_quoted_string,
+                                                processed_models, created_rules)
             all_rules.extend(model_rules)
         all_rules.insert(0, root_rule + model_rule + grammar_model_rules)
         return "\n".join(all_rules)
@@ -850,7 +837,8 @@ def generate_gbnf_grammar_and_documentation(pydantic_model_list, look_for_markdo
     return grammar, documentation
 
 
-def generate_gbnf_grammar_and_documentation_from_dictionaries(dics: List[dict], look_for_markdown_code_block=False,
+def generate_gbnf_grammar_and_documentation_from_dictionaries(dictionaries: List[dict],
+                                                              look_for_markdown_code_block=False,
                                                               look_for_triple_quoted_string=False,
                                                               root_rule_class: str = None,
                                                               root_rule_content: str = None,
@@ -858,7 +846,7 @@ def generate_gbnf_grammar_and_documentation_from_dictionaries(dics: List[dict], 
                                                               fields_prefix: str = "Output Fields",
                                                               list_of_outputs: bool = False,
                                                               documentation_with_field_description=True):
-    pydantic_model_list = create_dynamic_models_from_dictionaries(dics)
+    pydantic_model_list = create_dynamic_models_from_dictionaries(dictionaries)
     documentation = generate_text_documentation(copy(pydantic_model_list), model_prefix, fields_prefix,
                                                 documentation_with_field_description=documentation_with_field_description)
     grammar = generate_gbnf_grammar_from_pydantic_models(pydantic_model_list, look_for_markdown_code_block,
@@ -895,9 +883,9 @@ def create_dynamic_model_from_function(func: Callable):
             dynamic_fields[name] = (typ, ...)
 
     # Creating the dynamic model
-    DynamicModel = create_model(f'{func.__name__}', **dynamic_fields)
+    dynamicModel = create_model(f'{func.__name__}', **dynamic_fields)
 
-    DynamicModel.__doc__ = getdoc(func)
+    dynamicModel.__doc__ = getdoc(func)
 
     # Wrapping the original function to handle instance 'self'
     def run_method_wrapper(self):
@@ -905,21 +893,28 @@ def create_dynamic_model_from_function(func: Callable):
         return func(**func_args)
 
     # Adding the wrapped function as a 'run' method
-    setattr(DynamicModel, 'run', run_method_wrapper)
+    setattr(dynamicModel, 'run', run_method_wrapper)
 
-    return DynamicModel
+    return dynamicModel
 
 
-def create_dynamic_models_from_dictionaries(funcs: List[dict]):
+def add_run_method_to_dynamic_model(model: Type[BaseModel], func: Callable):
+
+    def run_method_wrapper(self):
+        func_args = {name: getattr(self, name) for name in model.model_fields}
+        return func(**func_args)
+
+    # Adding the wrapped function as a 'run' method
+    setattr(model, 'run', run_method_wrapper)
+
+    return model
+
+def create_dynamic_models_from_dictionaries(dictionaries: List[dict]):
     dynamic_models = []
-    for func in funcs:
+    for func in dictionaries:
         model_name = format_model_and_field_name(func.get("name", ""))
-        if model_name in pydantic_model_cache:
-            dynamic_models.append(pydantic_model_cache[model_name])
-        else:
-            dyn_model = convert_dictionary_to_to_pydantic_model(func, model_name)
-            dynamic_models.append(dyn_model)
-            pydantic_model_cache[model_name] = dyn_model
+        dyn_model = convert_dictionary_to_to_pydantic_model(func, model_name)
+        dynamic_models.append(dyn_model)
     return dynamic_models
 
 

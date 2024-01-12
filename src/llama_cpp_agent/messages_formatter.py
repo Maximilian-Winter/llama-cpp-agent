@@ -184,7 +184,7 @@ class MessagesFormatter:
             return formatted_messages + self.USER_PROMPT_START.strip(), "user"
         else:
             return formatted_messages + self.USER_PROMPT_START, "user"
-        
+
     def save(self, file_path: str):
         """
         Saves the messages formatter configuration to a file.
@@ -254,7 +254,7 @@ synthia_formatter = MessagesFormatter("", SYS_PROMPT_START_SYNTHIA, SYS_PROMPT_E
 neural_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_NEURAL_CHAT, SYS_PROMPT_END_NEURAL_CHAT,
                                           USER_PROMPT_START_NEURAL_CHAT,
                                           USER_PROMPT_END_NEURAL_CHAT, ASSISTANT_PROMPT_START_NEURAL_CHAT,
-                                          ASSISTANT_PROMPT_END_NEURAL_CHAT, False, DEFAULT_NEURAL_CHAT_STOP_SEQUENCES)
+                                          ASSISTANT_PROMPT_END_NEURAL_CHAT, False, DEFAULT_NEURAL_CHAT_STOP_SEQUENCES, STRIP_PROMPT=False)
 
 solar_formatter = MessagesFormatter("", SYS_PROMPT_START_SOLAR, SYS_PROMPT_END_SOLAR, USER_PROMPT_START_SOLAR,
                                     USER_PROMPT_END_SOLAR, ASSISTANT_PROMPT_START_SOLAR,

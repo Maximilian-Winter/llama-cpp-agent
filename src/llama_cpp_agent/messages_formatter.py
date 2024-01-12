@@ -104,7 +104,8 @@ class MessagesFormatter:
                  DEFAULT_STOP_SEQUENCES: List[str],
                  USE_USER_ROLE_FUNCTION_CALL_RESULT: bool = True,
                  FUNCTION_PROMPT_START: str = "",
-                 FUNCTION_PROMPT_END: str = ""):
+                 FUNCTION_PROMPT_END: str = "",
+                 STRIP_PROMPT: bool = True):
         """
         Initializes a new MessagesFormatter object.
 
@@ -135,6 +136,7 @@ class MessagesFormatter:
         self.FUNCTION_PROMPT_START = FUNCTION_PROMPT_START
         self.FUNCTION_PROMPT_END = FUNCTION_PROMPT_END
         self.USE_USER_ROLE_FUNCTION_CALL_RESULT = USE_USER_ROLE_FUNCTION_CALL_RESULT
+        self.STRIP_PROMPT = STRIP_PROMPT
 
     def format_messages(self, messages: List[Dict[str, str]]) -> Tuple[str, str]:
         """
@@ -174,9 +176,15 @@ class MessagesFormatter:
                     formatted_messages += self.FUNCTION_PROMPT_START + message["content"] + self.FUNCTION_PROMPT_END
                     last_role = "function"
         if last_role == "system" or last_role == "user":
-            return formatted_messages + self.ASSISTANT_PROMPT_START.strip(), "assistant"
-        return formatted_messages + self.USER_PROMPT_START.strip(), "user"
-
+            if self.STRIP_PROMPT:
+                return formatted_messages + self.ASSISTANT_PROMPT_START.strip(), "assistant"
+            else:
+                return formatted_messages + self.ASSISTANT_PROMPT_START, "assistant"
+        if self.STRIP_PROMPT:
+            return formatted_messages + self.USER_PROMPT_START.strip(), "user"
+        else:
+            return formatted_messages + self.USER_PROMPT_START, "user"
+        
     def save(self, file_path: str):
         """
         Saves the messages formatter configuration to a file.

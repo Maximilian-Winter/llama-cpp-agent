@@ -4,21 +4,15 @@ title: API Reference
 
 ## Agents
 
-### LlamaCppAgent
-The following is the basic agent that is also used by other agents.
-
 ::: llama_cpp_agent.llm_agent
 
-### FunctionCallingAgent    
-A predefined agent that performs function calling based on LlamaCppAgent. Can pydantic "Instructor" like functions, OpenAI function definitions and normal Python functions.
+### Function Calling Agent    
 
 ::: llama_cpp_agent.function_calling_agent
 
-### StructuredOutputAgent
-A predefined agent that can create objects based on pydantic models out of unstructured text or random.
+### Structured Output Agent
 
 ::: llama_cpp_agent.structured_output_agent
-
 
 ## LLM Settings
 
@@ -32,9 +26,25 @@ Settings for the llama.cpp server backend.
 
 ::: llama_cpp_agent.providers.llama_cpp_server_provider
 
+## Misc
 
-## Grammar Generator
-The grammar generator that is used by framework in the background.
+### Messages Formatter
+
+::: llama_cpp_agent.messages_formatter
+
+### Function Calling Helper
+
+::: llama_cpp_agent.function_calling
+
+#### Output parser
+
+::: llama_cpp_agent.output_parser
+
+### Grammar Generator
 
 ::: llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models
+
+### Prompt template
+
+::: llama_cpp_agent.llm_prompt_template
 

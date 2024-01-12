@@ -44,7 +44,8 @@ watch:
   - src/llama_cpp_agent
   - ReadMe.md
 
-
+nav:
+  - "Getting Started": "index.md"
 
 markdown_extensions:
   - attr_list

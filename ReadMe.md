@@ -528,10 +528,12 @@ Result: 2.2737367544323207e+29
 
 ## Additional Information
 - **Dependencies**: pydantic for grammars based generation and of course llama-cpp-python.
-- **Documentation**: You can find the documentation here: https://llama-cpp-agent.readthedocs.io/en/latest/api-reference/
+- **Documentation**: You can find the documentation here: https://llama-cpp-agent.readthedocs.io/en/latest/agents-api-reference/
 
 ### Predefined Messages Formatter
 The llama-cpp-agent framework uses custom messages formatters to format messages for the LLM model. The `MessagesFormatterType` enum defines the available predefined formatters. The following predefined formatters are available:
+
+
 - `MessagesFormatterType.CHATML`: Formats messages using the CHATML format.
 - `MessagesFormatterType.MIXTRAL`: Formats messages using the MIXTRAL format.
 - `MessagesFormatterType.VICUNA`: Formats messages using the VICUNA format.
@@ -540,9 +542,12 @@ The llama-cpp-agent framework uses custom messages formatters to format messages
 - `MessagesFormatterType.NEURAL_CHAT`: Formats messages using the NEURAL CHAT format.
 - `MessagesFormatterType.SOLAR`: Formats messages using the SOLAR format.
 - `MessagesFormatterType.OPEN_CHAT`: Formats messages using the OPEN CHAT format.
--
+
+
 You can also define your own custom messages formatter by creating an instance of the `MessagesFormatter` class.
 The `MessagesFormatter` class takes the following parameters:
+
+
 - `PRE_PROMPT`: The pre-prompt to use for the messages.
 - `SYS_PROMPT_START`: The system prompt start to use for the messages.
 - `SYS_PROMPT_END`: The system prompt end to use for the messages.
@@ -552,4 +557,6 @@ The `MessagesFormatter` class takes the following parameters:
 - `ASSISTANT_PROMPT_END`: The assistant prompt end to use for the messages.
 - `INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE`: Whether to include the system prompt in the first user message.
 - `DEFAULT_STOP_SEQUENCES`: The default stop sequences to use for the messages.
+
+
 

@@ -46,7 +46,7 @@ watch:
 
 nav:
   - "Getting Started": "index.md"
-
+  - "API Reference": "api-reference.md"
 markdown_extensions:
   - attr_list
   - pymdownx.emoji:

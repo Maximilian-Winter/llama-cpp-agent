@@ -53,7 +53,13 @@ nav:
       "Knowledge Graph Generation": "knowledge-graph-example.md"
 
 
-  - "API Reference": "api-reference.md"
+  - "API Reference":
+      "Agents API": "agents-api-reference.md"
+      "Function Calling API": "function-calling-api-reference.md"
+      "Settings API": "settings-api-reference.md"
+      "Output Parsing API": "output-parser-api-reference.md"
+      "Grammar Generator API": "grammar-api-reference.md"
+
 markdown_extensions:
   - attr_list
   - pymdownx.emoji:

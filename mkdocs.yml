@@ -41,7 +41,7 @@ plugins:
             - https://numpy.org/doc/stable/objects.inv
 
 watch:
-  - llama_cpp_agent
+  - src/llama_cpp_agent
   - ReadMe.md
 
 

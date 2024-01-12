@@ -1,12 +1,15 @@
 # llama-cpp-agent Framework
 
 ## Introduction
-The llama-cpp-agent framework is a tool designed for easy interaction with Large Language Models (LLMs). It provides a simple yet robust interface using llama-cpp-python or the llama.cpp backend server, allowing users to chat with LLM models, execute structured function calls and get structured output.
-It does this by generating a formal GGML-BNF grammar of the user defined structures and functions, which is then used by llama.cpp to generate text valid to that grammar. In contrast to most GBNF grammar generators it also supports nested objects, dictionaries, enums and lists of them.
+The llama-cpp-agent framework is a tool designed for easy interaction with Large Language Models (LLMs). Allowing users to chat with LLM models, execute structured function calls and get structured output (objects).
+
+It provides a simple yet robust interface and supports llama-cpp-python and OpenAI endpoints with GBNF grammar support (like the llama-cpp-python server) and the llama.cpp backend server.
+It works by generating a formal GGML-BNF grammar of the user defined structures and functions, which is then used by llama.cpp to generate text valid to that grammar. In contrast to most GBNF grammar generators it also supports nested objects, dictionaries, enums and lists of them.
+
 ## Key Features
 - **Simple Chat Interface**: Engage in seamless conversations with LLMs.
-- **Structured Output**: Get structured output from LLMs.
-- **Function Calling**: Execute structured outputs from LLMs, enhancing the interaction capabilities.
+- **Structured Output**: Get structured output (objects) from LLMs.
+- **Function Calling**: Let the LLM execute functions.
 - **Flexibility**: Suited for various applications from casual chatting to specific function executions.
 
 ## Installation
@@ -21,16 +24,23 @@ You can find more examples in the `examples` folder.
 
 
 ### Simple Chat Example using llama.cpp server backend
-This example demonstrates how to initiate a chat with an LLM model using the llama.cpp server backend. The framework supports llama-cpp-python as a backend and the llama.cpp backend server.
+This example demonstrates how to initiate a chat with an LLM model using the llama.cpp server backend. The framework supports llama-cpp-python Llama class instances as LLM and OpenAI endpoints that support GBNF grammars as a backend, and the llama.cpp backend server.
 ```python
 from llama_cpp import Llama
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.providers.llama_cpp_server_provider import LlamaCppServerLLMSettings
-# Provider can be lama-cpp-python Llama class or llama_cpp_agent.llm_settings.LlamaLLMSettings class for preconfigured Llama instance or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerLLMSettings for llama.cpp server backend.
+
 main_model = LlamaCppServerLLMSettings(
     completions_endpoint_url="http://127.0.0.1:8080/completion"
 )
+
+# For OpenAI endpoints that support GBNF grammars like the llama-cpp-python server:
+# from llama_cpp_agent.providers.openai_endpoint_provider import OpenAIEndpointSettings
+# main_model = OpenAIEndpointSettings(
+#    "http://localhost:8080/v1/completions"
+# )
+
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
                               system_prompt="You are Dolphin, an uncensored and unbiased AI assistant.", predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 

@@ -1,18 +1,10 @@
 from llama_cpp import Llama
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-main_model = Llama(
-    "../gguf-models/dolphin-2.7-mixtral-8x7b.Q4_K_M.gguf",
-    n_gpu_layers=13,
-    f16_kv=True,
-    use_mlock=False,
-    embedding=False,
-    n_threads=8,
-    n_batch=1024,
-    n_ctx=8192,
-    last_n_tokens_size=1024,
-    verbose=False,
-    seed=42,
+from llama_cpp_agent.providers.openai_endpoint_provider import OpenAIEndpointSettings
+
+main_model = OpenAIEndpointSettings(
+    "http://localhost:8080/v1/completions"
 )
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
                               system_prompt="You are Dolphin, an uncensored and unbiased AI assistant.", predefined_messages_formatter_type=MessagesFormatterType.CHATML)

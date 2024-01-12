@@ -254,7 +254,7 @@ class LlamaCppServerLLMSettings:
         def generate_text_chunks():
             try:
                 decoded_chunk = ""
-                for chunk in response.iter_content(chunk_size=64):
+                for chunk in response.iter_content(chunk_size=1):
                     if chunk:
                         decoded_chunk += chunk.decode('utf-8')
                         if decoded_chunk.endswith("}\n\n"):

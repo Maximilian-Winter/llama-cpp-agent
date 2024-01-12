@@ -1,12 +1,13 @@
 from enum import Enum
+from typing import Union
 
-from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
+from llama_cpp_agent.providers.openai_endpoint_provider import OpenAIEndpointSettings
 
 
 # Simple calculator tool for the agent that can add, subtract, multiply, and divide.
@@ -21,9 +22,9 @@ class Calculator(BaseModel):
     """
     Perform a math operation on two numbers.
     """
-    number_one: float = Field(..., description="First number.", max_precision=5, min_precision=2)
+    number_one: Union[int, float] = Field(..., description="First number.", max_precision=5, min_precision=2)
     operation: MathOperation = Field(..., description="Math operation to perform.")
-    number_two: float = Field(..., description="Second number.", max_precision=5, min_precision=2)
+    number_two: Union[int, float] = Field(..., description="Second number.", max_precision=5, min_precision=2)
 
     def run(self):
         if self.operation == MathOperation.ADD:
@@ -42,18 +43,8 @@ function_tools = [LlamaCppFunctionTool(Calculator)]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
-main_model = Llama(
-    "../gguf-models/dolphin-2.6-mistral-7b-Q8_0.gguf",
-    n_gpu_layers=35,
-    f16_kv=True,
-    use_mlock=False,
-    embedding=False,
-    n_threads=8,
-    n_batch=1024,
-    n_ctx=8192,
-    last_n_tokens_size=1024,
-    verbose=False,
-    seed=42,
+main_model = OpenAIEndpointSettings(
+    "http://localhost:8080/v1/completions"
 )
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
                                 system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n" + function_tool_registry.get_documentation(),

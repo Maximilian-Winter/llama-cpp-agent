@@ -12,6 +12,7 @@ from .function_calling import LlamaCppFunctionTool
 from .gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import create_dynamic_model_from_function, \
     create_dynamic_models_from_dictionaries, add_run_method_to_dynamic_model
 from .providers.llama_cpp_server_provider import LlamaCppServerGenerationSettings, LlamaCppServerLLMSettings
+from .providers.openai_endpoint_provider import CompletionRequestSettings, OpenAIEndpointSettings
 
 
 class FunctionCallingAgent:
@@ -19,8 +20,8 @@ class FunctionCallingAgent:
     An agent that uses function calling to interact with its environment and the user.
 
     Args:
-        llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings]): An instance of Llama, LlamaLLMSettings, LlamaCppServerLLMSettings as LLM.
-        llama_generation_settings (LlamaLLMGenerationSettings): Generation settings for Llama.
+        llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings]): An instance of Llama, LlamaLLMSettings, LlamaCppServerLLMSettings as LLM.
+        llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppServerGenerationSettings, CompletionRequestSettings]): Generation settings for Llama.
         messages_formatter_type (MessagesFormatterType): Type of messages formatter.
         custom_messages_formatter (MessagesFormatter): Custom messages formatter.
         streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
@@ -55,8 +56,8 @@ class FunctionCallingAgent:
 
     """
 
-    def __init__(self, llama_llm: Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings],
-                 llama_generation_settings: Union[LlamaLLMGenerationSettings, LlamaCppServerGenerationSettings] = None,
+    def __init__(self, llama_llm: Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings],
+                 llama_generation_settings: Union[LlamaLLMGenerationSettings, LlamaCppServerGenerationSettings, CompletionRequestSettings] = None,
                  messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
                  custom_messages_formatter: MessagesFormatter = None,
                  streaming_callback: Callable[[StreamingResponse], None] = None,
@@ -72,8 +73,8 @@ class FunctionCallingAgent:
         Initialize the FunctionCallingAgent.
 
         Args:
-            llama_llm (Union[Llama, LlamaLLMSettings]): An instance of Llama, LlamaLLMSettings or LlamaCppServerLLMSettings as LLM.
-            llama_generation_settings (LlamaLLMGenerationSettings): Generation settings for Llama.
+            llama_llm (Union[Llama, LlamaLLMSettings, OpenAIEndpointSettings]): An instance of Llama, LlamaLLMSettings or LlamaCppServerLLMSettings as LLM.
+            llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppServerGenerationSettings, CompletionRequestSettings]): Generation settings for Llama.
             messages_formatter_type (MessagesFormatterType): Type of messages formatter.
             custom_messages_formatter (MessagesFormatter): Optional Custom messages formatter.
             streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
@@ -123,6 +124,11 @@ class FunctionCallingAgent:
             raise Exception("Wrong generation settings for llama.cpp server endpoint, use LlamaCppServerGenerationSettings under llama_cpp_agent.providers.llama_cpp_server_provider!")
         if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings) and isinstance(llama_generation_settings, LlamaCppServerGenerationSettings):
             raise Exception("Wrong generation settings for llama-cpp-python, use LlamaLLMGenerationSettings under llama_cpp_agent.llm_settings!")
+
+        if isinstance(llama_llm, OpenAIEndpointSettings) and not isinstance(
+                llama_generation_settings, CompletionRequestSettings):
+            raise Exception(
+                "Wrong generation settings for OpenAI endpoint, use CompletionRequestSettings under llama_cpp_agent.providers.openai_endpoint_provider!")
 
         self.llama_generation_settings = llama_generation_settings
 

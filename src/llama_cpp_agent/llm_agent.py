@@ -8,6 +8,7 @@ from .llm_settings import LlamaLLMSettings
 from .messages_formatter import MessagesFormatterType, get_predefined_messages_formatter, MessagesFormatter
 from .function_calling import LlamaCppFunctionTool, LlamaCppFunctionToolRegistry
 from .providers.llama_cpp_server_provider import LlamaCppServerLLMSettings, LlamaCppServerGenerationSettings
+from .providers.openai_endpoint_provider import OpenAIEndpointSettings, CompletionRequestSettings
 
 
 @dataclass
@@ -36,7 +37,7 @@ class LlamaCppAgent:
      Is used as part of all other agents.
     """
 
-    def __init__(self, model: Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings], name: str = "llamacpp_agent",
+    def __init__(self, model: Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings], name: str = "llamacpp_agent",
                  system_prompt: str = "You are helpful assistant.",
                  predefined_messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
                  custom_messages_formatter: MessagesFormatter = None, debug_output: bool = False):
@@ -122,7 +123,7 @@ class LlamaCppAgent:
             stream: bool = True,
             print_output: bool = True,
             k_last_messages: int = 0,
-            # Llama Cpp Server settings
+            # Llama Cpp Server and Open AI endpoint settings
             n_predict: int = -1,
             n_keep: int = 0,
             repeat_last_n: int = 64,
@@ -132,7 +133,11 @@ class LlamaCppAgent:
             penalty_prompt: Union[None, str, List[int]] = None,
             seed: int = -1,
             ignore_eos: bool = False,
-
+            suffix: str = None,
+            echo: bool = False,
+            logprobs: int = None,
+            logit_bias: Dict[str, float] = None,
+            logit_bias_type:Literal["input_ids", "tokens"] = None
     ):
         """
         Gets a chat response based on the input message and context.
@@ -161,7 +166,9 @@ class LlamaCppAgent:
             stream (bool): Indicates whether to stream the response.
             print_output (bool): Indicates whether to print the generated response.
             k_last_messages (int): Number of last messages to consider from the chat history.
-            Additional parameters for llama.cpp server backends
+
+
+            Additional parameters for llama.cpp server backends and OpenAI endpoints
             n_predict (int): Number of predictions to generate for each completion.
             n_keep (int): Number of completions to keep.
             repeat_last_n (int): Number of tokens to consider for repeat penalty.
@@ -171,6 +178,11 @@ class LlamaCppAgent:
             penalty_prompt (Union[None, str, List[int]]): Penalty prompt for response generation.
             seed (int): Seed for random number generation.
             ignore_eos (bool): Indicates whether to ignore end-of-sequence tokens.
+
+            echo: bool = False,
+            logprobs: int = None,
+            logit_bias: Dict[str, float] = None,
+            logit_bias_type:Literal["input_ids", "tokens"] = None
 
         Returns:
             str: The generated chat response.
@@ -213,7 +225,7 @@ class LlamaCppAgent:
             stop_sequences = self.messages_formatter.DEFAULT_STOP_SEQUENCES
 
         if self.model:
-            if not isinstance(self.model, Llama):
+            if isinstance(self.model, LlamaCppServerLLMSettings):
                 completion = self.model.create_completion(
                     prompt=prompt,
                     grammar=grammar,
@@ -239,6 +251,29 @@ class LlamaCppAgent:
                         mirostat_eta=mirostat_eta,
                         seed=seed,
                         ignore_eos=ignore_eos)
+                )
+            elif isinstance(self.model, OpenAIEndpointSettings):
+                completion = self.model.create_completion(
+                    prompt=prompt,
+                    grammar=grammar,
+                    generation_settings=CompletionRequestSettings(
+                        temperature=temperature,
+                        top_k=top_k,
+                        top_p=top_p,
+                        min_p=min_p,
+                        suffix=suffix,
+                        stream=stream,
+                        stop_sequences=stop_sequences,
+
+                        repeat_penalty=repeat_penalty,
+
+                        presence_penalty=presence_penalty,
+                        frequency_penalty=frequency_penalty,
+
+                        mirostat_mode=mirostat_mode,
+                        mirostat_tau=mirostat_tau,
+                        mirostat_eta=mirostat_eta,
+                        seed=seed)
                 )
             else:
                 if isinstance(grammar, str):

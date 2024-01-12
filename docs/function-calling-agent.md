@@ -1,28 +1,4 @@
-# llama-cpp-agent Framework
-
-## Introduction
-The llama-cpp-agent framework is a tool designed for easy interaction with Large Language Models (LLMs). It provides a simple yet robust interface using llama-cpp-python or optionally the llama.cpp backend server, allowing users to chat with LLM models, execute structured function calls and get structured output.
-It does this by generating a formal GGML-BNF grammar of the user defined structures and functions, which is then used by llama.cpp to generate text valid to that grammar. In contrast to most GBNF grammar generators it also supports nested objects, dictionaries, enums and lists of them.
-## Key Features
-- **Simple Chat Interface**: Engage in seamless conversations with LLMs.
-- **Structured Output**: Get structured output from LLMs.
-- **Function Calling**: Execute structured outputs from LLMs, enhancing the interaction capabilities.
-- **Flexibility**: Suited for various applications from casual chatting to specific function executions.
-
-## Installation
-The llama-cpp-agent framework can be installed using pip:
-```shell
-pip install llama-cpp-agent
-```
-
-## How to use
-The example below shows how to use the FunctionCallingAgent class to build a basic function calling agent.
-
-
-You can find more usage examples and more information in the [documentation](https://llama-cpp-agent.readthedocs.io/en/latest/).
-
-
-### Function Calling Agent Example
+# Function Calling Agent Example
 This example shows how to use the FunctionCallingAgent for function calling with OpenAI like dictionaries, normal python functions and functions defined as pydantic models like in the "Instructor" library.
 
 ```python
@@ -215,11 +191,3 @@ Example output 2
 
 The current temperature in London is 42 degrees Celsius.
 ```
-Note: You can disable the output of the actual JSON function call objects by passing debug_output=False.
-
-
-## Additional Information
-- **Dependencies**: pydantic for grammars based generation and llama-cpp-python.
-- You can find more examples in the `examples` folder.
-
-

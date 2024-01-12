@@ -46,6 +46,13 @@ watch:
 
 nav:
   - "Getting Started": "index.md"
+  - "Usage Examples":
+      "Simple Chat": "simple-chat-example.md"
+      "Function Calling Agent": "function-calling-agent.md"
+      "Structured Output Agent": "structured-output-example.md"
+      "Knowledge Graph Generation": "knowledge-graph-example.md"
+
+
   - "API Reference": "api-reference.md"
 markdown_extensions:
   - attr_list

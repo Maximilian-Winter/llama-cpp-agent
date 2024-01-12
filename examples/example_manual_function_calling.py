@@ -16,8 +16,8 @@ def calculate_a_to_the_power_b(a: Union[int | float], b: Union[int | float]):
 
 DynamicSampleModel = create_dynamic_model_from_function(calculate_a_to_the_power_b)
 
-grammar, documentation = generate_gbnf_grammar_and_documentation([DynamicSampleModel], root_rule_class="function",
-                                                                 root_rule_content="params")
+grammar, documentation = generate_gbnf_grammar_and_documentation([DynamicSampleModel], outer_object_name="function",
+                                                                 outer_object_content="params")
 
 main_model = LlamaCppServerLLMSettings(
     completions_endpoint_url="http://127.0.0.1:8080/completion"

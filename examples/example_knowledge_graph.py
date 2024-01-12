@@ -46,16 +46,15 @@ class KnowledgeGraph(BaseModel):
     edges: List[Edge] = Field(..., default_factory=list)
 
 
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([KnowledgeGraph], False,
+gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([KnowledgeGraph],
                                                                       model_prefix="Response Model",
                                                                       fields_prefix="Response Model Field")
 
 print(gbnf_grammar)
-grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)
 
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt="You are an advanced AI assistant responding in JSON format.\n\nAvailable JSON response models:\n\n" + documentation,
-                              predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+                                system_prompt="You are an advanced AI assistant responding in JSON format.\n\nAvailable JSON response models:\n\n" + documentation,
+                                predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
 from graphviz import Digraph
 
@@ -78,7 +77,7 @@ def visualize_knowledge_graph(kg: KnowledgeGraph):
 def generate_graph(user_input: str) -> KnowledgeGraph:
     prompt = f'''Help me understand the following by describing it as a extremely detailed knowledge graph with at least 20 nodes: {user_input}'''.strip()
     response = llama_cpp_agent.get_chat_response(message=prompt, temperature=0.65, mirostat_mode=0, mirostat_tau=5.0,
-                                               mirostat_eta=0.1, grammar=grammar)
+                                                 mirostat_eta=0.1, grammar=gbnf_grammar)
     knowledge_graph = json.loads(response)
     cls = KnowledgeGraph
     knowledge_graph = cls(**knowledge_graph)

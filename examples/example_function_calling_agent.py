@@ -132,7 +132,7 @@ function_call_agent = FunctionCallingAgent(
     pydantic_functions=[Calculator],
     # Callback for receiving messages for the user.
     send_message_to_user_callback=send_message_to_user_callback, debug_output=True)
-
+print(function_call_agent.tool_registry.gbnf_grammar)
 while True:
     user_input = input(">")
     function_call_agent.generate_response(user_input)

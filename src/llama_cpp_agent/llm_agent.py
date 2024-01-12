@@ -37,7 +37,8 @@ class LlamaCppAgent:
      Is used as part of all other agents.
     """
 
-    def __init__(self, model: Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings], name: str = "llamacpp_agent",
+    def __init__(self, model: Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings],
+                 name: str = "llamacpp_agent",
                  system_prompt: str = "You are helpful assistant.",
                  predefined_messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
                  custom_messages_formatter: MessagesFormatter = None, debug_output: bool = False):
@@ -137,7 +138,7 @@ class LlamaCppAgent:
             echo: bool = False,
             logprobs: int = None,
             logit_bias: Dict[str, float] = None,
-            logit_bias_type:Literal["input_ids", "tokens"] = None
+            logit_bias_type: Literal["input_ids", "tokens"] = None
     ):
         """
         Gets a chat response based on the input message and context.
@@ -178,7 +179,7 @@ class LlamaCppAgent:
             penalty_prompt (Union[None, str, List[int]]): Penalty prompt for response generation.
             seed (int): Seed for random number generation.
             ignore_eos (bool): Indicates whether to ignore end-of-sequence tokens.
-
+            suffix: str = None
             echo: bool = False,
             logprobs: int = None,
             logit_bias: Dict[str, float] = None,
@@ -264,12 +265,13 @@ class LlamaCppAgent:
                         suffix=suffix,
                         stream=stream,
                         stop_sequences=stop_sequences,
-
+                        echo=echo,
                         repeat_penalty=repeat_penalty,
-
+                        logprobs=logprobs,
                         presence_penalty=presence_penalty,
                         frequency_penalty=frequency_penalty,
-
+                        logit_bias=logit_bias,
+                        logit_bias_type=logit_bias_type,
                         mirostat_mode=mirostat_mode,
                         mirostat_tau=mirostat_tau,
                         mirostat_eta=mirostat_eta,

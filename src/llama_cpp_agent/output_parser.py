@@ -71,6 +71,8 @@ def parse_json_response_with_markdown_code_block_or_triple_quoted_string(json_re
             line = response_lines.pop(0)
             response += "\n" + line
 
+    if len(response_lines) == 0:
+        return None, None
     # Remove the first line Markdown code block marker
     response_lines.pop(0)
     # Remove the last line Markdown code block marker

@@ -7,7 +7,8 @@ from llama_cpp_agent.llm_agent import LlamaCppAgent
 
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
-from llama_cpp_agent.providers.openai_endpoint_provider import OpenAIEndpointSettings
+from llama_cpp_agent.providers.llama_cpp_server_provider import LlamaCppServerLLMSettings
+
 
 
 # Simple calculator tool for the agent that can add, subtract, multiply, and divide.
@@ -43,8 +44,8 @@ function_tools = [LlamaCppFunctionTool(Calculator)]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
-main_model = OpenAIEndpointSettings(
-    "http://localhost:8080/v1/completions"
+main_model = LlamaCppServerLLMSettings(
+    "http://localhost:8080/completion"
 )
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
                                 system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n" + function_tool_registry.get_documentation(),

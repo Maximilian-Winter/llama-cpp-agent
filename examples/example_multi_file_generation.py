@@ -3,7 +3,6 @@
 
 import json
 
-
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp import Llama, LlamaGrammar
 from pydantic import BaseModel
@@ -27,8 +26,6 @@ main_model = Llama(
     verbose=True,
     seed=42,
 )
-
-
 
 
 class File(BaseModel):
@@ -56,20 +53,20 @@ class Program(BaseModel):
     files: List[File] = Field(..., description="List of files")
 
 
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(pydantic_model_list=[Program], look_markdown_code_block=False)
+gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(pydantic_model_list=[Program])
 
 print(gbnf_grammar)
-grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)
+
 
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt="You are a world class programming AI capable of writing correct python scripts and modules. You will name files correct, include __init__.py files and write correct python code with correct imports.\n\nYou are responding in JSON format.\n\nAvailable JSON response models:\n\n" + documentation.strip() + "\n\nAlways provide full implementation to the user!!!!",
-                              predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL)
+                                system_prompt="You are a world class programming AI capable of writing correct python scripts and modules. You will name files correct, include __init__.py files and write correct python code with correct imports.\n\nYou are responding in JSON format.\n\nAvailable JSON response models:\n\n" + documentation.strip() + "\n\nAlways provide full implementation to the user!!!!",
+                                predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL)
 
 
 def develop(data: str) -> Program:
     prompt = data
     response = llama_cpp_agent.get_chat_response(message=prompt, temperature=0.35, mirostat_mode=2, mirostat_tau=4.0,
-                                               mirostat_eta=0.1, grammar=grammar)
+                                                 mirostat_eta=0.1, grammar=gbnf_grammar)
     json_obj = json.loads(response)
     cls = Program
     ai_program = cls(**json_obj)

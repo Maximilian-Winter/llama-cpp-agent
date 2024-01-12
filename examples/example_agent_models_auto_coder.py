@@ -8,7 +8,6 @@ from pydantic import Field, BaseModel
 base_folder = "dev"
 
 
-
 def agent_dev_folder_setup(custom_base_folder=None):
     global base_folder
     base_folder = custom_base_folder
@@ -46,8 +45,9 @@ class WriteTextFile(BaseModel):
 
     # Allow free output for the File Content to Enhance LLM Output
 
-    triple_quoted_string: str = Field(...,
-                             description="Triple quoted string for unconstrained output.")
+    file_content: str = Field(...,
+                              description="Triple quoted string for unconstrained output.", triple_quoted_string=True)
+
     def run(self):
 
         if self.directory == "":
@@ -84,7 +84,7 @@ class WriteTextFile(BaseModel):
 
         # Write back to file
         with open(file_path, write_mode, encoding="utf-8") as file:
-            file.writelines(self.triple_quoted_string)
+            file.writelines(self.file_content)
 
         return f"Content written to '{self.filename_without_extension}{self.filename_extension}'."
 

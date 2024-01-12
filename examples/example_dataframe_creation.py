@@ -62,7 +62,7 @@ class Database(BaseModel):
     )
 
 
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([Database], False,
+gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([Database],
                                                                       model_prefix="Response Model",
                                                                       fields_prefix="Response Model Field")
 
@@ -73,7 +73,7 @@ llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
 
 def dataframe(data: str) -> Database:
     prompt = data
-    response = llama_cpp_agent.get_chat_response(message=prompt, temperature=0.25, grammar=gbnf_grammar)
+    response = llama_cpp_agent.get_chat_response(message=prompt, temperature=0.65, grammar=gbnf_grammar)
 
     database = extract_object_from_response(response, Database)
     return database

@@ -193,15 +193,13 @@ class OpenAIEndpointSettings:
         def generate_text_chunks():
             try:
                 decoded_chunk = ""
-                for chunk in response.iter_content(chunk_size=1):
+                for chunk in response.iter_lines():
                     if chunk:
                         decoded_chunk += chunk.decode('utf-8')
-                        if decoded_chunk.endswith("}]}\r"):
-                            new_data = json.loads(decoded_chunk.replace("data: ", ""))
-                            returned_data = {'choices': new_data["choices"]}
-                            yield returned_data
-                            decoded_chunk = ""
-
+                        new_data = json.loads(decoded_chunk.replace("data: ", ""))
+                        returned_data = {'choices': new_data["choices"]}
+                        yield returned_data
+                        decoded_chunk = ""
             except requests.exceptions.RequestException as e:
                 print(f"Request failed: {e}")
 

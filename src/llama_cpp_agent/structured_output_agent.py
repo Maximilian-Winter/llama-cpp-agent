@@ -174,7 +174,6 @@ class StructuredOutputAgent:
         """
         if model not in self.grammar_cache:
             grammar, documentation = generate_gbnf_grammar_and_documentation([model],
-                                                                             False,
                                                                              model_prefix="Response Model",
                                                                              fields_prefix="Response Model Field")
 

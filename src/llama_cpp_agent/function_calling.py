@@ -30,11 +30,14 @@ class LlamaCppFunctionTool:
         __call__(*args, **kwargs): Calls the Pydantic model with the provided keyword arguments.
     """
     def __init__(self, pydantic_model: Type[BaseModel], has_markdown_code_block=False, has_triple_quoted_string=False,
+                 markdown_code_block_field_name=None, triple_quoted_string_field_name=None,
                  **additional_parameters):
         self.model = pydantic_model
         self.look_for_field_string = has_markdown_code_block or has_triple_quoted_string
         self.has_markdown_code_block = has_markdown_code_block
         self.has_triple_quoted_string = has_triple_quoted_string
+        self.markdown_code_block_field_name = markdown_code_block_field_name
+        self.triple_quoted_string_field_name = triple_quoted_string_field_name
         self.additional_parameters = additional_parameters if additional_parameters else {}
 
     def __call__(self, *args, **kwargs):
@@ -116,17 +119,15 @@ class LlamaCppFunctionToolRegistry:
         Finalize the registry, generating the GBNF grammar and documentation.
         """
         pydantic_function_models = []
-        look_markdown_code_block = False
+
         for function_tool in self.function_tools.values():
             pydantic_function_models.append(function_tool.model)
-            if function_tool.look_for_field_string:
-                look_markdown_code_block = True
+
         for function_tool in self.function_tools_containing_field_string.values():
             pydantic_function_models.append(function_tool.model)
-            if function_tool.look_for_field_string:
-                look_markdown_code_block = True
+
         gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
-            pydantic_function_models, look_markdown_code_block, look_markdown_code_block, self.tool_root,
+            pydantic_function_models, self.tool_root,
             self.tool_rule_content, self.model_prefix,
             self.fields_prefix)
 
@@ -169,9 +170,9 @@ class LlamaCppFunctionToolRegistry:
                     marker = "'''" if self.function_tools_containing_field_string[name].has_triple_quoted_string else "```"
                     function_call, content = parse_json_response_with_markdown_code_block_or_triple_quoted_string(function_call_response, marker)
                     if self.function_tools_containing_field_string[function_call[self.tool_root]].has_markdown_code_block:
-                        function_call[self.tool_rule_content]["markdown_code_block"] = content
+                        function_call[self.tool_rule_content][tool.markdown_code_block_field_name] = content
                     elif self.function_tools_containing_field_string[function_call[self.tool_root]].has_triple_quoted_string:
-                        function_call[self.tool_rule_content]["triple_quoted_string"] = content
+                        function_call[self.tool_rule_content][tool.triple_quoted_string_field_name] = content
 
                     output = self.intern_function_call(function_call, with_markdown_code_block=True)
                     return output

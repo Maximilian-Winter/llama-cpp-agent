@@ -11,7 +11,7 @@ from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 
 function_tools = [LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
-                  LlamaCppFunctionTool(WriteTextFile, has_triple_quoted_string=True)]
+                  LlamaCppFunctionTool(WriteTextFile, has_triple_quoted_string=True, triple_quoted_string_field_name="file_content")]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 

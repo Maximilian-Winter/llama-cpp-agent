@@ -10,7 +10,8 @@ from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 
 function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(GetFileList),
                   LlamaCppFunctionTool(ReadTextFile),
-                  LlamaCppFunctionTool(WriteTextFile, has_triple_quoted_string=True)]
+                  LlamaCppFunctionTool(WriteTextFile, has_triple_quoted_string=True,
+                                       triple_quoted_string_field_name="file_content")]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
@@ -42,6 +43,7 @@ llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
                                 system_prompt=system_prompt,
                                 predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
+print(function_tool_registry.gbnf_grammar)
 response = llama_cpp_agent.get_chat_response(
     'Write a engaging rap song about the drug problem in the USA in the "USARap.txt" file under "./".',
     temperature=0.75, function_tool_registry=function_tool_registry)

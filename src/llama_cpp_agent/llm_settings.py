@@ -38,7 +38,7 @@ class LlamaLLMGenerationSettings:
     stop_sequences: List[str] = None
     stream: bool = True
     print_output: bool = True
-    # k_last_messages: int = 0
+
 
     def save(self, file_path: str):
         """

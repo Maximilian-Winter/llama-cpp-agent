@@ -1,14 +1,70 @@
 import json
+from copy import copy
 
 import requests
 
 from dataclasses import dataclass, field
 from typing import List, Union
-from collections import defaultdict
+
 
 
 @dataclass
 class LlamaCppServerGenerationSettings:
+    """
+    Settings for generating completions using the Llama.cpp server.
+
+    Args:
+        temperature (float): Controls the randomness of the generated completions. Higher values make the output more random.
+        top_k (int): Controls the diversity of the top-k sampling. Higher values result in more diverse completions.
+        top_p (float): Controls the diversity of the nucleus sampling. Higher values result in more diverse completions.
+        min_p (float): Minimum probability for nucleus sampling. Lower values result in more focused completions.
+        n_predict (int): Number of completions to predict. Set to -1 to use the default value.
+        n_keep (int): Number of completions to keep. Set to 0 for all predictions.
+        stream (bool): Enable streaming for long completions.
+        stop_sequences (List[str]): List of stop sequences to finish completion generation.
+        tfs_z (float): Controls the temperature for top frequent sampling.
+        typical_p (float): Typical probability for top frequent sampling.
+        repeat_penalty (float): Penalty for repeating tokens in completions.
+        repeat_last_n (int): Number of tokens to consider for repeat penalty.
+        penalize_nl (bool): Enable penalizing newlines in completions.
+        presence_penalty (float): Penalty for presence of certain tokens.
+        frequency_penalty (float): Penalty based on token frequency.
+        penalty_prompt (Union[None, str, List[int]]): Prompts to apply penalty for certain tokens.
+        mirostat_mode (int): Mirostat level.
+        mirostat_tau (float): Mirostat temperature.
+        mirostat_eta (float): Mirostat eta parameter.
+        seed (int): Seed for randomness. Set to -1 for no seed.
+        ignore_eos (bool): Ignore end-of-sequence token.
+
+    Attributes:
+        temperature (float): Controls the randomness of the generated completions. Higher values make the output more random.
+        top_k (int): Controls the diversity of the top-k sampling. Higher values result in more diverse completions.
+        top_p (float): Controls the diversity of the nucleus sampling. Higher values result in more diverse completions.
+        min_p (float): Minimum probability for nucleus sampling. Lower values result in more focused completions.
+        n_predict (int): Number of completions to predict. Set to -1 to use the default value.
+        n_keep (int): Number of completions to keep. Set to 0 for all predictions.
+        stream (bool): Enable streaming for long completions.
+        stop_sequences (List[str]): List of stop sequences to finish completion generation.
+        tfs_z (float): Controls the temperature for top frequent sampling.
+        typical_p (float): Typical probability for top frequent sampling.
+        repeat_penalty (float): Penalty for repeating tokens in completions.
+        repeat_last_n (int): Number of tokens to consider for repeat penalty.
+        penalize_nl (bool): Enable penalizing newlines in completions.
+        presence_penalty (float): Penalty for presence of certain tokens.
+        frequency_penalty (float): Penalty based on token frequency.
+        penalty_prompt (Union[None, str, List[int]]): Prompts to apply penalty for certain tokens.
+        mirostat_mode (int): Mirostat level.
+        mirostat_tau (float): Mirostat temperature.
+        mirostat_eta (float): Mirostat eta parameter.
+        seed (int): Seed for randomness. Set to -1 for no seed.
+        ignore_eos (bool): Ignore end-of-sequence token.
+    Methods:
+        save(file_path: str): Save the settings to a file.
+        load_from_file(file_path: str) -> LlamaCppServerGenerationSettings: Load the settings from a file.
+        load_from_dict(settings: dict) -> LlamaCppServerGenerationSettings: Load the settings from a dictionary.
+        as_dict() -> dict: Convert the settings to a dictionary.
+
+    """
     temperature: float = 0.8
     top_k: int = 40
     top_p: float = 0.95
@@ -16,7 +72,7 @@ class LlamaCppServerGenerationSettings:
     n_predict: int = -1
     n_keep: int = 0
     stream: bool = False
-    stop: List[str] = field(default_factory=list)
+    stop_sequences: List[str] = field(default_factory=list)
     tfs_z: float = 1.0
     typical_p: float = 1.0
     repeat_penalty: float = 1.1
@@ -25,57 +81,189 @@ class LlamaCppServerGenerationSettings:
     presence_penalty: float = 0.0
     frequency_penalty: float = 0.0
     penalty_prompt: Union[None, str, List[int]] = None
-    mirostat: int = 0
+    mirostat_mode: int = 0
     mirostat_tau: float = 5.0
     mirostat_eta: float = 0.1
     seed: int = -1
     ignore_eos: bool = False
 
     def save(self, file_path: str):
+        """
+        Save the settings to a file.
+
+        Args:
+            file_path (str): The path to the file.
+        """
         with open(file_path, 'w', encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
     def load_from_file(file_path: str) -> "LlamaCppServerGenerationSettings":
+        """
+        Load the settings from a file.
+
+        Args:
+            file_path (str): The path to the file.
+
+        Returns:
+            LlamaCppServerGenerationSettings: The loaded settings.
+        """
         with open(file_path, 'r', encoding="utf-8") as file:
             loaded_settings = json.load(file)
             return LlamaCppServerGenerationSettings(**loaded_settings)
 
     @staticmethod
     def load_from_dict(settings: dict) -> "LlamaCppServerGenerationSettings":
+        """
+        Load the settings from a dictionary.
+
+        Args:
+            settings (dict): The dictionary containing the settings.
+
+        Returns:
+            LlamaCppServerGenerationSettings: The loaded settings.
+        """
         return LlamaCppServerGenerationSettings(**settings)
 
     def as_dict(self) -> dict:
+        """
+        Convert the settings to a dictionary.
+
+        Returns:
+            dict: The dictionary representation of the settings.
+        """
         return self.__dict__
 
 
 @dataclass
 class LlamaCppServerLLMSettings:
-    server_url: str
+    """
+    Settings for interacting with the Llama.cpp server.
+
+    Args:
+        completions_endpoint_url (str): The URL for the completions endpoint.
+
+    Attributes:
+        completions_endpoint_url (str): The URL for the completions endpoint.
+
+    Methods:
+        save(file_path: str): Save the settings to a file.
+        load_from_file(file_path: str) -> LlamaCppServerLLMSettings: Load the settings from a file.
+        load_from_dict(settings: dict) -> LlamaCppServerLLMSettings: Load the settings from a dictionary.
+        as_dict() -> dict: Convert the settings to a dictionary.
+        create_completion(prompt, grammar, generation_settings: LlamaCppServerGenerationSettings): Create a completion using the server.
+
+    """
+    completions_endpoint_url: str
 
     def save(self, file_path: str):
+        """
+        Save the settings to a file.
+
+        Args:
+            file_path (str): The path to the file.
+        """
         with open(file_path, 'w', encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
     def load_from_file(file_path: str) -> "LlamaCppServerLLMSettings":
+        """
+        Load the settings from a file.
+
+        Args:
+            file_path (str): The path to the file.
+
+        Returns:
+            LlamaCppServerLLMSettings: The loaded settings.
+        """
         with open(file_path, 'r', encoding="utf-8") as file:
             loaded_settings = json.load(file)
             return LlamaCppServerLLMSettings(**loaded_settings)
 
     @staticmethod
     def load_from_dict(settings: dict) -> "LlamaCppServerLLMSettings":
+        """
+        Load the settings from a dictionary.
+
+        Args:
+            settings (dict): The dictionary containing the settings.
+
+        Returns:
+            LlamaCppServerLLMSettings: The loaded settings.
+        """
         return LlamaCppServerLLMSettings(**settings)
 
     def as_dict(self) -> dict:
+        """
+        Convert the settings to a dictionary.
+
+        Returns:
+            dict: The dictionary representation of the settings.
+        """
         return self.__dict__
 
-    def get_response(self, prompt, grammar, generation_settings: LlamaCppServerGenerationSettings):
+    def create_completion(self, prompt, grammar, generation_settings: LlamaCppServerGenerationSettings):
+        """
+        Create a completion using the Llama.cpp server.
+
+        Args:
+            prompt: The input prompt.
+            grammar: The grammar for completion.
+            generation_settings (LlamaCppServerGenerationSettings): The generation settings.
+
+        Returns:
+            dict or generator: The completion response.
+        """
+        if generation_settings.stream:
+            return self.get_response_stream(prompt, grammar, generation_settings)
+
         headers = {"Content-Type": "application/json"}
 
         data = generation_settings.as_dict()
         data["prompt"] = prompt
         data["grammar"] = grammar
+        data["mirostat"] = data["mirostat_mode"]
+        data["stop"] = data["stop_sequences"]
+        del data["mirostat_mode"]
+        del data["stop_sequences"]
 
-        response = requests.post(self.server_url, headers=headers, json=data)
-        return response.json()["content"]
+        response = requests.post(self.completions_endpoint_url, headers=headers, json=data)
+        data = response.json()
+
+        returned_data = {'choices': [{'text': data["content"]}]}
+        return returned_data
+
+    def get_response_stream(self, prompt, grammar, generation_settings):
+        headers = {"Content-Type": "application/json"}
+
+        data = copy(generation_settings.as_dict())
+        data["prompt"] = prompt
+        data["grammar"] = grammar
+        data["mirostat"] = data["mirostat_mode"]
+        data["stop"] = data["stop_sequences"]
+        del data["mirostat_mode"]
+        del data["stop_sequences"]
+        response = requests.post(self.completions_endpoint_url, headers=headers, json=data,
+                                 stream=generation_settings.stream)
+
+        # Check if the request was successful
+        response.raise_for_status()
+
+        # Define a generator function to yield text chunks
+        def generate_text_chunks():
+            try:
+                decoded_chunk = ""
+                for chunk in response.iter_content(chunk_size=64):
+                    if chunk:
+                        decoded_chunk += chunk.decode('utf-8')
+                        if decoded_chunk.endswith("}\n\n"):
+                            new_data = json.loads(decoded_chunk.replace("data: ", ""))
+                            returned_data = {'choices': [{'text': new_data["content"]}]}
+                            yield returned_data
+                            decoded_chunk = ""
+
+            except requests.exceptions.RequestException as e:
+                print(f"Request failed: {e}")
+
+        return generate_text_chunks()

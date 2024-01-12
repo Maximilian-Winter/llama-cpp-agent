@@ -5,6 +5,7 @@ from enum import Enum
 from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
+from llama_cpp_agent.providers.llama_cpp_server_provider import LlamaCppServerLLMSettings
 from llama_cpp_agent.structured_output_agent import StructuredOutputAgent
 
 
@@ -27,19 +28,8 @@ class Book(BaseModel):
     summary: str = Field(..., description="Summary of the book.")
 
 
-main_model = Llama(
-    "../gguf-models/nous-hermes-2-solar-10.7b.Q6_K.gguf",
-    n_gpu_layers=49,
-    offload_kqv=True,
-    f16_kv=True,
-    use_mlock=False,
-    embedding=False,
-    n_threads=8,
-    n_batch=1024,
-    n_ctx=4096,
-    last_n_tokens_size=1024,
-    verbose=False,
-    seed=42,
+main_model = LlamaCppServerLLMSettings(
+    completions_endpoint_url="http://127.0.0.1:8080/completion"
 )
 
 structured_output_agent = StructuredOutputAgent(main_model, debug_output=True)

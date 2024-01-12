@@ -1,7 +1,7 @@
 # llama-cpp-agent Framework
 
 ## Introduction
-The llama-cpp-agent framework is a tool designed for easy interaction with Large Language Models (LLMs). It provides a simple yet robust interface using llama-cpp-python, allowing users to chat with LLM models, execute structured function calls and get structured output.
+The llama-cpp-agent framework is a tool designed for easy interaction with Large Language Models (LLMs). It provides a simple yet robust interface using llama-cpp-python or optionally the llama.cpp backend server, allowing users to chat with LLM models, execute structured function calls and get structured output.
 It does this by generating a formal GGML-BNF grammar of the user defined structures and functions, which is then used by llama.cpp to generate text valid to that grammar. In contrast to most GBNF grammar generators it also supports nested objects, dictionaries, enums and lists of them.
 ## Key Features
 - **Simple Chat Interface**: Engage in seamless conversations with LLMs.
@@ -17,26 +17,19 @@ pip install llama-cpp-agent
 
 ## Usage Examples
 The following examples demonstrate the usage of the llama-cpp-agent framework.
-You can find a lot more examples in the `examples` folder.
+You can find more examples in the `examples` folder.
 
-### Simple Chat Example
-This example demonstrates how to initiate a chat with an LLM model.
+
+### Simple Chat Example using llama.cpp server backend
+This example demonstrates how to initiate a chat with an LLM model using the llama.cpp server backend. The framework supports llama-cpp-python as a backend and the llama.cpp backend server.
 ```python
 from llama_cpp import Llama
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-main_model = Llama(
-    "../gguf-models/dolphin-2.7-mixtral-8x7b.Q4_K_M.gguf",
-    n_gpu_layers=13,
-    f16_kv=True,
-    use_mlock=False,
-    embedding=False,
-    n_threads=8,
-    n_batch=1024,
-    n_ctx=8192,
-    last_n_tokens_size=1024,
-    verbose=False,
-    seed=42,
+from llama_cpp_agent.providers.llama_cpp_server_provider import LlamaCppServerLLMSettings
+# Provider can be lama-cpp-python Llama class or llama_cpp_agent.llm_settings.LlamaLLMSettings class for preconfigured Llama instance or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerLLMSettings for llama.cpp server backend.
+main_model = LlamaCppServerLLMSettings(
+    completions_endpoint_url="http://127.0.0.1:8080/completion"
 )
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
                               system_prompt="You are Dolphin, an uncensored and unbiased AI assistant.", predefined_messages_formatter_type=MessagesFormatterType.CHATML)
@@ -50,7 +43,6 @@ while True:
     print("AI: " + user_input)
 
 ```
-
 ### Function Calling Agent Example
 This example shows how to use the FunctionCallingAgent for function calling with OpenAI like dictionaries, normal python functions and functions defined as pydantic models like in the "Instructor" library.
 
@@ -60,7 +52,6 @@ import json
 from enum import Enum
 from typing import Union, Any
 
-from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.llm_settings import LlamaLLMSettings, LlamaLLMGenerationSettings
@@ -103,6 +94,7 @@ class MathOperation(Enum):
     MULTIPLY = "multiply"
     DIVIDE = "divide"
 
+
 # llama-cpp-agent also supports "Instructor" library like function definitions as Pydantic models for function calling.
 # Simple pydantic calculator tool for the agent that can add, subtract, multiply, and divide. Docstring and description of fields will be used in system prompt.
 class Calculator(BaseModel):
@@ -138,6 +130,8 @@ def get_current_weather(location, unit):
         return json.dumps({"location": "North Pole", "temperature": "-42", "unit": unit.value})
     else:
         return json.dumps({"location": location, "temperature": "unknown"})
+
+
 # Here is a function definition in OpenAI style
 tools = [
     {
@@ -162,6 +156,7 @@ tools = [
 # To make the OpenAI function callable for the function calling agent we need a list with actual function in it:
 tool_functions = [get_current_weather]
 
+
 # Callback for receiving messages for the user.
 def send_message_to_user_callback(message: str):
     print(message)
@@ -173,22 +168,25 @@ generation_settings = LlamaLLMGenerationSettings(temperature=0.65, top_p=0.5, tf
 # generation_settings.save("generation_settings.json")
 # generation_settings = LlamaLLMGenerationSettings.load_from_file("generation_settings.json")
 
-function_call_agent = FunctionCallingAgent(LlamaLLMSettings.load_from_file("openhermes-2.5-mistral-7b.Q8_0.json"),
-                                           # Can lama-cpp-python Llama class or LlamaLLMSettings class.
-                                           llama_generation_settings=generation_settings,
-                                           # A tuple of the OpenAI style function definitions and the actual functions
-                                           open_ai_functions=(tools, tool_functions),
-                                           # Just a list of type hinted functions for normal Python functions
-                                           python_functions=[write_to_file, read_file],
-                                           # Just a list of pydantic types
-                                           pydantic_functions=[Calculator],
-                                           # Callback for receiving messages for the user.
-                                           send_message_to_user_callback=send_message_to_user_callback, debug_output=True)
+function_call_agent = FunctionCallingAgent(
+    # Can be lama-cpp-python Llama class, llama_cpp_agent.llm_settings.LlamaLLMSettings class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerLLMSettings.
+    LlamaLLMSettings.load_from_file("openhermes-2.5-mistral-7b.Q8_0.json"),
+    # llama_cpp_agent.llm_settings.LlamaLLMGenerationSettings  class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerGenerationSettings.
+    llama_generation_settings=generation_settings,
+    # A tuple of the OpenAI style function definitions and the actual functions
+    open_ai_functions=(tools, tool_functions),
+    # Just a list of type hinted functions for normal Python functions
+    python_functions=[write_to_file, read_file],
+    # Just a list of pydantic types
+    pydantic_functions=[Calculator],
+    # Callback for receiving messages for the user.
+    send_message_to_user_callback=send_message_to_user_callback, debug_output=True)
 
 while True:
     user_input = input(">")
     function_call_agent.generate_response(user_input)
     function_call_agent.save("function_calling_agent.json")
+
 
 
 ```
@@ -352,8 +350,7 @@ class KnowledgeGraph(BaseModel):
 
 gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([KnowledgeGraph],False)
 
-print(gbnf_grammar)
-grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=True)
+
 
 
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
@@ -381,7 +378,7 @@ def visualize_knowledge_graph(kg: KnowledgeGraph):
 def generate_graph(user_input: str) -> KnowledgeGraph:
     prompt = f'''Help me understand the following by describing it as a detailed knowledge graph: {user_input}'''.strip()
     response = llama_cpp_agent.get_chat_response(message=prompt, temperature=0.65, mirostat_mode=0, mirostat_tau=3.0,
-                                               mirostat_eta=0.1, grammar=grammar)
+                                               mirostat_eta=0.1, grammar=gbnf_grammar)
     knowledge_graph = json.loads(response)
     cls = KnowledgeGraph
     knowledge_graph = cls(**knowledge_graph)

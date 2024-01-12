@@ -3,7 +3,6 @@ import json
 from enum import Enum
 from typing import Union, Any
 
-from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.llm_settings import LlamaLLMSettings, LlamaLLMGenerationSettings
@@ -46,6 +45,7 @@ class MathOperation(Enum):
     MULTIPLY = "multiply"
     DIVIDE = "divide"
 
+
 # llama-cpp-agent also supports "Instructor" library like function definitions as Pydantic models for function calling.
 # Simple pydantic calculator tool for the agent that can add, subtract, multiply, and divide. Docstring and description of fields will be used in system prompt.
 class Calculator(BaseModel):
@@ -81,6 +81,8 @@ def get_current_weather(location, unit):
         return json.dumps({"location": "North Pole", "temperature": "-42", "unit": unit.value})
     else:
         return json.dumps({"location": location, "temperature": "unknown"})
+
+
 # Here is a function definition in OpenAI style
 tools = [
     {
@@ -105,6 +107,7 @@ tools = [
 # To make the OpenAI function callable for the function calling agent we need a list with actual function in it:
 tool_functions = [get_current_weather]
 
+
 # Callback for receiving messages for the user.
 def send_message_to_user_callback(message: str):
     print(message)
@@ -116,17 +119,19 @@ generation_settings = LlamaLLMGenerationSettings(temperature=0.65, top_p=0.5, tf
 # generation_settings.save("generation_settings.json")
 # generation_settings = LlamaLLMGenerationSettings.load_from_file("generation_settings.json")
 
-function_call_agent = FunctionCallingAgent(LlamaLLMSettings.load_from_file("openhermes-2.5-mistral-7b.Q8_0.json"),
-                                           # Can lama-cpp-python Llama class or LlamaLLMSettings class.
-                                           llama_generation_settings=generation_settings,
-                                           # A tuple of the OpenAI style function definitions and the actual functions
-                                           open_ai_functions=(tools, tool_functions),
-                                           # Just a list of type hinted functions for normal Python functions
-                                           python_functions=[write_to_file, read_file],
-                                           # Just a list of pydantic types
-                                           pydantic_functions=[Calculator],
-                                           # Callback for receiving messages for the user.
-                                           send_message_to_user_callback=send_message_to_user_callback, debug_output=True)
+function_call_agent = FunctionCallingAgent(
+    # Can be lama-cpp-python Llama class, llama_cpp_agent.llm_settings.LlamaLLMSettings class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerLLMSettings.
+    LlamaLLMSettings.load_from_file("openhermes-2.5-mistral-7b.Q8_0.json"),
+    # llama_cpp_agent.llm_settings.LlamaLLMGenerationSettings  class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerGenerationSettings.
+    llama_generation_settings=generation_settings,
+    # A tuple of the OpenAI style function definitions and the actual functions
+    open_ai_functions=(tools, tool_functions),
+    # Just a list of type hinted functions for normal Python functions
+    python_functions=[write_to_file, read_file],
+    # Just a list of pydantic types
+    pydantic_functions=[Calculator],
+    # Callback for receiving messages for the user.
+    send_message_to_user_callback=send_message_to_user_callback, debug_output=True)
 
 while True:
     user_input = input(">")

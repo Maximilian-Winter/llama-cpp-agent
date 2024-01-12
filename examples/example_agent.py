@@ -15,7 +15,6 @@ function_tools = [LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTe
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
-
 main_model = Llama(
     "../../gguf-models/neuralhermes-2.5-mistral-7b.Q8_0.gguf",
     n_gpu_layers=49,
@@ -38,23 +37,12 @@ Your output is constrained to JSON formatted strings, except for file content, w
 {function_tool_registry.get_documentation()}
 
 
-# EXAMPLE OUTPUT
-{{ "function": "write-text-file","function_parameters": {{ "directory": "./workspace/example/"  ,  "filename_without_extension": "example"  ,  "filename_extension": ".html"  ,  "write_operation": "create-file" }}}}
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Example</title>
-</head>
-[Rest of the file...]
-</html>
+
 ```'''.strip()
 
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt=system_prompt,
-                              predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+                                system_prompt=system_prompt,
+                                predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 timestamp = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
 
 agent_dev_folder_setup(f"dev_{timestamp}")
@@ -67,4 +55,3 @@ while True:
     user_input = llama_cpp_agent.get_chat_response(
         user_input,
         temperature=0.45, repeat_penalty=1.0, function_tool_registry=function_tool_registry)
-

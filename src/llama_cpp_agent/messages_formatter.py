@@ -79,6 +79,9 @@ DEFAULT_OPEN_CHAT_STOP_SEQUENCES = ["<|end_of_turn|>"]
 
 
 class MessagesFormatterType(Enum):
+    """
+    Enum representing different types of predefined messages formatters.
+    """
     MIXTRAL = 1
     CHATML = 2
     VICUNA = 3
@@ -90,6 +93,9 @@ class MessagesFormatterType(Enum):
 
 
 class MessagesFormatter:
+    """
+    Class representing a messages formatter for LLMs.
+    """
     def __init__(self, PRE_PROMPT: str, SYS_PROMPT_START: str, SYS_PROMPT_END: str, USER_PROMPT_START: str,
                  USER_PROMPT_END: str,
                  ASSISTANT_PROMPT_START: str,
@@ -99,6 +105,24 @@ class MessagesFormatter:
                  USE_USER_ROLE_FUNCTION_CALL_RESULT: bool = True,
                  FUNCTION_PROMPT_START: str = "",
                  FUNCTION_PROMPT_END: str = ""):
+        """
+        Initializes a new MessagesFormatter object.
+
+        Args:
+            PRE_PROMPT (str): The pre-prompt content.
+            SYS_PROMPT_START (str): The system prompt start.
+            SYS_PROMPT_END (str): The system prompt end.
+            USER_PROMPT_START (str): The user prompt start.
+            USER_PROMPT_END (str): The user prompt end.
+            ASSISTANT_PROMPT_START (str): The assistant prompt start.
+            ASSISTANT_PROMPT_END (str): The assistant prompt end.
+            INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE (bool): Indicates whether to include the system prompt
+                                                             in the first user message.
+            DEFAULT_STOP_SEQUENCES (List[str]): List of default stop sequences.
+            USE_USER_ROLE_FUNCTION_CALL_RESULT (bool): Indicates whether to use user role for function call results.
+            FUNCTION_PROMPT_START (str): The function prompt start.
+            FUNCTION_PROMPT_END (str): The function prompt end.
+        """
         self.PRE_PROMPT = PRE_PROMPT
         self.SYS_PROMPT_START = SYS_PROMPT_START
         self.SYS_PROMPT_END = SYS_PROMPT_END
@@ -113,6 +137,15 @@ class MessagesFormatter:
         self.USE_USER_ROLE_FUNCTION_CALL_RESULT = USE_USER_ROLE_FUNCTION_CALL_RESULT
 
     def format_messages(self, messages: List[Dict[str, str]]) -> Tuple[str, str]:
+        """
+        Formats a list of messages into a conversation string.
+
+        Args:
+            messages (List[Dict[str, str]]): List of messages with role and content.
+
+        Returns:
+            Tuple[str, str]: Formatted conversation string and the role of the last message.
+        """
         formatted_messages = self.PRE_PROMPT
         last_role = "assistant"
         no_user_prompt_start = False
@@ -145,20 +178,50 @@ class MessagesFormatter:
         return formatted_messages + self.USER_PROMPT_START.strip(), "user"
 
     def save(self, file_path: str):
+        """
+        Saves the messages formatter configuration to a file.
+
+        Args:
+           file_path (str): The file path to save the configuration.
+        """
         with open(file_path, 'w', encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
     def load_from_file(file_path: str) -> "MessagesFormatter":
+        """
+        Loads a messages formatter configuration from a file.
+
+        Args:
+            file_path (str): The file path to load the configuration from.
+
+        Returns:
+            MessagesFormatter: Loaded messages formatter.
+        """
         with open(file_path, 'r', encoding="utf-8") as file:
             loaded_messages_formatter = json.load(file)
             return MessagesFormatter(**loaded_messages_formatter)
 
     @staticmethod
     def load_from_dict(loaded_messages_formatter: dict) -> "MessagesFormatter":
+        """
+        Creates a messages formatter from a dictionary.
+
+        Args:
+            loaded_messages_formatter (dict): Dictionary representing the messages formatter.
+
+        Returns:
+            MessagesFormatter: Created messages formatter.
+        """
         return MessagesFormatter(**loaded_messages_formatter)
 
     def as_dict(self) -> dict:
+        """
+        Converts the messages formatter to a dictionary.
+
+        Returns:
+            dict: Dictionary representation of the messages formatter.
+        """
         return self.__dict__
 
 
@@ -206,4 +269,13 @@ predefined_formatter = {
 
 
 def get_predefined_messages_formatter(formatter_type: MessagesFormatterType) -> MessagesFormatter:
+    """
+    Gets a predefined messages formatter based on the formatter type.
+
+    Args:
+        formatter_type (MessagesFormatterType): The type of messages formatter.
+
+    Returns:
+        MessagesFormatter: The predefined messages formatter.
+    """
     return predefined_formatter[formatter_type]

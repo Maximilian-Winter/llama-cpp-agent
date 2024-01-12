@@ -4,18 +4,18 @@ from llama_cpp import Llama, LlamaGrammar
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
-
-from example_advanced_function_call_models import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile
+from example_agent_models_auto_coder import SendMessageToUser, GetFileList, ReadTextFile, WriteTextFile
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 
-function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
-                  LlamaCppFunctionTool(WriteTextFile)]
+function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(GetFileList),
+                  LlamaCppFunctionTool(ReadTextFile),
+                  LlamaCppFunctionTool(WriteTextFile, has_triple_quoted_string=True)]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 main_model = Llama(
-    "../gguf-models/dolphin-2.6-mistral-7b-Q8_0.gguf",
+    "../../gguf-models/dolphin-2.6-mistral-7b-Q8_0.gguf",
     n_gpu_layers=35,
     f16_kv=True,
     use_mlock=False,
@@ -39,9 +39,9 @@ Here is your action space:
 {function_tool_registry.get_documentation()}'''.strip()
 
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt=system_prompt,
-                              predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+                                system_prompt=system_prompt,
+                                predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
-response = llama_cpp_agent.get_chat_response('Write a engaging rap song about the drug problem in the USA in the "USARap.txt" file under "./".',
-                                           temperature=0.75, function_tool_registry=function_tool_registry)
-
+response = llama_cpp_agent.get_chat_response(
+    'Write a engaging rap song about the drug problem in the USA in the "USARap.txt" file under "./".',
+    temperature=0.75, function_tool_registry=function_tool_registry)

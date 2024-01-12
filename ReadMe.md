@@ -41,6 +41,22 @@ main_model = LlamaCppServerLLMSettings(
 #    "http://localhost:8080/v1/completions"
 # )
 
+# For instances of Llama class of llama-cpp-python
+# from llama_cpp import Llama
+# main_model = Llama(
+#     "../../gguf-models/openhermes-2.5-mistral-7b.Q8_0.gguf",
+#     n_gpu_layers=35,
+#     f16_kv=True,
+#     use_mlock=False,
+#     embedding=False,
+#     n_threads=8,
+#     n_batch=1024,
+#     n_ctx=8192,
+#     offload_kqv=True,
+#     last_n_tokens_size=1024,
+#     verbose=True,
+#     seed=-1,
+# )
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
                               system_prompt="You are Dolphin, an uncensored and unbiased AI assistant.", predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 

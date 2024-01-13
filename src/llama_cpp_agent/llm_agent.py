@@ -65,6 +65,7 @@ class LlamaCppAgent:
             self.messages_formatter = custom_messages_formatter
         else:
             self.messages_formatter = get_predefined_messages_formatter(predefined_messages_formatter_type)
+        self.last_response = ""
 
     @staticmethod
     def get_function_tool_registry(function_tool_list: List[LlamaCppFunctionTool]):
@@ -313,7 +314,7 @@ class LlamaCppAgent:
                 if streaming_callback is not None:
                     streaming_callback(StreamingResponse(text="", is_last_response=True))
                 print("")
-
+                self.last_response = full_response.strip()
                 if add_response_to_chat_history:
                     self.messages.append(
                         {
@@ -334,6 +335,7 @@ class LlamaCppAgent:
                         streaming_callback(StreamingResponse(text=text, is_last_response=False))
                 if streaming_callback is not None:
                     streaming_callback(StreamingResponse(text="", is_last_response=True))
+                self.last_response = full_response.strip()
                 if add_response_to_chat_history:
                     self.messages.append(
                         {
@@ -348,7 +350,7 @@ class LlamaCppAgent:
             if print_output:
                 text = completion['choices'][0]['text']
                 print(text)
-
+                self.last_response = text.strip()
                 if add_response_to_chat_history:
                     self.messages.append(
                         {
@@ -361,6 +363,7 @@ class LlamaCppAgent:
                     return text if text else None
                 return text.strip() if text else None
             text = completion['choices'][0]['text']
+            self.last_response = text.strip()
             if add_response_to_chat_history:
                 self.messages.append(
                     {

@@ -7,7 +7,7 @@ from llama_cpp import Llama, LlamaGrammar
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import \
     generate_gbnf_grammar_and_documentation, create_dynamic_model_from_function
-from llama_cpp_agent.providers.llama_cpp_server_provider import LlamaCppServerLLMSettings
+from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
 
 
 def calculate_a_to_the_power_b(a: Union[int | float], b: Union[int | float]):
@@ -19,7 +19,7 @@ DynamicSampleModel = create_dynamic_model_from_function(calculate_a_to_the_power
 grammar, documentation = generate_gbnf_grammar_and_documentation([DynamicSampleModel], outer_object_name="function",
                                                                  outer_object_content="params")
 
-main_model = LlamaCppServerLLMSettings(
+main_model = LlamaCppEndpointSettings(
     completions_endpoint_url="http://127.0.0.1:8080/completion"
 )
 

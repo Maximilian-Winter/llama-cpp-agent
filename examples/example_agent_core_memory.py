@@ -6,7 +6,7 @@ from example_agent_models_auto_coder import SendMessageToUser, GetFileList, Read
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.agent_memory.memory_tools import AgentCoreMemory
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
-from llama_cpp_agent.providers.llama_cpp_server_provider import LlamaCppServerLLMSettings
+from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
 
 agent_core_memory = AgentCoreMemory()
 
@@ -15,7 +15,7 @@ function_tools = [LlamaCppFunctionTool(SendMessageToUser)]
 function_tools.extend(agent_core_memory.get_tool_list())
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
-main_model = LlamaCppServerLLMSettings(
+main_model = LlamaCppEndpointSettings(
     completions_endpoint_url="http://127.0.0.1:8080/completion"
 )
 

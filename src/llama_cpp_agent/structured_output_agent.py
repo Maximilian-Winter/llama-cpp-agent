@@ -11,8 +11,8 @@ from .llm_settings import LlamaLLMGenerationSettings, LlamaLLMSettings
 from .output_parser import extract_object_from_response
 from .messages_formatter import MessagesFormatterType, MessagesFormatter
 from .gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import generate_gbnf_grammar_and_documentation
-from .providers.llama_cpp_server_provider import LlamaCppServerLLMSettings, LlamaCppServerGenerationSettings
-from .providers.openai_endpoint_provider import CompletionRequestSettings, OpenAIEndpointSettings
+from .providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings, LlamaCppGenerationSettings
+from .providers.openai_endpoint_provider import OpenAIGenerationSettings, OpenAIEndpointSettings
 
 
 class StructuredOutputAgent:
@@ -20,8 +20,8 @@ class StructuredOutputAgent:
    An agent that creates structured output based on pydantic models from unstructured text.
 
    Args:
-       llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings]): An instance of Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings as LLM.
-       llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppServerGenerationSettings, CompletionRequestSettings]): Generation settings for Llama or LlamaCppServer.
+       llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings]): An instance of Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings as LLM.
+       llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppGenerationSettings, OpenAIGenerationSettings]): Generation settings for Llama or LlamaCppServer.
        messages_formatter_type (MessagesFormatterType): Type of messages formatter.
        custom_messages_formatter (MessagesFormatter): Custom messages formatter.
        streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
@@ -44,8 +44,8 @@ class StructuredOutputAgent:
 
    """
 
-    def __init__(self, llama_llm: Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings],
-                 llama_generation_settings: Union[LlamaLLMGenerationSettings, LlamaCppServerGenerationSettings, CompletionRequestSettings] = None,
+    def __init__(self, llama_llm: Union[Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings],
+                 llama_generation_settings: Union[LlamaLLMGenerationSettings, LlamaCppGenerationSettings, OpenAIGenerationSettings] = None,
                  messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
                  custom_messages_formatter: MessagesFormatter = None,
                  streaming_callback: Callable[[StreamingResponse], None] = None,
@@ -54,8 +54,8 @@ class StructuredOutputAgent:
         Initialize the StructuredOutputAgent.
 
         Args:
-            llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings]): An instance of Llama, LlamaLLMSettings, or LlamaCppServerLLMSettings as LLM.
-            llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppServerGenerationSettings, CompletionRequestSettings]): Generation settings for Llama or LlamaCppServer or OpenAIEndpoint.
+            llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings]): An instance of Llama, LlamaLLMSettings, or LlamaCppServerLLMSettings as LLM.
+            llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppGenerationSettings, OpenAIGenerationSettings]): Generation settings for Llama or LlamaCppServer or OpenAIEndpoint.
             messages_formatter_type (MessagesFormatterType): Type of messages formatter.
             custom_messages_formatter (MessagesFormatter): Custom messages formatter.
             streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
@@ -65,21 +65,21 @@ class StructuredOutputAgent:
             if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings):
                 llama_generation_settings = LlamaLLMGenerationSettings()
             elif isinstance(llama_llm, OpenAIEndpointSettings):
-                llama_generation_settings = CompletionRequestSettings()
+                llama_generation_settings = OpenAIGenerationSettings()
             else:
-                llama_generation_settings = LlamaCppServerGenerationSettings()
+                llama_generation_settings = LlamaCppGenerationSettings()
 
         if isinstance(llama_generation_settings, LlamaLLMGenerationSettings) and isinstance(llama_llm,
-                                                                                            LlamaCppServerLLMSettings):
+                                                                                            LlamaCppEndpointSettings):
             raise Exception(
                 "Wrong generation settings for llama.cpp server endpoint, use LlamaCppServerGenerationSettings under llama_cpp_agent.providers.llama_cpp_server_provider!")
         if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings) and isinstance(
-                llama_generation_settings, LlamaCppServerGenerationSettings):
+                llama_generation_settings, LlamaCppGenerationSettings):
             raise Exception(
                 "Wrong generation settings for llama-cpp-python, use LlamaLLMGenerationSettings under llama_cpp_agent.llm_settings!")
 
         if isinstance(llama_llm, OpenAIEndpointSettings) and not isinstance(
-                llama_generation_settings, CompletionRequestSettings):
+                llama_generation_settings, OpenAIGenerationSettings):
             raise Exception(
                 "Wrong generation settings for OpenAI endpoint, use CompletionRequestSettings under llama_cpp_agent.providers.openai_endpoint_provider!")
 
@@ -123,7 +123,7 @@ class StructuredOutputAgent:
 
         Args:
             file_path (str): The path to the file.
-            llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings]): An instance of Llama, LlamaLLMSettings, or LlamaCppServerLLMSettings as LLM.
+            llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppEndpointSettings]): An instance of Llama, LlamaLLMSettings, or LlamaCppServerLLMSettings as LLM.
             streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
 
         Returns:

@@ -12,34 +12,6 @@ from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
 from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings, LlamaCppGenerationSettings
 
 
-# llama-cpp-agent supports type hinted function definitions for function calling.
-# Write to file function that can be used by the agent. Docstring will be used in system prompt.
-def write_to_file(chain_of_thought: str, file_path: str, file_content: str):
-    """
-    Write file to the user filesystem.
-    :param chain_of_thought: Your chain of thought while writing the file.
-    :param file_path: The file path includes the filename and file ending.
-    :param file_content: The actual content to write.
-    """
-    print(chain_of_thought)
-    with open(file_path, mode="w", encoding="utf-8") as file:
-        file.write(file_content)
-    return f"File {file_path} successfully written."
-
-
-# Read file function that can be used by the agent. Docstring will be used in system prompt.
-def read_file(file_path: str):
-    """
-    Read file from the user filesystem.
-    :param file_path: The file path includes the filename and file ending.
-    :return: File content.
-    """
-    output = ""
-    with open(file_path, mode="r", encoding="utf-8") as file:
-        output = file.read()
-    return f"Content of file '{file_path}':\n\n{output}"
-
-
 def get_current_datetime(output_format: Optional[str] = None):
     """
     Get the current date and time in the given format.
@@ -143,7 +115,7 @@ function_call_agent = FunctionCallingAgent(
     # A tuple of the OpenAI style function definitions and the actual functions
     open_ai_functions=(tools, tool_functions),
     # Just a list of type hinted functions for normal Python functions
-    python_functions=[write_to_file, read_file, get_current_datetime],
+    python_functions=[get_current_datetime],
     # Just a list of pydantic types
     pydantic_functions=[Calculator],
     # Callback for receiving messages for the user.
@@ -151,6 +123,6 @@ function_call_agent = FunctionCallingAgent(
     # Set to true to allow parallel function calling
     allow_parallel_function_calling=True,
     debug_output=True)
-user_input = 'Solve the following calculations: 42 * 42, 24 * 24, 5 * 5'
+user_input = '''Format the answer clearly: Get the date and time, get the current weather in celsius in London and solve the following calculation: 42 * 42'''
 function_call_agent.generate_response(user_input)
 function_call_agent.save("function_calling_agent.json")

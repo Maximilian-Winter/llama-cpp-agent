@@ -1,34 +1,40 @@
 import json
 from copy import copy
-from typing import Union, List, Optional, Dict, Literal
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import List, Optional, Union
 
 import requests
 
 
 @dataclass
-class OpenAIGenerationSettings:
-    prompt: Union[str, List[str]] = ""
-    suffix: Optional[str] = None
-    max_tokens: Optional[int] = 0
-    temperature: float = 0.8
-    top_p: float = 0.95
-    min_p: float = 0.05
-    echo: bool = False
-    stop_sequences: Optional[Union[str, List[str]]] = None
-    stream: bool = False
-    logprobs: Optional[int] = None
-    presence_penalty: Optional[float] = 0.0
-    frequency_penalty: Optional[float] = 0.0
-    logit_bias: Optional[Dict[str, float]] = None
-    seed: Optional[int] = None
-    top_k: int = 40
-    repeat_penalty: float = 1.1
-    logit_bias_type: Optional[Literal["input_ids", "tokens"]] = None
-    mirostat_mode: int = 0
-    mirostat_tau: float = 5.0
-    mirostat_eta: float = 0.1
+class KoboldCppGenerationSettings:
+    max_context_length: int
+    max_length: int
+    prompt: str
+    rep_pen: float
+    rep_pen_range: int
+    sampler_order: List[int]
+    sampler_seed: int
+    stop_sequence: List[str]
+    temperature: float
+    tfs: float
+    top_a: float
+    top_k: int
+    top_p: float
+    min_p: float
+    typical: float
+    stream: bool = True
+    use_default_badwordsids: bool = False
+    dynatemp_range: float = 0
+    mirostat: Optional[int] = None
+    mirostat_tau: float = 0
+    mirostat_eta: float = 0
+    genkey: Optional[str] = None
     grammar: Optional[str] = None
+    grammar_retain_state: bool = False
+    memory: Optional[str] = None
+    trim_stop: bool = False
+    logit_bias: Optional[dict] = field(default_factory=dict)
 
     def save(self, file_path: str):
         """
@@ -41,7 +47,7 @@ class OpenAIGenerationSettings:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
-    def load_from_file(file_path: str) -> "OpenAIGenerationSettings":
+    def load_from_file(file_path: str) -> "KoboldCppGenerationSettings":
         """
         Load the settings from a file.
 
@@ -49,14 +55,14 @@ class OpenAIGenerationSettings:
             file_path (str): The path to the file.
 
         Returns:
-            CreateCompletionRequest: The loaded settings.
+            KoboldCppGenerationSettings: The loaded settings.
         """
         with open(file_path, 'r', encoding="utf-8") as file:
             loaded_settings = json.load(file)
-            return OpenAIGenerationSettings(**loaded_settings)
+            return KoboldCppGenerationSettings(**loaded_settings)
 
     @staticmethod
-    def load_from_dict(settings: dict) -> "OpenAIGenerationSettings":
+    def load_from_dict(settings: dict) -> "KoboldCppGenerationSettings":
         """
         Load the settings from a dictionary.
 
@@ -64,9 +70,9 @@ class OpenAIGenerationSettings:
             settings (dict): The dictionary containing the settings.
 
         Returns:
-            CreateCompletionRequest: The loaded settings.
+            KoboldCppGenerationSettings: The loaded settings.
         """
-        return OpenAIGenerationSettings(**settings)
+        return KoboldCppGenerationSettings(**settings)
 
     def as_dict(self) -> dict:
         """
@@ -76,12 +82,10 @@ class OpenAIGenerationSettings:
             dict: The dictionary representation of the settings.
         """
         return self.__dict__
-
-
 @dataclass
-class OpenAIEndpointSettings:
+class KoboldCppEndpointSettings:
     """
-    Settings for interacting with an OpenAI endpoint that support GBNF grammars like the llama-cpp-python server.
+    Settings for interacting with the kobold.cpp server.
 
     Args:
         completions_endpoint_url (str): The URL for the completions endpoint.
@@ -91,10 +95,10 @@ class OpenAIEndpointSettings:
 
     Methods:
         save(file_path: str): Save the settings to a file.
-        load_from_file(file_path: str) -> OpenAIEndpointSettings: Load the settings from a file.
-        load_from_dict(settings: dict) -> OpenAIEndpointSettings: Load the settings from a dictionary.
+        load_from_file(file_path: str) -> LlamaCppServerLLMSettings: Load the settings from a file.
+        load_from_dict(settings: dict) -> LlamaCppServerLLMSettings: Load the settings from a dictionary.
         as_dict() -> dict: Convert the settings to a dictionary.
-        create_completion(prompt, grammar, generation_settings: CompletionRequestSettings): Create a completion using the server.
+        create_completion(prompt, grammar, generation_settings: LlamaCppServerGenerationSettings): Create a completion using the server.
 
     """
     completions_endpoint_url: str
@@ -110,7 +114,7 @@ class OpenAIEndpointSettings:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
-    def load_from_file(file_path: str) -> "OpenAIEndpointSettings":
+    def load_from_file(file_path: str) -> "KoboldCppEndpointSettings":
         """
         Load the settings from a file.
 
@@ -118,14 +122,14 @@ class OpenAIEndpointSettings:
             file_path (str): The path to the file.
 
         Returns:
-            OpenAIEndpointSettings: The loaded settings.
+            KoboldCppEndpointSettings: The loaded settings.
         """
         with open(file_path, 'r', encoding="utf-8") as file:
             loaded_settings = json.load(file)
-            return OpenAIEndpointSettings(**loaded_settings)
+            return KoboldCppEndpointSettings(**loaded_settings)
 
     @staticmethod
-    def load_from_dict(settings: dict) -> "OpenAIEndpointSettings":
+    def load_from_dict(settings: dict) -> "KoboldCppEndpointSettings":
         """
         Load the settings from a dictionary.
 
@@ -133,9 +137,9 @@ class OpenAIEndpointSettings:
             settings (dict): The dictionary containing the settings.
 
         Returns:
-            OpenAIEndpointSettings: The loaded settings.
+            KoboldCppEndpointSettings: The loaded settings.
         """
-        return OpenAIEndpointSettings(**settings)
+        return KoboldCppEndpointSettings(**settings)
 
     def as_dict(self) -> dict:
         """
@@ -146,14 +150,14 @@ class OpenAIEndpointSettings:
         """
         return self.__dict__
 
-    def create_completion(self, prompt, grammar, generation_settings: OpenAIGenerationSettings):
+    def create_completion(self, prompt, grammar, generation_settings: KoboldCppGenerationSettings):
         """
         Create a completion using the Llama.cpp server.
 
         Args:
             prompt: The input prompt.
             grammar: The grammar for completion.
-            generation_settings (OpenAIGenerationSettings): The generation settings.
+            generation_settings (LlamaCppGenerationSettings): The generation settings.
 
         Returns:
             dict or generator: The completion response.
@@ -166,13 +170,15 @@ class OpenAIEndpointSettings:
         data = generation_settings.as_dict()
         data["prompt"] = prompt
         data["grammar"] = grammar
+        data["mirostat"] = data["mirostat_mode"]
         data["stop"] = data["stop_sequences"]
+        del data["mirostat_mode"]
         del data["stop_sequences"]
 
         response = requests.post(self.completions_endpoint_url, headers=headers, json=data)
         data = response.json()
 
-        returned_data = {'choices': data["choices"]}
+        returned_data = {'choices': [{'text': data["content"]}]}
         return returned_data
 
     def get_response_stream(self, prompt, grammar, generation_settings):
@@ -181,7 +187,9 @@ class OpenAIEndpointSettings:
         data = copy(generation_settings.as_dict())
         data["prompt"] = prompt
         data["grammar"] = grammar
-        data["stop"] = data["stop_sequences"]
+        data["mirostat"] = data["mirostat_mode"]
+        data["stop_sequence"] = data["stop_sequences"]
+        del data["mirostat_mode"]
         del data["stop_sequences"]
         response = requests.post(self.completions_endpoint_url, headers=headers, json=data,
                                  stream=generation_settings.stream)
@@ -197,10 +205,13 @@ class OpenAIEndpointSettings:
                     if chunk:
                         decoded_chunk += chunk.decode('utf-8')
                         new_data = json.loads(decoded_chunk.replace("data: ", ""))
-                        returned_data = {'choices': new_data["choices"]}
+                        returned_data = {'choices': [{'text': new_data["content"]}]}
                         yield returned_data
                         decoded_chunk = ""
+
             except requests.exceptions.RequestException as e:
                 print(f"Request failed: {e}")
 
         return generate_text_chunks()
+
+

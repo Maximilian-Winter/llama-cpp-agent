@@ -1,8 +1,8 @@
-from llama_cpp_agent.providers.llama_cpp_server_provider import LlamaCppServerLLMSettings
+from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
-main_model = LlamaCppServerLLMSettings(
+main_model = LlamaCppEndpointSettings(
     completions_endpoint_url="http://127.0.0.1:8080/completion"
 )
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,

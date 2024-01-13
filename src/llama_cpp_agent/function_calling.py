@@ -1,5 +1,5 @@
 import json
-from typing import Type
+from typing import Type, List
 
 from llama_cpp import LlamaGrammar
 from pydantic import BaseModel
@@ -73,7 +73,7 @@ class LlamaCppFunctionToolRegistry:
         grammar_documentation (str): Documentation for the generated GBNF grammar.
         gbnf_grammar (str): Generated GBNF grammar as a string.
     """
-    def __init__(self):
+    def __init__(self, allow_parallel_function_calling):
         self.tool_root = "function"
         self.tool_rule_content = "function-parameters"
         self.model_prefix = "Function"
@@ -83,6 +83,7 @@ class LlamaCppFunctionToolRegistry:
         self.grammar = None
         self.grammar_documentation = None
         self.gbnf_grammar = None
+        self.allow_parallel_function_calling = allow_parallel_function_calling
 
     def register_function_tool(self, function_tool: LlamaCppFunctionTool):
         """
@@ -129,7 +130,7 @@ class LlamaCppFunctionToolRegistry:
         gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
             pydantic_function_models, self.tool_root,
             self.tool_rule_content, self.model_prefix,
-            self.fields_prefix)
+            self.fields_prefix, self.allow_parallel_function_calling)
 
         self.grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
         self.grammar_documentation = documentation
@@ -173,12 +174,17 @@ class LlamaCppFunctionToolRegistry:
                         function_call[self.tool_rule_content][tool.markdown_code_block_field_name] = content
                     elif self.function_tools_containing_field_string[function_call[self.tool_root]].has_triple_quoted_string:
                         function_call[self.tool_rule_content][tool.triple_quoted_string_field_name] = content
-
-                    output = self.intern_function_call(function_call, with_markdown_code_block=True)
+                    if not self.allow_parallel_function_calling:
+                        output = self.intern_function_call(function_call, with_markdown_code_block=True)
+                    else:
+                        output = self.intern_parallel_function_call(function_call, with_markdown_code_block=True)
                     return output
 
             function_call = parse_json_response(function_call_response)
-            output = self.intern_function_call(function_call)
+            if not self.allow_parallel_function_calling:
+                output = self.intern_function_call(function_call)
+            else:
+                output = self.intern_parallel_function_call(function_call)
             return output
 
         except AttributeError as e:
@@ -204,6 +210,42 @@ class LlamaCppFunctionToolRegistry:
             call_parameters = function_call[self.tool_rule_content]
             call = cls(**call_parameters)
             output = call.run(**function_tool.additional_parameters)
-            return output
+            return [output]
         except AttributeError as e:
             return f"Error: {e}"
+
+    def intern_parallel_function_call(self, function_calls: List[dict], with_markdown_code_block=False):
+        """
+        Internal method to handle a function call and return the output.
+
+        Args:
+            function_calls List[dict]: The function call dictionary.
+            with_markdown_code_block (bool): Flag indicating whether the response contains a markdown code block.
+
+        Returns:
+            str: The output of the function call or an error message.
+        """
+        result = []
+        if not with_markdown_code_block:
+            for function_call in function_calls:
+                function_tool = self.function_tools[function_call[self.tool_root]]
+                try:
+                    cls = function_tool.model
+                    call_parameters = function_call[self.tool_rule_content]
+                    call = cls(**call_parameters)
+                    output = call.run(**function_tool.additional_parameters)
+                    result.append(output)
+                except AttributeError as e:
+                    return f"Error: {e}"
+        else:
+            for function_call in function_calls:
+                function_tool = self.function_tools_containing_field_string[function_call[self.tool_root]]
+                try:
+                    cls = function_tool.model
+                    call_parameters = function_call[self.tool_rule_content]
+                    call = cls(**call_parameters)
+                    output = call.run(**function_tool.additional_parameters)
+                    result.append(output)
+                except AttributeError as e:
+                    return f"Error: {e}"
+        return result

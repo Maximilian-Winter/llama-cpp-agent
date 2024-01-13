@@ -282,7 +282,7 @@ def generate_gbnf_rule_for_type(model_name, field_name,
 
     if isclass(field_type) and issubclass(field_type, BaseModel):
         nested_model_name = format_model_and_field_name(field_type.__name__)
-        nested_model_rules,_, _ = generate_gbnf_grammar(field_type, processed_models, created_rules)
+        nested_model_rules, _, _ = generate_gbnf_grammar(field_type, processed_models, created_rules)
         rules.extend(nested_model_rules)
         gbnf_type, rules = nested_model_name, rules
     elif isclass(field_type) and issubclass(field_type, Enum):
@@ -643,44 +643,132 @@ triple-quotes ::= "'''" """
     return "\n" + '\n'.join(additional_grammar) + any_block + primitive_grammar + markdown_code_block_grammar
 
 
-def generate_field_markdown(field_name: str, field_type: Type[Any], model: Type[BaseModel], depth=1) -> str:
-    indent = '  ' * depth
-    field_markdown = f"{indent}- **{field_name}** (`{field_type.__name__}`): "
+def generate_markdown_documentation(pydantic_models: List[Type[BaseModel]], model_prefix="Model",
+                                    fields_prefix="Fields", documentation_with_field_description=True) -> str:
+    """
+    Generate markdown documentation for a list of Pydantic models.
 
-    # Extracting field description from Pydantic Field using __model_fields__
-    field_info = model.model_fields.get(field_name)
-    field_description = field_info.description if field_info and field_info.description else "No description available."
+    Args:
+        pydantic_models (List[Type[BaseModel]]): List of Pydantic model classes.
+        model_prefix (str): Prefix for the model section.
+        fields_prefix (str): Prefix for the fields section.
+        documentation_with_field_description (bool): Include field descriptions in the documentation.
 
-    field_markdown += field_description + '\n'
+    Returns:
+        str: Generated text documentation.
+    """
+    documentation = ""
+    pyd_models = [(model, True) for model in pydantic_models]
+    for model, add_prefix in pyd_models:
+        if add_prefix:
+            documentation += f"## {format_model_and_field_name(model.__name__)}\n"
+        else:
+            documentation += f"### {format_model_and_field_name(model.__name__)}\n"
 
-    # Handling nested BaseModel fields
-    if isclass(field_type) and issubclass(field_type, BaseModel):
-        field_markdown += f"{indent}  - Details:\n"
-        for name, type_ in field_type.__annotations__.items():
-            field_markdown += generate_field_markdown(name, type_, field_type, depth + 2)
+        # Handling multi-line model description with proper indentation
 
-    return field_markdown
-
-
-def generate_markdown_report(pydantic_models: List[Type[BaseModel]]) -> str:
-    markdown = ""
-    for model in pydantic_models:
-        markdown += f"### {format_model_and_field_name(model.__name__)}\n"
-
-        # Check if the model's docstring is different from BaseModel's docstring
         class_doc = getdoc(model)
         base_class_doc = getdoc(BaseModel)
-        class_description = class_doc if class_doc and class_doc != base_class_doc else "No specific description available."
+        class_description = class_doc if class_doc and class_doc != base_class_doc else ""
+        if class_description != "":
+            documentation += "  Description: "
+            documentation += format_multiline_description(class_description, 0) + "\n"
 
-        markdown += f"{class_description}\n\n"
-        markdown += "#### Fields\n"
-
+        if add_prefix:
+            # Indenting the fields section
+            documentation += f"  {fields_prefix}:\n"
+        else:
+            documentation += f"  Fields:\n"
         if isclass(model) and issubclass(model, BaseModel):
             for name, field_type in model.__annotations__.items():
-                markdown += generate_field_markdown(format_model_and_field_name(name), field_type, model)
-        markdown += "\n"
+                # if name == "markdown_code_block":
+                #    continue
+                if get_origin(field_type) == list:
+                    element_type = get_args(field_type)[0]
+                    if isclass(element_type) and issubclass(element_type, BaseModel):
+                        pyd_models.append((element_type, False))
+                if get_origin(field_type) == Union:
+                    element_types = get_args(field_type)
+                    for element_type in element_types:
+                        if isclass(element_type) and issubclass(element_type, BaseModel):
+                            pyd_models.append((element_type, False))
+                documentation += generate_field_markdown(name, field_type, model,
+                                                         documentation_with_field_description=documentation_with_field_description)
+            documentation += "\n"
 
-    return markdown
+        if hasattr(model, 'Config') and hasattr(model.Config,
+                                                'json_schema_extra') and 'example' in model.Config.json_schema_extra:
+            documentation += f"  Expected Example Output for {format_model_and_field_name(model.__name__)}:\n"
+            json_example = json.dumps(model.Config.json_schema_extra['example'])
+            documentation += format_multiline_description(json_example, 2) + "\n"
+
+    return documentation
+
+
+def generate_field_markdown(field_name: str, field_type: Type[Any], model: Type[BaseModel], depth=1,
+                            documentation_with_field_description=True) -> str:
+    """
+    Generate markdown documentation for a Pydantic model field.
+
+    Args:
+        field_name (str): Name of the field.
+        field_type (Type[Any]): Type of the field.
+        model (Type[BaseModel]): Pydantic model class.
+        depth (int): Indentation depth in the documentation.
+        documentation_with_field_description (bool): Include field descriptions in the documentation.
+
+    Returns:
+        str: Generated text documentation for the field.
+    """
+    indent = '    ' * depth
+
+    field_info = model.model_fields.get(field_name)
+    field_description = field_info.description if field_info and field_info.description else ""
+
+    if get_origin(field_type) == list:
+        element_type = get_args(field_type)[0]
+        field_text = f"{indent}{field_name} ({format_model_and_field_name(field_type.__name__)} of {format_model_and_field_name(element_type.__name__)})"
+        if field_description != "":
+            field_text += ":\n"
+        else:
+            field_text += "\n"
+    elif get_origin(field_type) == Union:
+        element_types = get_args(field_type)
+        types = []
+        for element_type in element_types:
+            types.append(format_model_and_field_name(element_type.__name__))
+        field_text = f"{indent}{field_name} ({' or '.join(types)})"
+        if field_description != "":
+            field_text += ":\n"
+        else:
+            field_text += "\n"
+    else:
+        field_text = f"{indent}{field_name} ({format_model_and_field_name(field_type.__name__)})"
+        if field_description != "":
+            field_text += ":\n"
+        else:
+            field_text += "\n"
+
+    if not documentation_with_field_description:
+        return field_text
+
+    if field_description != "":
+        field_text += f"        Description: " + field_description + "\n"
+
+    # Check for and include field-specific examples if available
+    if hasattr(model, 'Config') and hasattr(model.Config,
+                                            'json_schema_extra') and 'example' in model.Config.json_schema_extra:
+        field_example = model.Config.json_schema_extra['example'].get(field_name)
+        if field_example is not None:
+            example_text = f"'{field_example}'" if isinstance(field_example, str) else field_example
+            field_text += f"{indent}  Example: {example_text}\n"
+
+    if isclass(field_type) and issubclass(field_type, BaseModel):
+        field_text += f"{indent}  Details:\n"
+        for name, type_ in field_type.__annotations__.items():
+            field_text += generate_field_markdown(name, type_, field_type, depth + 2)
+
+    return field_text
 
 
 def format_json_example(example: dict, depth: int) -> str:
@@ -917,7 +1005,7 @@ def generate_and_save_gbnf_grammar_and_documentation(pydantic_model_list,
     Returns:
         None
     """
-    documentation = generate_text_documentation(pydantic_model_list, model_prefix, fields_prefix,
+    documentation = generate_markdown_documentation(pydantic_model_list, model_prefix, fields_prefix,
                                                 documentation_with_field_description=documentation_with_field_description)
     grammar = generate_gbnf_grammar_from_pydantic_models(pydantic_model_list, outer_object_name,
                                                          outer_object_content, list_of_outputs)
@@ -945,7 +1033,7 @@ def generate_gbnf_grammar_and_documentation(pydantic_model_list, outer_object_na
     Returns:
         tuple: GBNF grammar string, documentation string.
     """
-    documentation = generate_text_documentation(copy(pydantic_model_list), model_prefix, fields_prefix,
+    documentation = generate_markdown_documentation(copy(pydantic_model_list), model_prefix, fields_prefix,
                                                 documentation_with_field_description=documentation_with_field_description)
     grammar = generate_gbnf_grammar_from_pydantic_models(pydantic_model_list, outer_object_name,
                                                          outer_object_content, list_of_outputs)
@@ -976,7 +1064,7 @@ def generate_gbnf_grammar_and_documentation_from_dictionaries(dictionaries: List
         tuple: GBNF grammar string, documentation string.
     """
     pydantic_model_list = create_dynamic_models_from_dictionaries(dictionaries)
-    documentation = generate_text_documentation(copy(pydantic_model_list), model_prefix, fields_prefix,
+    documentation = generate_markdown_documentation(copy(pydantic_model_list), model_prefix, fields_prefix,
                                                 documentation_with_field_description=documentation_with_field_description)
     grammar = generate_gbnf_grammar_from_pydantic_models(pydantic_model_list, outer_object_name,
                                                          outer_object_content, list_of_outputs)

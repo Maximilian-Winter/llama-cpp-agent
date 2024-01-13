@@ -6,9 +6,9 @@ from pydantic import BaseModel, Field
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import \
     generate_gbnf_grammar_and_documentation
-from llama_cpp_agent.providers.llama_cpp_server_provider import LlamaCppServerLLMSettings
+from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
 
-main_model = LlamaCppServerLLMSettings(
+main_model = LlamaCppEndpointSettings(
     completions_endpoint_url="http://127.0.0.1:8080/completion"
 )
 

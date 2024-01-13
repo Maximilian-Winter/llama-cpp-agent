@@ -5,7 +5,7 @@ from enum import Enum
 from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.providers.llama_cpp_server_provider import LlamaCppServerLLMSettings
+from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
 from llama_cpp_agent.structured_output_agent import StructuredOutputAgent
 
 
@@ -28,7 +28,7 @@ class Book(BaseModel):
     summary: str = Field(..., description="Summary of the book.")
 
 
-main_model = LlamaCppServerLLMSettings(
+main_model = LlamaCppEndpointSettings(
     completions_endpoint_url="http://127.0.0.1:8080/completion"
 )
 

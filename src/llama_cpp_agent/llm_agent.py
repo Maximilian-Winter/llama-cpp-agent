@@ -7,8 +7,8 @@ from llama_cpp import Llama, LlamaGrammar
 from .llm_settings import LlamaLLMSettings
 from .messages_formatter import MessagesFormatterType, get_predefined_messages_formatter, MessagesFormatter
 from .function_calling import LlamaCppFunctionTool, LlamaCppFunctionToolRegistry
-from .providers.llama_cpp_server_provider import LlamaCppServerLLMSettings, LlamaCppServerGenerationSettings
-from .providers.openai_endpoint_provider import OpenAIEndpointSettings, CompletionRequestSettings
+from .providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings, LlamaCppGenerationSettings
+from .providers.openai_endpoint_provider import OpenAIEndpointSettings, OpenAIGenerationSettings
 
 
 @dataclass
@@ -37,7 +37,7 @@ class LlamaCppAgent:
      Is used as part of all other agents.
     """
 
-    def __init__(self, model: Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings],
+    def __init__(self, model: Union[Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings],
                  name: str = "llamacpp_agent",
                  system_prompt: str = "You are helpful assistant.",
                  predefined_messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
@@ -46,7 +46,7 @@ class LlamaCppAgent:
         Initializes a new LlamaCppAgent object.
 
         Args:
-           model (Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings]):The underlying Llama model or settings.
+           model (Union[Llama, LlamaLLMSettings, LlamaCppEndpointSettings]):The underlying Llama model or settings.
            name (str): The name of the agent.
            system_prompt (str): The system prompt used in chat interactions.
            predefined_messages_formatter_type (MessagesFormatterType): The type of predefined messages formatter.
@@ -68,17 +68,18 @@ class LlamaCppAgent:
         self.last_response = ""
 
     @staticmethod
-    def get_function_tool_registry(function_tool_list: List[LlamaCppFunctionTool]):
+    def get_function_tool_registry(function_tool_list: List[LlamaCppFunctionTool], allow_parallel_function_calling=False):
         """
         Creates and returns a function tool registry from a list of LlamaCppFunctionTool instances.
 
         Args:
             function_tool_list (List[LlamaCppFunctionTool]): List of function tools to register.
+            allow_parallel_function_calling: Allow parallel function calling (Default=False)
 
         Returns:
             LlamaCppFunctionToolRegistry: The created function tool registry.
         """
-        function_tool_registry = LlamaCppFunctionToolRegistry()
+        function_tool_registry = LlamaCppFunctionToolRegistry(allow_parallel_function_calling)
 
         for function_tool in function_tool_list:
             function_tool_registry.register_function_tool(function_tool)
@@ -227,11 +228,11 @@ class LlamaCppAgent:
             stop_sequences = self.messages_formatter.DEFAULT_STOP_SEQUENCES
 
         if self.model:
-            if isinstance(self.model, LlamaCppServerLLMSettings):
+            if isinstance(self.model, LlamaCppEndpointSettings):
                 completion = self.model.create_completion(
                     prompt=prompt,
                     grammar=grammar,
-                    generation_settings=LlamaCppServerGenerationSettings(
+                    generation_settings=LlamaCppGenerationSettings(
                         temperature=temperature,
                         top_k=top_k,
                         top_p=top_p,
@@ -258,7 +259,7 @@ class LlamaCppAgent:
                 completion = self.model.create_completion(
                     prompt=prompt,
                     grammar=grammar,
-                    generation_settings=CompletionRequestSettings(
+                    generation_settings=OpenAIGenerationSettings(
                         temperature=temperature,
                         top_k=top_k,
                         top_p=top_p,

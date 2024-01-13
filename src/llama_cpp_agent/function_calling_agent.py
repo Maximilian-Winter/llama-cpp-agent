@@ -11,8 +11,8 @@ from .messages_formatter import MessagesFormatterType, MessagesFormatter
 from .function_calling import LlamaCppFunctionTool
 from .gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import create_dynamic_model_from_function, \
     create_dynamic_models_from_dictionaries, add_run_method_to_dynamic_model
-from .providers.llama_cpp_server_provider import LlamaCppServerGenerationSettings, LlamaCppServerLLMSettings
-from .providers.openai_endpoint_provider import CompletionRequestSettings, OpenAIEndpointSettings
+from .providers.llama_cpp_endpoint_provider import LlamaCppGenerationSettings, LlamaCppEndpointSettings
+from .providers.openai_endpoint_provider import OpenAIGenerationSettings, OpenAIEndpointSettings
 
 
 class FunctionCallingAgent:
@@ -20,8 +20,8 @@ class FunctionCallingAgent:
     An agent that uses function calling to interact with its environment and the user.
 
     Args:
-        llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings]): An instance of Llama, LlamaLLMSettings, LlamaCppServerLLMSettings as LLM.
-        llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppServerGenerationSettings, CompletionRequestSettings]): Generation settings for Llama.
+        llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings]): An instance of Llama, LlamaLLMSettings, LlamaCppServerLLMSettings as LLM.
+        llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppGenerationSettings, OpenAIGenerationSettings]): Generation settings for Llama.
         messages_formatter_type (MessagesFormatterType): Type of messages formatter.
         custom_messages_formatter (MessagesFormatter): Custom messages formatter.
         streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
@@ -56,8 +56,9 @@ class FunctionCallingAgent:
 
     """
 
-    def __init__(self, llama_llm: Union[Llama, LlamaLLMSettings, LlamaCppServerLLMSettings, OpenAIEndpointSettings],
-                 llama_generation_settings: Union[LlamaLLMGenerationSettings, LlamaCppServerGenerationSettings, CompletionRequestSettings] = None,
+    def __init__(self, llama_llm: Union[Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings],
+                 llama_generation_settings: Union[
+                     LlamaLLMGenerationSettings, LlamaCppGenerationSettings, OpenAIGenerationSettings] = None,
                  messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
                  custom_messages_formatter: MessagesFormatter = None,
                  streaming_callback: Callable[[StreamingResponse], None] = None,
@@ -66,6 +67,7 @@ class FunctionCallingAgent:
                  open_ai_functions: (List[dict], List[Callable]) = None,
                  python_functions: List[Callable] = None,
                  pydantic_functions: List[Type[BaseModel]] = None,
+                 allow_parallel_function_calling=False,
                  add_send_message_to_user_function: bool = True,
                  send_message_to_user_callback: Callable[[str], None] = None,
                  debug_output: bool = False):
@@ -74,7 +76,7 @@ class FunctionCallingAgent:
 
         Args:
             llama_llm (Union[Llama, LlamaLLMSettings, OpenAIEndpointSettings]): An instance of Llama, LlamaLLMSettings or LlamaCppServerLLMSettings as LLM.
-            llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppServerGenerationSettings, CompletionRequestSettings]): Generation settings for Llama.
+            llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppGenerationSettings, OpenAIGenerationSettings]): Generation settings for Llama.
             messages_formatter_type (MessagesFormatterType): Type of messages formatter.
             custom_messages_formatter (MessagesFormatter): Optional Custom messages formatter.
             streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
@@ -83,6 +85,7 @@ class FunctionCallingAgent:
             open_ai_functions (Tuple[List[dict], List[Callable]]): OpenAI function definitions and a list of the actual functions as tuple.
             python_functions (List[Callable]): Python functions for interaction.
             pydantic_functions (List[Type[BaseModel]]): Pydantic models representing functions.
+            allow_parallel_function_calling (bool): Allow parallel function calling (Default=False)
             add_send_message_to_user_function (bool): Flag to add send_message_to_user function.
             send_message_to_user_callback (Callable[[str], None]): Callback for sending a message to the user.
             debug_output (bool): Enable debug output.
@@ -112,21 +115,26 @@ class FunctionCallingAgent:
         for tool in self.pydantic_functions:
             self.llama_cpp_tools.append(LlamaCppFunctionTool(tool))
 
-        self.tool_registry = LlamaCppAgent.get_function_tool_registry(self.llama_cpp_tools)
+        self.tool_registry = LlamaCppAgent.get_function_tool_registry(self.llama_cpp_tools,
+                                                                      allow_parallel_function_calling)
 
         if llama_generation_settings is None:
             if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings):
                 llama_generation_settings = LlamaLLMGenerationSettings()
             else:
-                llama_generation_settings = LlamaCppServerGenerationSettings()
+                llama_generation_settings = LlamaCppGenerationSettings()
 
-        if isinstance(llama_generation_settings, LlamaLLMGenerationSettings) and isinstance(llama_llm, LlamaCppServerLLMSettings):
-            raise Exception("Wrong generation settings for llama.cpp server endpoint, use LlamaCppServerGenerationSettings under llama_cpp_agent.providers.llama_cpp_server_provider!")
-        if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings) and isinstance(llama_generation_settings, LlamaCppServerGenerationSettings):
-            raise Exception("Wrong generation settings for llama-cpp-python, use LlamaLLMGenerationSettings under llama_cpp_agent.llm_settings!")
+        if isinstance(llama_generation_settings, LlamaLLMGenerationSettings) and isinstance(llama_llm,
+                                                                                            LlamaCppEndpointSettings):
+            raise Exception(
+                "Wrong generation settings for llama.cpp server endpoint, use LlamaCppServerGenerationSettings under llama_cpp_agent.providers.llama_cpp_server_provider!")
+        if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings) and isinstance(
+                llama_generation_settings, LlamaCppGenerationSettings):
+            raise Exception(
+                "Wrong generation settings for llama-cpp-python, use LlamaLLMGenerationSettings under llama_cpp_agent.llm_settings!")
 
         if isinstance(llama_llm, OpenAIEndpointSettings) and not isinstance(
-                llama_generation_settings, CompletionRequestSettings):
+                llama_generation_settings, OpenAIGenerationSettings):
             raise Exception(
                 "Wrong generation settings for OpenAI endpoint, use CompletionRequestSettings under llama_cpp_agent.providers.openai_endpoint_provider!")
 
@@ -238,13 +246,22 @@ class FunctionCallingAgent:
         """
         count = 0
         msg = copy(message)
-        while msg:
+        while msg and not ("None" in '\n'.join([str(m) for m in msg])):
             if count > 0:
-                msg = f"Function Call Result: {msg}"
-                msg = self.llama_cpp_agent.get_chat_response(msg, role="function", system_prompt=self.system_prompt, function_tool_registry=self.tool_registry, streaming_callback=self.streaming_callback, k_last_messages=self.k_last_messages_from_chat_history, **self.llama_generation_settings.as_dict())
+
+                msg = '\n'.join([str(m) for m in msg])
+                msg = self.llama_cpp_agent.get_chat_response(msg, role="function", system_prompt=self.system_prompt,
+                                                             function_tool_registry=self.tool_registry,
+                                                             streaming_callback=self.streaming_callback,
+                                                             k_last_messages=self.k_last_messages_from_chat_history,
+                                                             **self.llama_generation_settings.as_dict())
 
             else:
-                msg = self.llama_cpp_agent.get_chat_response(msg, role="user", system_prompt=self.system_prompt, function_tool_registry=self.tool_registry, streaming_callback=self.streaming_callback, k_last_messages=self.k_last_messages_from_chat_history, **self.llama_generation_settings.as_dict())
+                msg = self.llama_cpp_agent.get_chat_response(msg, role="user", system_prompt=self.system_prompt,
+                                                             function_tool_registry=self.tool_registry,
+                                                             streaming_callback=self.streaming_callback,
+                                                             k_last_messages=self.k_last_messages_from_chat_history,
+                                                             **self.llama_generation_settings.as_dict())
             count += 1
 
     def send_message_to_user(self, message: str):

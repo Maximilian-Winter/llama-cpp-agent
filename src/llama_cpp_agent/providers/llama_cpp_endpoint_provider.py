@@ -9,7 +9,7 @@ from typing import List, Union
 
 
 @dataclass
-class LlamaCppServerGenerationSettings:
+class LlamaCppGenerationSettings:
     """
     Settings for generating completions using the Llama.cpp server.
 
@@ -98,7 +98,7 @@ class LlamaCppServerGenerationSettings:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
-    def load_from_file(file_path: str) -> "LlamaCppServerGenerationSettings":
+    def load_from_file(file_path: str) -> "LlamaCppGenerationSettings":
         """
         Load the settings from a file.
 
@@ -106,14 +106,14 @@ class LlamaCppServerGenerationSettings:
             file_path (str): The path to the file.
 
         Returns:
-            LlamaCppServerGenerationSettings: The loaded settings.
+            LlamaCppGenerationSettings: The loaded settings.
         """
         with open(file_path, 'r', encoding="utf-8") as file:
             loaded_settings = json.load(file)
-            return LlamaCppServerGenerationSettings(**loaded_settings)
+            return LlamaCppGenerationSettings(**loaded_settings)
 
     @staticmethod
-    def load_from_dict(settings: dict) -> "LlamaCppServerGenerationSettings":
+    def load_from_dict(settings: dict) -> "LlamaCppGenerationSettings":
         """
         Load the settings from a dictionary.
 
@@ -121,9 +121,9 @@ class LlamaCppServerGenerationSettings:
             settings (dict): The dictionary containing the settings.
 
         Returns:
-            LlamaCppServerGenerationSettings: The loaded settings.
+            LlamaCppGenerationSettings: The loaded settings.
         """
-        return LlamaCppServerGenerationSettings(**settings)
+        return LlamaCppGenerationSettings(**settings)
 
     def as_dict(self) -> dict:
         """
@@ -136,7 +136,7 @@ class LlamaCppServerGenerationSettings:
 
 
 @dataclass
-class LlamaCppServerLLMSettings:
+class LlamaCppEndpointSettings:
     """
     Settings for interacting with the Llama.cpp server.
 
@@ -167,7 +167,7 @@ class LlamaCppServerLLMSettings:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
-    def load_from_file(file_path: str) -> "LlamaCppServerLLMSettings":
+    def load_from_file(file_path: str) -> "LlamaCppEndpointSettings":
         """
         Load the settings from a file.
 
@@ -175,14 +175,14 @@ class LlamaCppServerLLMSettings:
             file_path (str): The path to the file.
 
         Returns:
-            LlamaCppServerLLMSettings: The loaded settings.
+            LlamaCppEndpointSettings: The loaded settings.
         """
         with open(file_path, 'r', encoding="utf-8") as file:
             loaded_settings = json.load(file)
-            return LlamaCppServerLLMSettings(**loaded_settings)
+            return LlamaCppEndpointSettings(**loaded_settings)
 
     @staticmethod
-    def load_from_dict(settings: dict) -> "LlamaCppServerLLMSettings":
+    def load_from_dict(settings: dict) -> "LlamaCppEndpointSettings":
         """
         Load the settings from a dictionary.
 
@@ -190,9 +190,9 @@ class LlamaCppServerLLMSettings:
             settings (dict): The dictionary containing the settings.
 
         Returns:
-            LlamaCppServerLLMSettings: The loaded settings.
+            LlamaCppEndpointSettings: The loaded settings.
         """
-        return LlamaCppServerLLMSettings(**settings)
+        return LlamaCppEndpointSettings(**settings)
 
     def as_dict(self) -> dict:
         """
@@ -203,14 +203,14 @@ class LlamaCppServerLLMSettings:
         """
         return self.__dict__
 
-    def create_completion(self, prompt, grammar, generation_settings: LlamaCppServerGenerationSettings):
+    def create_completion(self, prompt, grammar, generation_settings: LlamaCppGenerationSettings):
         """
         Create a completion using the Llama.cpp server.
 
         Args:
             prompt: The input prompt.
             grammar: The grammar for completion.
-            generation_settings (LlamaCppServerGenerationSettings): The generation settings.
+            generation_settings (LlamaCppGenerationSettings): The generation settings.
 
         Returns:
             dict or generator: The completion response.

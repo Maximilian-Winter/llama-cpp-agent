@@ -1,39 +1,46 @@
 {
     "llama_generation_settings": {
-        "max_tokens": 0,
         "temperature": 0.65,
-        "top_k": 0,
+        "top_k": 40,
         "top_p": 0.5,
         "min_p": 0.05,
+        "n_predict": -1,
+        "n_keep": 0,
+        "stream": true,
+        "stop_sequences": [],
+        "tfs_z": 0.975,
         "typical_p": 1.0,
-        "repeat_penalty": 1.0,
+        "repeat_penalty": 1.1,
+        "repeat_last_n": 64,
+        "penalize_nl": true,
+        "presence_penalty": 0.0,
+        "frequency_penalty": 0.0,
+        "penalty_prompt": null,
         "mirostat_mode": 0,
         "mirostat_tau": 5.0,
         "mirostat_eta": 0.1,
-        "tfs_z": 0.975,
-        "stop_sequences": null,
-        "stream": true,
-        "print_output": true
+        "seed": -1,
+        "ignore_eos": false
     },
-    "system_prompt": "You are an advanced AI assistant. You are interacting with your environment and the user by calling functions. You call functions by writing JSON objects, which represent specific function calls. Below is a list of your available JSON functions:\n\nFunction: send-message-to-user\n  Description: \n        Send a message to the user.\n        \n        Args:\n            message (str): The message to be sent.\n  Function Parameters:\n    message (str)\n\nFunction: calculator\n  Description: \n        Perform a math operation on two numbers.\n  Function Parameters:\n    number_one (any):\n      Description: First number.\n    operation (math-operation):\n      Description: Math operation to perform.\n    number_two (any):\n      Description: Second number.\n\nFunction: write-to-file\n  Description: \n        Write file to the user filesystem.\n        :param chain_of_thought: Your chain of thought while writing the file.\n        :param file_path: The file path includes the filename and file ending.\n        :param file_content: The actual content to write.\n  Function Parameters:\n    chain_of_thought (str)\n    file_path (str)\n    file_content (str)\n\nFunction: read-file\n  Description: \n        Read file from the user filesystem.\n        :param file_path: The file path includes the filename and file ending.\n        :return: File content.\n  Function Parameters:\n    file_path (str)\n\nFunction: get-current-weather\n  Function Parameters:\n    location (str)\n    unit (unit or none-type)\n\n",
+    "system_prompt": "You are an advanced AI assistant. You are interacting with your environment and the user by calling functions. You call functions by writing JSON objects, which represent specific function calls. Below is a list of your available JSON functions:\n\n## send-message-to-user\n  Description: Send a message to the user.\n\nArgs:\n    message (str): The message to be sent.\n  Function Parameters:\n    message (str)\n\n## calculator\n  Description: Perform a math operation on two numbers.\n  Function Parameters:\n    number_one (any):\n        Description: First number.\n    operation (math-operation):\n        Description: Math operation to perform.\n    number_two (any):\n        Description: Second number.\n\n## get-current-datetime\n  Description: Get the current date and time in the given format.\n\nArgs:\n    output_format: format string for the date and time. Defaults to '%Y-%m-%d %H:%M:%S'\n  Function Parameters:\n    output_format (str or none-type)\n\n## get-current-weather\n  Function Parameters:\n    location (str)\n    unit (unit or none-type)\n\n",
     "k_last_messages_from_chat_history": 0,
     "debug_output": true,
     "messages": [
         {
             "role": "user",
-            "content": "What is the weather in New York?"
+            "content": "Format the answer clearly: Get the date and time, get the current weather in celsius in London and solve the following calculation: 42 * 42"
         },
         {
             "role": "assistant",
-            "content": "{\n  \"function\": \"get-current-weather\",\n  \"function-parameters\": {\n    \"location\": \"New York\",\n    \"unit\": \"celsius\"\n  }\n}"
+            "content": "[\n{\n    \"function\": \"get-current-datetime\",\n    \"function-parameters\": {\n        \"output_format\": \"%Y-%m-%d %H:%M:%S\"\n    }\n},\n{\n    \"function\": \"calculator\",\n    \"function-parameters\": {\n        \"number_one\": 42,\n        \"operation\": \"multiply\",\n        \"number_two\": 42\n    }\n},\n{\n    \"function\": \"get-current-weather\",\n    \"function-parameters\": {\n        \"location\": \"London\",\n        \"unit\": \"celsius\"\n    }\n}]"
         },
         {
             "role": "function",
-            "content": "Function Call Result: {\"location\": \"New York\", \"temperature\": \"24\", \"unit\": \"celsius\"}"
+            "content": "2024-01-13 19:06:43\n1764\n{\"location\": \"London\", \"temperature\": \"42\", \"unit\": \"celsius\"}"
         },
         {
             "role": "assistant",
-            "content": "{\n  \"function\": \"send-message-to-user\",\n  \"function-parameters\": {\n    \"message\": \"The current temperature in New York is 24 degrees Celsius.\"\n  }\n}"
+            "content": "[\n{\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n        \"message\": \"The current date and time is 2024-01-13 19:06:43.\"\n    }\n},\n{\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n        \"message\": \"The result of the calculation 42 * 42 is 1764.\"\n    }\n},\n{\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n        \"message\": \"The current weather in London is 42 degrees Celsius.\"\n    }\n}]"
         }
     ],
     "custom_messages_formatter": {
@@ -48,8 +55,8 @@
         "DEFAULT_STOP_SEQUENCES": [
             "<|im_end|>"
         ],
-        "FUNCTION_PROMPT_START": "",
-        "FUNCTION_PROMPT_END": "",
+        "FUNCTION_PROMPT_START": "<|im_start|>function\n",
+        "FUNCTION_PROMPT_END": "<|im_end|>\n",
         "USE_USER_ROLE_FUNCTION_CALL_RESULT": true,
         "STRIP_PROMPT": true
     }

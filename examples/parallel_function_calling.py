@@ -42,13 +42,13 @@ class Calculator(BaseModel):
 
 function_tools = [LlamaCppFunctionTool(Calculator)]
 
-function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
+function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools, True)
 
 main_model = LlamaCppEndpointSettings(
     "http://localhost:8080/completion"
 )
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
-                                system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n" + function_tool_registry.get_documentation(),
+                                system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format. You can also perform parallel function calls.\n\n\n" + function_tool_registry.get_documentation(),
                                 predefined_messages_formatter_type=MessagesFormatterType.CHATML)
-user_input = 'What is 42 * 42?'
+user_input = 'Solve the following calculations: 42 * 42, 24 * 24, 5 * 5?'
 print(llama_cpp_agent.get_chat_response(user_input, temperature=0.45, function_tool_registry=function_tool_registry))

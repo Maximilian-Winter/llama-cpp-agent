@@ -38,9 +38,9 @@ class Calculator(BaseModel):
     """
     Perform a math operation on two numbers.
     """
-    number_one: Any = Field(..., description="First number.")
+    number_one: Union[int, float] = Field(..., description="First number.")
     operation: MathOperation = Field(..., description="Math operation to perform.")
-    number_two: Any = Field(..., description="Second number.")
+    number_two: Union[int, float] = Field(..., description="Second number.")
 
     def run(self):
         if self.operation == MathOperation.ADD:
@@ -124,5 +124,8 @@ function_call_agent = FunctionCallingAgent(
     allow_parallel_function_calling=True,
     debug_output=True)
 user_input = '''Format the answer clearly: Get the date and time, get the current weather in celsius in London and solve the following calculation: 42 * 42'''
+function_call_agent.generate_response(user_input)
+function_call_agent.save("function_calling_agent.json")
+user_input = input(">")
 function_call_agent.generate_response(user_input)
 function_call_agent.save("function_calling_agent.json")

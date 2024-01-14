@@ -661,9 +661,9 @@ def generate_markdown_documentation(pydantic_models: List[Type[BaseModel]], mode
     pyd_models = [(model, True) for model in pydantic_models]
     for model, add_prefix in pyd_models:
         if add_prefix:
-            documentation += f"## {format_model_and_field_name(model.__name__)}\n"
+            documentation += f"{model_prefix}: {format_model_and_field_name(model.__name__)}\n"
         else:
-            documentation += f"### {format_model_and_field_name(model.__name__)}\n"
+            documentation += f"Model: {format_model_and_field_name(model.__name__)}\n"
 
         # Handling multi-line model description with proper indentation
 

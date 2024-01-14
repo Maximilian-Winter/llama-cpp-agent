@@ -78,9 +78,11 @@ while True:
 import datetime
 import json
 from enum import Enum
-from typing import Any, Optional
+from typing import Union, Any, Optional
 
 from pydantic import BaseModel, Field
+
+from llama_cpp_agent.llm_settings import LlamaLLMSettings, LlamaLLMGenerationSettings
 
 from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
 from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings, LlamaCppGenerationSettings
@@ -91,7 +93,7 @@ def get_current_datetime(output_format: Optional[str] = None):
     Get the current date and time in the given format.
 
     Args:
-        output_format: format string for the date and time. Defaults to '%Y-%m-%d %H:%M:%S'
+         output_format: formatting string for the date and time, defaults to '%Y-%m-%d %H:%M:%S'
     """
     if output_format is None:
         output_format = '%Y-%m-%d %H:%M:%S'
@@ -112,9 +114,9 @@ class Calculator(BaseModel):
     """
     Perform a math operation on two numbers.
     """
-    number_one: Any = Field(..., description="First number.")
+    number_one: Union[int, float] = Field(..., description="First number.")
     operation: MathOperation = Field(..., description="Math operation to perform.")
-    number_two: Any = Field(..., description="Second number.")
+    number_two: Union[int, float] = Field(..., description="Second number.")
 
     def run(self):
         if self.operation == MathOperation.ADD:
@@ -173,7 +175,7 @@ def send_message_to_user_callback(message: str):
     print(message)
 
 
-generation_settings = LlamaCppGenerationSettings(temperature=0.65, top_p=0.5, tfs_z=0.975, stream=True)
+generation_settings = LlamaCppGenerationSettings(temperature=0.65, stream=True)
 
 # Can be saved and loaded like that:
 # generation_settings.save("generation_settings.json")

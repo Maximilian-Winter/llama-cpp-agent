@@ -268,6 +268,9 @@ class FunctionCallingAgent:
     def send_message_to_user(self, message: str):
         """
         Send a message to the user.
+
+        Args:
+            message: The message send to the user.
         """
         if self.send_message_to_user_callback:
             self.send_message_to_user_callback(message)

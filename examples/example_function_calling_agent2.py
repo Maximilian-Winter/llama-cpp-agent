@@ -14,7 +14,10 @@ from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpoi
 
 def get_current_datetime(output_format: Optional[str] = None):
     """
-    Get the current date and time in the given format. output_format defaults to '%Y-%m-%d %H:%M:%S'
+    Get the current date and time in the given format.
+
+    Args:
+         output_format: formatting string for the date and time, defaults to '%Y-%m-%d %H:%M:%S'
     """
     if output_format is None:
         output_format = '%Y-%m-%d %H:%M:%S'

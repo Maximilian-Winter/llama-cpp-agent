@@ -2,13 +2,13 @@
     "llama_generation_settings": {
         "temperature": 0.65,
         "top_k": 40,
-        "top_p": 0.95,
+        "top_p": 0.5,
         "min_p": 0.05,
         "n_predict": -1,
         "n_keep": 0,
         "stream": true,
         "stop_sequences": [],
-        "tfs_z": 1.0,
+        "tfs_z": 0.975,
         "typical_p": 1.0,
         "repeat_penalty": 1.1,
         "repeat_last_n": 64,
@@ -22,25 +22,25 @@
         "seed": -1,
         "ignore_eos": false
     },
-    "system_prompt": "You are an advanced AI assistant. You interact with the user and with your environment by calling functions. You call functions by writing JSON objects that represent specific function calls. You can call functions in parallel by providing a list of function call objects. You receive the return values of the function calls immediately after completing your response. In this way, you keep control and can obtain partial results immediately for complex multi step operations. When sending a message to the user, you will give control back to him. Always plan the execution of functions step by step!\nBelow is a list of your available function calls:\n\nFunction: send-message-to-user\n  Description: Send a message to the user.\n  Parameters:\n    message (str)\n\nFunction: calculator\n  Description: Perform a math operation on two numbers.\n  Parameters:\n    number_one (int or float):\n        Description: First number.\n    operation (math-operation):\n        Description: Math operation to perform.\n    number_two (int or float):\n        Description: Second number.\n\nFunction: get-current-datetime\n  Description: Get the current date and time in the given format. output_format defaults to '%Y-%m-%d %H:%M:%S'\n  Parameters:\n    output_format (str or none-type)\n\nFunction: get-current-weather\n  Parameters:\n    location (str)\n    unit (unit or none-type)\n\n",
+    "system_prompt": "You are 'FunkGPT', an advanced AI assistant. You are interacting with the user and with your environment by calling functions. You call functions by writing JSON objects, which represent specific function calls. You can call functions in parallel by providing a list of function call objects. Always plan the execution of functions step by step!\nBelow is a list of your available function calls:\n\nFunction: send_message_to_user\n  Description: Send a message to the user.\n  Parameters:\n    message (str):\n        Description: The message send to the user.\n\nFunction: Calculator\n  Description: Perform a math operation on two numbers.\n  Parameters:\n    number_one (any):\n        Description: First number.\n    operation (math-operation):\n        Description: Math operation to perform.\n    number_two (any):\n        Description: Second number.\n\nFunction: write_to_file\n  Description: Write file to the user filesystem.\n  Parameters:\n    chain_of_thought (str):\n        Description: Your chain of thought while writing the file.\n    file_path (str):\n        Description: The file path includes the filename and file ending.\n    file_content (str):\n        Description: The actual content to write.\n\nFunction: read_file\n  Description: Read file from the user filesystem.\n  Parameters:\n    file_path (str):\n        Description: The file path includes the filename and file ending.\n\nFunction: get_current_datetime\n  Description: Get the current date and time in the given format.\n  Parameters:\n    output_format (str or none-type):\n        Description: format string for the date and time. Defaults to '%Y-%m-%d %H:%M:%S'\n\nFunction: get_current_weather\n  Parameters:\n    location (str)\n    unit (unit or none-type)\n\n",
     "k_last_messages_from_chat_history": 0,
     "debug_output": true,
     "messages": [
         {
             "role": "user",
-            "content": "Format the answer clearly: Get the date and time, get the current weather in celsius in London and solve the following calculation: 42 * 42"
+            "content": "Solve the following calculations: 42 * 42, 24 * 24, 5 * 5"
         },
         {
             "role": "assistant",
-            "content": "[\n  {\n    \"function\": \"get-current-datetime\",\n    \"params\": {\n      \"output_format\": \"%Y-%m-%d %H:%M:%S\"\n    }\n  },\n  {\n    \"function\": \"get-current-weather\",\n    \"params\": {\n      \"location\": \"London\",\n      \"unit\": \"celsius\"\n    }\n  },\n  {\n    \"function\": \"calculator\",\n    \"params\": {\n      \"number_one\": 42,\n      \"operation\": \"multiply\",\n      \"number_two\": 42\n    }\n  }\n]"
+            "content": "[\n  {\n    \"function\": \"Calculator\",\n    \"params\": {\n      \"number_one\": 42,\n      \"operation\": \"multiply\",\n      \"number_two\": 42\n    }\n  },\n  {\n    \"function\": \"Calculator\",\n    \"params\": {\n      \"number_one\": 24,\n      \"operation\": \"multiply\",\n      \"number_two\": 24\n    }\n  },\n  {\n    \"function\": \"Calculator\",\n    \"params\": {\n      \"number_one\": 5,\n      \"operation\": \"multiply\",\n      \"number_two\": 5\n    }\n  }\n]"
         },
         {
             "role": "function",
-            "content": "FUNCTION_CALLING_RESULTS:\n2024-01-14 15:37:11\n\n{\"location\": \"London\", \"temperature\": \"42\", \"unit\": \"celsius\"}\n\n1764"
+            "content": "FUNCTION_CALLING_RESULTS:\n1764\n\n576\n\n25"
         },
         {
             "role": "assistant",
-            "content": "[\n  {\n    \"function\": \"send-message-to-user\",\n    \"params\": {\n      \"message\": \"The current date and time is: 2024-01-14 15:37:11.\"\n    }\n  },\n  {\n    \"function\": \"send-message-to-user\",\n    \"params\": {\n      \"message\": \"Here's the current weather in London: temperature is 42 degrees Celsius.\"\n    }\n  },\n  {\n    \"function\": \"send-message-to-user\",\n    \"params\": {\n      \"message\": \"The result of the calculation is 1764.\"\n    }\n  }\n]"
+            "content": "[\n  {\n    \"function\": \"send_message_to_user\",\n    \"params\": {\n      \"message\": \"The result of 42 * 42 is 1764.\"\n    }\n  },\n  {\n    \"function\": \"send_message_to_user\",\n    \"params\": {\n      \"message\": \"The result of 24 * 24 is 576.\"\n    }\n  },\n  {\n    \"function\": \"send_message_to_user\",\n    \"params\": {\n      \"message\": \"The result of 5 * 5 is 25.\"\n    }\n  }\n]"
         }
     ],
     "custom_messages_formatter": {

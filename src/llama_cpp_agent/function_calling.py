@@ -92,7 +92,7 @@ class LlamaCppFunctionToolRegistry:
         Args:
             function_tool (LlamaCppFunctionTool): The function tool to register.
         """
-        function_name = format_model_and_field_name(function_tool.model.__name__)
+        function_name = function_tool.model.__name__
         if function_tool.look_for_field_string:
             self.function_tools_containing_field_string[function_name] = function_tool
         else:

@@ -143,7 +143,8 @@ class FunctionCallingAgent:
         if system_prompt is not None:
             self.system_prompt = system_prompt
         else:
-            self.system_prompt = "You are an advanced AI assistant. You are interacting with your environment and the user by calling functions. You call functions by writing JSON objects, which represent specific function calls. Below is a list of your available JSON functions:\n\n" + self.tool_registry.get_documentation()
+            # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
+            self.system_prompt = "You are 'FunkGPT', an advanced AI assistant. You are interacting with the user and with your environment by calling functions. You call functions by writing JSON objects, which represent specific function calls. You can call functions in parallel by providing a list of function call objects. Always plan the execution of functions step by step!\nBelow is a list of your available function calls:\n\n" + self.tool_registry.get_documentation()
         self.llama_cpp_agent = LlamaCppAgent(llama_llm, debug_output=debug_output,
                                              system_prompt="",
                                              predefined_messages_formatter_type=messages_formatter_type,
@@ -249,7 +250,7 @@ class FunctionCallingAgent:
         while msg and not ("None" in '\n'.join([str(m) for m in msg])):
             if count > 0:
 
-                msg = '\n'.join([str(m) for m in msg])
+                msg = "FUNCTION_CALLING_RESULTS:\n" + '\n\n'.join([str(m) for m in msg])
                 msg = self.llama_cpp_agent.get_chat_response(msg, role="function", system_prompt=self.system_prompt,
                                                              function_tool_registry=self.tool_registry,
                                                              streaming_callback=self.streaming_callback,
@@ -267,9 +268,6 @@ class FunctionCallingAgent:
     def send_message_to_user(self, message: str):
         """
         Send a message to the user.
-
-        Args:
-            message (str): The message to be sent.
         """
         if self.send_message_to_user_callback:
             self.send_message_to_user_callback(message)

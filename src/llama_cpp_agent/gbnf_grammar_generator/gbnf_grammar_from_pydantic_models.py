@@ -533,7 +533,7 @@ def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], ou
             all_rules.extend(model_rules)
 
         if list_of_outputs:
-            root_rule = r'root ::= (" "| "\n") "["  grammar-models (","  grammar-models)*  "]"' + "\n"
+            root_rule = r'root ::= (" "| "\n") "[" ws grammar-models ("," ws grammar-models)* ws "]"' + "\n"
         else:
             root_rule = r'root ::= (" "| "\n") grammar-models' + "\n"
         root_rule += "grammar-models ::= " + " | ".join(
@@ -542,7 +542,7 @@ def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], ou
         return "\n".join(all_rules)
     elif outer_object_name is not None:
         if list_of_outputs:
-            root_rule = fr'root ::= (" "| "\n") "["  {format_model_and_field_name(outer_object_name)} (","  {format_model_and_field_name(outer_object_name)})*  "]"' + "\n"
+            root_rule = fr'root ::= (" "| "\n") "[" ws {format_model_and_field_name(outer_object_name)} ("," ws {format_model_and_field_name(outer_object_name)})* ws "]"' + "\n"
         else:
             root_rule = f"root ::= {format_model_and_field_name(outer_object_name)}\n"
 

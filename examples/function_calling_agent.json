@@ -22,7 +22,7 @@
         "seed": -1,
         "ignore_eos": false
     },
-    "system_prompt": "You are an advanced AI assistant. You are interacting with your environment and the user by calling functions. You call functions by writing JSON objects, which represent specific function calls. Below is a list of your available JSON functions:\n\n## send-message-to-user\n  Description: Send a message to the user.\n\nArgs:\n    message (str): The message to be sent.\n  Function Parameters:\n    message (str)\n\n## calculator\n  Description: Perform a math operation on two numbers.\n  Function Parameters:\n    number_one (any):\n        Description: First number.\n    operation (math-operation):\n        Description: Math operation to perform.\n    number_two (any):\n        Description: Second number.\n\n## get-current-datetime\n  Description: Get the current date and time in the given format.\n\nArgs:\n    output_format: format string for the date and time. Defaults to '%Y-%m-%d %H:%M:%S'\n  Function Parameters:\n    output_format (str or none-type)\n\n## get-current-weather\n  Function Parameters:\n    location (str)\n    unit (unit or none-type)\n\n",
+    "system_prompt": "You are 'FunkGPT', an advanced AI assistant. You are interacting with the user and with your environment by calling functions. You call functions by writing JSON objects, which represent specific function calls. You can call functions in parallel by providing a list of function call objects. Always plan the execution of functions step by step!\nBelow is a list of your available function calls:\n\n## send-message-to-user\n  Description: Send a message to the user.\n  Function Parameters:\n    message (str)\n\n## calculator\n  Description: Perform a math operation on two numbers.\n  Function Parameters:\n    number_one (int or float):\n        Description: First number.\n    operation (math-operation):\n        Description: Math operation to perform.\n    number_two (int or float):\n        Description: Second number.\n\n## get-current-datetime\n  Description: Get the current date and time in the given format. output_format defaults to '%Y-%m-%d %H:%M:%S'\n  Function Parameters:\n    output_format (str or none-type)\n\n## get-current-weather\n  Function Parameters:\n    location (str)\n    unit (unit or none-type)\n\n",
     "k_last_messages_from_chat_history": 0,
     "debug_output": true,
     "messages": [
@@ -32,15 +32,15 @@
         },
         {
             "role": "assistant",
-            "content": "[\n{\n    \"function\": \"get-current-datetime\",\n    \"function-parameters\": {\n        \"output_format\": \"%Y-%m-%d %H:%M:%S\"\n    }\n},\n{\n    \"function\": \"calculator\",\n    \"function-parameters\": {\n        \"number_one\": 42,\n        \"operation\": \"multiply\",\n        \"number_two\": 42\n    }\n},\n{\n    \"function\": \"get-current-weather\",\n    \"function-parameters\": {\n        \"location\": \"London\",\n        \"unit\": \"celsius\"\n    }\n}]"
+            "content": "[\n  {\n    \"function\": \"get-current-datetime\",\n    \"function-parameters\": {\n      \"output_format\": \"%Y-%m-%d %H:%M:%S\"\n    }\n  },\n  {\n    \"function\": \"get-current-weather\",\n    \"function-parameters\": {\n      \"location\": \"London\",\n      \"unit\": \"celsius\"\n    }\n  },\n  {\n    \"function\": \"calculator\",\n    \"function-parameters\": {\n      \"number_one\": 42,\n      \"operation\": \"multiply\",\n      \"number_two\": 42\n    }\n  }\n]"
         },
         {
             "role": "function",
-            "content": "2024-01-13 19:06:43\n1764\n{\"location\": \"London\", \"temperature\": \"42\", \"unit\": \"celsius\"}"
+            "content": "FUNCTION_CALLING_RESULTS:\n2024-01-14 06:15:46\n\n{\"location\": \"London\", \"temperature\": \"42\", \"unit\": \"celsius\"}\n\n1764"
         },
         {
             "role": "assistant",
-            "content": "[\n{\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n        \"message\": \"The current date and time is 2024-01-13 19:06:43.\"\n    }\n},\n{\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n        \"message\": \"The result of the calculation 42 * 42 is 1764.\"\n    }\n},\n{\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n        \"message\": \"The current weather in London is 42 degrees Celsius.\"\n    }\n}]"
+            "content": "[\n  {\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n      \"message\": \"2024-01-14 06:15:46\"\n    }\n  },\n  {\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n      \"message\": \"The current temperature in London is 42 degrees celsius.\"\n    }\n  },\n  {\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n      \"message\": \"1764\"\n    }\n  }\n]"
         }
     ],
     "custom_messages_formatter": {

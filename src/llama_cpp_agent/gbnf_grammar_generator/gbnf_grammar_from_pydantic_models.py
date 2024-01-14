@@ -326,7 +326,7 @@ def generate_gbnf_rule_for_type(model_name, field_name,
                                                                                     f"{field_name}-value-type",
                                                                                     value_type, is_optional,
                                                                                     processed_models, created_rules)
-        gbnf_type = fr'{gbnf_type} ::= "{{"  ( {additional_key_type} ":"  {additional_value_type} (","  {additional_key_type} ":"  {additional_value_type})*  )? "}}" '
+        gbnf_type = fr'{gbnf_type} ::= "{{"  ( {additional_key_type} ": "  {additional_value_type} ("," "\n" ws {additional_key_type} ":"  {additional_value_type})*  )? "}}" '
 
         rules.extend(additional_key_rules)
         rules.extend(additional_value_rules)
@@ -477,7 +477,7 @@ def generate_gbnf_grammar(model: Type[BaseModel], processed_models: set, created
         if not look_for_markdown_code_block and not look_for_triple_quoted_string:
             if rule_name not in created_rules:
                 created_rules[rule_name] = additional_rules
-            model_rule_parts.append(f' ws \"\\\"{field_name}\\\"\" ": "  {rule_name}')  # Adding escaped quotes
+            model_rule_parts.append(f' ws \"\\\"{field_name}\\\"\" ":" ws {rule_name}')  # Adding escaped quotes
             nested_rules.extend(additional_rules)
         else:
             has_triple_quoted_string = look_for_triple_quoted_string
@@ -546,7 +546,7 @@ def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], ou
         else:
             root_rule = f"root ::= {format_model_and_field_name(outer_object_name)}\n"
 
-        model_rule = fr'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{outer_object_name}\""  ": "  grammar-models'
+        model_rule = fr'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{outer_object_name}\""  ":" ws grammar-models'
 
         fields_joined = " | ".join(
             [fr'{format_model_and_field_name(model.__name__)}-grammar-model' for model in models])
@@ -554,8 +554,8 @@ def generate_gbnf_grammar_from_pydantic_models(models: List[Type[BaseModel]], ou
         grammar_model_rules = f'\ngrammar-models ::= {fields_joined}'
         mod_rules = []
         for model in models:
-            mod_rule = fr'{format_model_and_field_name(model.__name__)}-grammar-model ::= ws'
-            mod_rule += fr'"\"{format_model_and_field_name(model.__name__)}\"" "," ws "\"{outer_object_content}\"" ws ":" ws {format_model_and_field_name(model.__name__)}' + '\n'
+            mod_rule = fr'{format_model_and_field_name(model.__name__)}-grammar-model ::= '
+            mod_rule += fr'"\"{format_model_and_field_name(model.__name__)}\"" "," ws "\"{outer_object_content}\"" ":" ws {format_model_and_field_name(model.__name__)}' + '\n'
             mod_rules.append(mod_rule)
         grammar_model_rules += "\n" + "\n".join(mod_rules)
         look_for_markdown_code_block = False

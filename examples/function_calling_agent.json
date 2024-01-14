@@ -2,13 +2,13 @@
     "llama_generation_settings": {
         "temperature": 0.65,
         "top_k": 40,
-        "top_p": 0.5,
+        "top_p": 0.95,
         "min_p": 0.05,
         "n_predict": -1,
         "n_keep": 0,
         "stream": true,
         "stop_sequences": [],
-        "tfs_z": 0.975,
+        "tfs_z": 1.0,
         "typical_p": 1.0,
         "repeat_penalty": 1.1,
         "repeat_last_n": 64,
@@ -22,7 +22,7 @@
         "seed": -1,
         "ignore_eos": false
     },
-    "system_prompt": "You are 'FunkGPT', an advanced AI assistant. You are interacting with the user and with your environment by calling functions. You call functions by writing JSON objects, which represent specific function calls. You can call functions in parallel by providing a list of function call objects. Always plan the execution of functions step by step!\nBelow is a list of your available function calls:\n\n## send-message-to-user\n  Description: Send a message to the user.\n  Function Parameters:\n    message (str)\n\n## calculator\n  Description: Perform a math operation on two numbers.\n  Function Parameters:\n    number_one (int or float):\n        Description: First number.\n    operation (math-operation):\n        Description: Math operation to perform.\n    number_two (int or float):\n        Description: Second number.\n\n## get-current-datetime\n  Description: Get the current date and time in the given format. output_format defaults to '%Y-%m-%d %H:%M:%S'\n  Function Parameters:\n    output_format (str or none-type)\n\n## get-current-weather\n  Function Parameters:\n    location (str)\n    unit (unit or none-type)\n\n",
+    "system_prompt": "You are an advanced AI assistant. You interact with the user and with your environment by calling functions. You call functions by writing JSON objects that represent specific function calls. You can call functions in parallel by providing a list of function call objects. You receive the return values of the function calls immediately after completing your response. In this way, you keep control and can obtain partial results immediately for complex multi step operations. When sending a message to the user, you will give control back to him. Always plan the execution of functions step by step!\nBelow is a list of your available function calls:\n\nFunction: send-message-to-user\n  Description: Send a message to the user.\n  Parameters:\n    message (str)\n\nFunction: calculator\n  Description: Perform a math operation on two numbers.\n  Parameters:\n    number_one (int or float):\n        Description: First number.\n    operation (math-operation):\n        Description: Math operation to perform.\n    number_two (int or float):\n        Description: Second number.\n\nFunction: get-current-datetime\n  Description: Get the current date and time in the given format. output_format defaults to '%Y-%m-%d %H:%M:%S'\n  Parameters:\n    output_format (str or none-type)\n\nFunction: get-current-weather\n  Parameters:\n    location (str)\n    unit (unit or none-type)\n\n",
     "k_last_messages_from_chat_history": 0,
     "debug_output": true,
     "messages": [
@@ -32,15 +32,15 @@
         },
         {
             "role": "assistant",
-            "content": "[\n  {\n    \"function\": \"get-current-datetime\",\n    \"function-parameters\": {\n      \"output_format\": \"%Y-%m-%d %H:%M:%S\"\n    }\n  },\n  {\n    \"function\": \"get-current-weather\",\n    \"function-parameters\": {\n      \"location\": \"London\",\n      \"unit\": \"celsius\"\n    }\n  },\n  {\n    \"function\": \"calculator\",\n    \"function-parameters\": {\n      \"number_one\": 42,\n      \"operation\": \"multiply\",\n      \"number_two\": 42\n    }\n  }\n]"
+            "content": "[\n  {\n    \"function\": \"get-current-datetime\",\n    \"params\": {\n      \"output_format\": \"%Y-%m-%d %H:%M:%S\"\n    }\n  },\n  {\n    \"function\": \"get-current-weather\",\n    \"params\": {\n      \"location\": \"London\",\n      \"unit\": \"celsius\"\n    }\n  },\n  {\n    \"function\": \"calculator\",\n    \"params\": {\n      \"number_one\": 42,\n      \"operation\": \"multiply\",\n      \"number_two\": 42\n    }\n  }\n]"
         },
         {
             "role": "function",
-            "content": "FUNCTION_CALLING_RESULTS:\n2024-01-14 06:15:46\n\n{\"location\": \"London\", \"temperature\": \"42\", \"unit\": \"celsius\"}\n\n1764"
+            "content": "FUNCTION_CALLING_RESULTS:\n2024-01-14 15:37:11\n\n{\"location\": \"London\", \"temperature\": \"42\", \"unit\": \"celsius\"}\n\n1764"
         },
         {
             "role": "assistant",
-            "content": "[\n  {\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n      \"message\": \"2024-01-14 06:15:46\"\n    }\n  },\n  {\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n      \"message\": \"The current temperature in London is 42 degrees celsius.\"\n    }\n  },\n  {\n    \"function\": \"send-message-to-user\",\n    \"function-parameters\": {\n      \"message\": \"1764\"\n    }\n  }\n]"
+            "content": "[\n  {\n    \"function\": \"send-message-to-user\",\n    \"params\": {\n      \"message\": \"The current date and time is: 2024-01-14 15:37:11.\"\n    }\n  },\n  {\n    \"function\": \"send-message-to-user\",\n    \"params\": {\n      \"message\": \"Here's the current weather in London: temperature is 42 degrees Celsius.\"\n    }\n  },\n  {\n    \"function\": \"send-message-to-user\",\n    \"params\": {\n      \"message\": \"The result of the calculation is 1764.\"\n    }\n  }\n]"
         }
     ],
     "custom_messages_formatter": {

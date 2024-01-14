@@ -75,9 +75,9 @@ class LlamaCppFunctionToolRegistry:
     """
     def __init__(self, allow_parallel_function_calling):
         self.tool_root = "function"
-        self.tool_rule_content = "function-parameters"
+        self.tool_rule_content = "params"
         self.model_prefix = "Function"
-        self.fields_prefix = "Function Parameters"
+        self.fields_prefix = "Parameters"
         self.function_tools = {}
         self.function_tools_containing_field_string = {}
         self.grammar = None

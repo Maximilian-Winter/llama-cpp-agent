@@ -169,6 +169,8 @@ class MessagesFormatter:
                 formatted_messages += self.ASSISTANT_PROMPT_START + message["content"] + self.ASSISTANT_PROMPT_END
                 last_role = "assistant"
             elif message["role"] == "function":
+                if isinstance(message["content"], list):
+                    message["content"] = "FUNCTION_CALLING_RESULTS:\n" + '\n\n'.join([str(m) for m in message["content"]])
                 if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
                     formatted_messages += self.USER_PROMPT_START + message["content"] + self.USER_PROMPT_END
                     last_role = "user"

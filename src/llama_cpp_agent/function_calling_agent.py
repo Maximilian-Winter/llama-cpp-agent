@@ -144,7 +144,7 @@ class FunctionCallingAgent:
             self.system_prompt = system_prompt
         else:
             # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
-            self.system_prompt = "You are 'FunkGPT', an advanced AI assistant. You are interacting with the user and with your environment by calling functions. You call functions by writing JSON objects, which represent specific function calls. You can call functions in parallel by providing a list of function call objects. Always plan the execution of functions step by step!\nBelow is a list of your available function calls:\n\n" + self.tool_registry.get_documentation()
+            self.system_prompt = "You are an advanced AI assistant. You are interacting with the user and with your environment by calling functions. You call functions by writing JSON objects, which represent specific function calls.\nBelow is a list of your available function calls:\n\n" + self.tool_registry.get_documentation()
         self.llama_cpp_agent = LlamaCppAgent(llama_llm, debug_output=debug_output,
                                              system_prompt="",
                                              predefined_messages_formatter_type=messages_formatter_type,

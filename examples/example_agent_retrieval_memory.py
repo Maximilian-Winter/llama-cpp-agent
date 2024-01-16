@@ -15,7 +15,7 @@ function_tools.extend(agent_retrieval_memory.get_tool_list())
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 main_model = Llama(
-    "../gguf-models/openhermes-2.5-mistral-7b.Q8_0.gguf",
+    "../../gguf-models/openhermes-2.5-mistral-7b.Q8_0.gguf",
     n_gpu_layers=45,
     f16_kv=True,
     offload_kqv=True,
@@ -35,10 +35,15 @@ llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
 user_input = 'Add my Birthday the 1991.12.11 to the retrieval memory.'
 while True:
 
-    if user_input is None:
+    if "None" in user_input:
         user_input = "Hello."
 
     user_input = llama_cpp_agent.get_chat_response(
         user_input,
         system_prompt=f"You are a advanced helpful AI assistant interacting through calling functions in form of JSON objects.\n\nHere are your available functions:\n\n" + function_tool_registry.get_documentation(),
         temperature=1.25, function_tool_registry=function_tool_registry)
+
+    user_input = '\n'.join([str(output) for output in user_input])
+
+
+

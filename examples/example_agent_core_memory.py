@@ -32,10 +32,16 @@ llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
 user_input = 'Add the value "Be friendly" under key "Core-Guidelines" and field "Behavior" to your core memory.'
 while True:
 
-    if user_input is None:
+    if "None" in user_input:
         user_input = "Hello."
 
     user_input = llama_cpp_agent.get_chat_response(
         user_input,
         system_prompt=f"You are a advanced helpful AI assistant interacting through calling functions in form of JSON objects.\n\n{agent_core_memory.get_core_memory_manager().build_core_memory_context()}\n\nHere are your available functions:\n\n" + function_tool_registry.get_documentation(),
         temperature=0.65, function_tool_registry=function_tool_registry)
+
+    user_input = '\n'.join([str(output) for output in user_input])
+
+
+
+

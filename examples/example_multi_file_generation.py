@@ -13,7 +13,7 @@ from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models im
     generate_gbnf_grammar_and_documentation
 
 main_model = Llama(
-    "../gguf-models/dolphin-2.6-mistral-7b-dpo.Q5_0.gguf",
+    "../../gguf-models/dolphin-2.6-mistral-7b-dpo.Q5_0.gguf",
     n_gpu_layers=55,
     f16_kv=True,
     use_mlock=False,

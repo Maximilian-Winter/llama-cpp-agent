@@ -11,6 +11,14 @@ from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpoi
 
 
 def calculate_a_to_the_power_b(a: Union[int | float], b: Union[int | float]):
+    """
+    Calculates a to the power of b
+
+    Args:
+        a: number
+        b: exponent
+
+    """
     print(f"Result: {math.pow(a, b)}")
 
 

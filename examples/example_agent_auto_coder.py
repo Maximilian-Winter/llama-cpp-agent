@@ -50,13 +50,17 @@ planner_agent = LlamaCppAgent(main_model, debug_output=True,
 coder_agent = LlamaCppAgent(main_model, debug_output=True,
                             system_prompt=system_prompt_coder,
                             predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+
+print(function_tool_registry.gbnf_grammar)
 user_input = task_implement
 while True:
 
-    if user_input is None:
+    if "None" in user_input:
         user_input = "Proceed with next step."
 
     user_input = coder_agent.get_chat_response(
         user_input,
         temperature=0.75, top_p=0.5, top_k=0, tfs_z=0.975, function_tool_registry=function_tool_registry)
+
+    user_input = '\n'.join([str(output) for output in user_input])
 

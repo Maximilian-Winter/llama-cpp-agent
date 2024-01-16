@@ -49,9 +49,11 @@ agent_dev_folder_setup(f"dev_{timestamp}")
 user_input = 'Write a chat bot frontend in HTML, CSS and Javascript with a dark UI using Bootstrap under the "./workspace" folder.'
 while True:
 
-    if user_input is None:
+    if "None" in user_input:
         user_input = "Proceed."
 
     user_input = llama_cpp_agent.get_chat_response(
         user_input,
         temperature=0.45, repeat_penalty=1.0, function_tool_registry=function_tool_registry)
+
+    user_input = '\n'.join([str(output) for output in user_input])

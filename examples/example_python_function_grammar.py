@@ -11,7 +11,12 @@ from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models im
 
 def calculate_a_to_the_power_b(a: Union[int, float], b: Union[int, float]):
     """
-    Calculates 'a' to the power 'b' and returns the result
+    Calculates a to the power of b
+
+    Args:
+        a: number
+        b: exponent
+
     """
     return f"Result: {math.pow(a, b)}"
 
@@ -23,7 +28,7 @@ function_tools = [LlamaCppFunctionTool(DynamicSampleModel)]
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 main_model = Llama(
-    "../../gguf-models/openhermes-2.5-mistral-7b-16k.Q8_0.gguf",
+    "../../gguf-models/openhermes-2.5-mistral-7b.Q8_0.gguf",
     n_gpu_layers=49,
     offload_kqv=True,
     f16_kv=True,

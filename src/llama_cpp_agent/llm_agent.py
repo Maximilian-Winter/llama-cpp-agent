@@ -106,6 +106,7 @@ class LlamaCppAgent:
             message: str = None,
             role: Literal["system", "user", "assistant", "function"] = "user",
             system_prompt: str = None,
+            prompt_suffix: str = None,
             add_message_to_chat_history: bool = True,
             add_response_to_chat_history: bool = True,
             grammar: str = None,
@@ -123,6 +124,7 @@ class LlamaCppAgent:
             mirostat_eta: float = 0.1,
             tfs_z: float = 1.0,
             stop_sequences: List[str] = None,
+            additional_stop_sequences: List[str] = None,
             stream: bool = True,
             print_output: bool = True,
             k_last_messages: int = 0,
@@ -149,6 +151,7 @@ class LlamaCppAgent:
             message (str): The input message.
             role (Literal["system", "user", "assistant", "function"]): The role of the message sender.
             system_prompt (str): The system prompt used in chat interactions.
+            prompt_suffix: Suffix to append after the prompt.
             add_message_to_chat_history (bool): Indicates whether to add the input message to the chat history.
             add_response_to_chat_history (bool): Indicates whether to add the generated response to the chat history.
             grammar (str): The grammar for generating responses in string format.
@@ -165,7 +168,8 @@ class LlamaCppAgent:
             mirostat_tau (float): Mirostat tau parameter for response generation.
             mirostat_eta (float): Mirostat eta parameter for response generation.
             tfs_z (float): TFS Z parameter for response generation.
-            stop_sequences (List[str]): List of stop sequences for response generation.
+            stop_sequences (List[str]): List of stop sequences for response generation. Overwrites default stop sequences!
+            additional_stop_sequences (List[str]): List of stop sequences for response generation, additional to the default ones.
             stream (bool): Indicates whether to stream the response.
             print_output (bool): Indicates whether to print the generated response.
             k_last_messages (int): Number of last messages to consider from the chat history.
@@ -224,8 +228,13 @@ class LlamaCppAgent:
         if self.debug_output:
             print(prompt, end="")
 
+        if prompt_suffix:
+            prompt += prompt_suffix
         if stop_sequences is None:
             stop_sequences = self.messages_formatter.DEFAULT_STOP_SEQUENCES
+
+        if additional_stop_sequences is not None:
+            stop_sequences.extend(additional_stop_sequences)
 
         if self.model:
             if isinstance(self.model, LlamaCppEndpointSettings):
@@ -315,6 +324,8 @@ class LlamaCppAgent:
                 if streaming_callback is not None:
                     streaming_callback(StreamingResponse(text="", is_last_response=True))
                 print("")
+                if prompt_suffix:
+                    full_response = prompt_suffix + full_response
                 self.last_response = full_response.strip()
                 if add_response_to_chat_history:
                     self.messages.append(
@@ -336,6 +347,8 @@ class LlamaCppAgent:
                         streaming_callback(StreamingResponse(text=text, is_last_response=False))
                 if streaming_callback is not None:
                     streaming_callback(StreamingResponse(text="", is_last_response=True))
+                if prompt_suffix:
+                    full_response = prompt_suffix + full_response
                 self.last_response = full_response.strip()
                 if add_response_to_chat_history:
                     self.messages.append(
@@ -351,6 +364,8 @@ class LlamaCppAgent:
             if print_output:
                 text = completion['choices'][0]['text']
                 print(text)
+                if prompt_suffix:
+                    text = prompt_suffix + text
                 self.last_response = text.strip()
                 if add_response_to_chat_history:
                     self.messages.append(
@@ -365,6 +380,8 @@ class LlamaCppAgent:
                 return text.strip() if text else None
             text = completion['choices'][0]['text']
             self.last_response = text.strip()
+            if prompt_suffix:
+                text = prompt_suffix + text
             if add_response_to_chat_history:
                 self.messages.append(
                     {

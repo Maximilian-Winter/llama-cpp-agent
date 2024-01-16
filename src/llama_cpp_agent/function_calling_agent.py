@@ -247,11 +247,21 @@ class FunctionCallingAgent:
         """
         count = 0
         msg = copy(message)
-        while msg and not ("None" in '\n'.join([str(m) for m in msg])):
+        while msg:
             if count > 0:
 
-                msg = "FUNCTION_CALLING_RESULTS:\n" + '\n\n'.join([str(m) for m in msg])
-                msg = self.llama_cpp_agent.get_chat_response(msg, role="function", system_prompt=self.system_prompt,
+                msg = "Results from calling functions:\n" + '\n\n'.join([str(m) for m in msg])
+                self.llama_cpp_agent.add_message(role="function", message=msg)
+                lines = msg.splitlines()
+
+                found_none = False
+                for line in lines:
+                    if line.startswith("None"):
+                        found_none = True
+                        break
+                if found_none:
+                    break
+                msg = self.llama_cpp_agent.get_chat_response(system_prompt=self.system_prompt,
                                                              function_tool_registry=self.tool_registry,
                                                              streaming_callback=self.streaming_callback,
                                                              k_last_messages=self.k_last_messages_from_chat_history,

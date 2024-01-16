@@ -170,14 +170,14 @@ class MessagesFormatter:
                 last_role = "assistant"
             elif message["role"] == "function":
                 if isinstance(message["content"], list):
-                    message["content"] = "FUNCTION_CALLING_RESULTS:\n" + '\n\n'.join([str(m) for m in message["content"]])
+                    message["content"] = "Results from calling functions:\n" + '\n'.join([str(m) for m in message["content"]])
                 if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
                     formatted_messages += self.USER_PROMPT_START + message["content"] + self.USER_PROMPT_END
                     last_role = "user"
                 else:
                     formatted_messages += self.FUNCTION_PROMPT_START + message["content"] + self.FUNCTION_PROMPT_END
                     last_role = "function"
-        if last_role == "system" or last_role == "user":
+        if last_role == "system" or last_role == "user" or last_role == "function":
             if self.STRIP_PROMPT:
                 return formatted_messages + self.ASSISTANT_PROMPT_START.strip(), "assistant"
             else:
@@ -240,7 +240,7 @@ mixtral_formatter = MessagesFormatter("", SYS_PROMPT_START_MIXTRAL, SYS_PROMPT_E
                                       ASSISTANT_PROMPT_END_MIXTRAL, True, DEFAULT_MIXTRAL_STOP_SEQUENCES)
 chatml_formatter = MessagesFormatter("", SYS_PROMPT_START_CHATML, SYS_PROMPT_END_CHATML, USER_PROMPT_START_CHATML,
                                      USER_PROMPT_END_CHATML, ASSISTANT_PROMPT_START_CHATML,
-                                     ASSISTANT_PROMPT_END_CHATML, False, DEFAULT_CHATML_STOP_SEQUENCES, True, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
+                                     ASSISTANT_PROMPT_END_CHATML, False, DEFAULT_CHATML_STOP_SEQUENCES, False, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
 vicuna_formatter = MessagesFormatter("", SYS_PROMPT_START_VICUNA, SYS_PROMPT_END_VICUNA, USER_PROMPT_START_VICUNA,
                                      USER_PROMPT_END_VICUNA, ASSISTANT_PROMPT_START_VICUNA,
                                      ASSISTANT_PROMPT_END_VICUNA, False, DEFAULT_VICUNA_STOP_SEQUENCES)

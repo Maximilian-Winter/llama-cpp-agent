@@ -86,7 +86,7 @@ class LlamaCppAgent:
         function_tool_registry.finalize()
         return function_tool_registry
 
-    def add_message(self, message: str, role: Literal["system"] | Literal["user"] | Literal["assistant"] = "user"):
+    def add_message(self, message: str, role: Literal["system"] | Literal["user"] | Literal["assistant"] | Literal["function"] = "user"):
         """
         Adds a message to the chat history.
 

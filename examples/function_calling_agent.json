@@ -7,7 +7,7 @@
         "n_predict": -1,
         "n_keep": 0,
         "stream": true,
-        "stop_sequences": [],
+        "stop_sequences": null,
         "tfs_z": 1.0,
         "typical_p": 1.0,
         "repeat_penalty": 1.1,
@@ -32,15 +32,15 @@
         },
         {
             "role": "assistant",
-            "content": "[\n    {\n        \"function\": \"get_current_datetime\",\n        \"params\": {\n            \"output_format\": \"%Y-%m-%d %H:%M:%S\"\n        }\n    },\n    {\n        \"function\": \"get_current_weather\",\n        \"params\": {\n            \"location\": \"London\",\n            \"unit\": \"celsius\"\n        }\n    },\n    {\n        \"function\": \"Calculator\",\n        \"params\": {\n            \"number_one\": 42,\n            \"operation\": \"multiply\",\n            \"number_two\": 42\n        }\n    }\n]"
+            "content": "[\n  {\n    \"function\": \"get_current_datetime\",\n    \"params\": {\n      \"output_format\": \"%Y-%m-%d %H:%M:%S\"\n    }\n  },\n  {\n    \"function\": \"get_current_weather\",\n    \"params\": {\n      \"location\": \"London\",\n      \"unit\": \"celsius\"\n    }\n  },\n  {\n    \"function\": \"Calculator\",\n    \"params\": {\n      \"number_one\": 42,\n      \"operation\": \"multiply\",\n      \"number_two\": 42\n    }\n  }\n]"
         },
         {
             "role": "function",
-            "content": "Results from calling functions:\n2024-01-16 10:11:46\n\n{\"location\": \"London\", \"temperature\": \"42\", \"unit\": \"celsius\"}\n\n1764"
+            "content": "Results from calling functions:\n2024-01-16 14:44:47\n\n{\"location\": \"London\", \"temperature\": \"42\", \"unit\": \"celsius\"}\n\n1764"
         },
         {
             "role": "assistant",
-            "content": "[\n    {\n        \"function\": \"send_message_to_user\",\n        \"params\": {\n            \"message\": \"The date and time is 2024-01-16 10:11:46.\"\n        }\n    },\n    {\n        \"function\": \"send_message_to_user\",\n        \"params\": {\n            \"message\": \"The current weather in London is 42 degrees Celsius.\"\n        }\n    },\n    {\n        \"function\": \"send_message_to_user\",\n        \"params\": {\n            \"message\": \"The result of the calculation 42 * 42 is 1764.\"\n        }\n    }\n]"
+            "content": "[\n  {\n    \"function\": \"send_message_to_user\",\n    \"params\": {\n      \"message\": \"The current date and time is: 2024-01-16 14:44:47\"\n    }\n  },\n  {\n    \"function\": \"send_message_to_user\",\n    \"params\": {\n      \"message\": \"Current weather in London: Temperature: 42\u00b0C (unit: celsius)\"\n    }\n  },\n  {\n    \"function\": \"send_message_to_user\",\n    \"params\": {\n      \"message\": \"The result of the calculation is: 1764\"\n    }\n  }\n]"
         },
         {
             "role": "function",
@@ -61,7 +61,7 @@
         ],
         "FUNCTION_PROMPT_START": "<|im_start|>function\n",
         "FUNCTION_PROMPT_END": "<|im_end|>\n",
-        "USE_USER_ROLE_FUNCTION_CALL_RESULT": false,
+        "USE_USER_ROLE_FUNCTION_CALL_RESULT": true,
         "STRIP_PROMPT": true
     }
 }

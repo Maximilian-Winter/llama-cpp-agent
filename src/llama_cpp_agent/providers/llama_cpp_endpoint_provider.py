@@ -72,7 +72,7 @@ class LlamaCppGenerationSettings:
     n_predict: int = -1
     n_keep: int = 0
     stream: bool = False
-    stop_sequences: List[str] = field(default_factory=list)
+    stop_sequences: List[str] = None
     tfs_z: float = 1.0
     typical_p: float = 1.0
     repeat_penalty: float = 1.1

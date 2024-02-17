@@ -29,10 +29,11 @@ class LlamaCppFunctionTool:
     Methods:
         __call__(*args, **kwargs): Calls the Pydantic model with the provided keyword arguments.
     """
-    def __init__(self, pydantic_model: Type[BaseModel], has_markdown_code_block=False, has_triple_quoted_string=False,
+    def __init__(self, pydantic_model: Type[BaseModel], add_params_to_result=False, has_markdown_code_block=False, has_triple_quoted_string=False,
                  markdown_code_block_field_name=None, triple_quoted_string_field_name=None,
                  **additional_parameters):
         self.model = pydantic_model
+        self.add_params_to_result = add_params_to_result
         self.look_for_field_string = has_markdown_code_block or has_triple_quoted_string
         self.has_markdown_code_block = has_markdown_code_block
         self.has_triple_quoted_string = has_triple_quoted_string
@@ -210,7 +211,10 @@ class LlamaCppFunctionToolRegistry:
             call_parameters = function_call[self.tool_rule_content]
             call = cls(**call_parameters)
             output = call.run(**function_tool.additional_parameters)
-            return [output]
+            if function_tool.add_params_to_result:
+                return [{"function": function_tool.model.__name__, "params": call_parameters, "return_value": output}]
+            else:
+                return [{"function": function_tool.model.__name__, "return_value": output}]
         except AttributeError as e:
             return f"Error: {e}"
 
@@ -234,7 +238,10 @@ class LlamaCppFunctionToolRegistry:
                     call_parameters = function_call[self.tool_rule_content]
                     call = cls(**call_parameters)
                     output = call.run(**function_tool.additional_parameters)
-                    result.append(output)
+                    if function_tool.add_params_to_result:
+                        result.append({"function": function_tool.model.__name__, "params": call_parameters, "return_value": output})
+                    else:
+                        result.append({"function_call_id": function_call["function_call_id"], "function": function_tool.model.__name__, "return_value": output})
                 except AttributeError as e:
                     return f"Error: {e}"
         else:
@@ -245,7 +252,10 @@ class LlamaCppFunctionToolRegistry:
                     call_parameters = function_call[self.tool_rule_content]
                     call = cls(**call_parameters)
                     output = call.run(**function_tool.additional_parameters)
-                    result.append(output)
+                    if function_tool.add_params_to_result:
+                        result.append({"function": function_tool.model.__name__, "params": call_parameters, "return_value": output})
+                    else:
+                        result.append({"function": function_tool.model.__name__, "return_value": output})
                 except AttributeError as e:
                     return f"Error: {e}"
         return result

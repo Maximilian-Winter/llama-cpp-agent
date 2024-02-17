@@ -63,12 +63,14 @@ class Database(BaseModel):
 
 
 gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([Database],
-                                                                      model_prefix="Response Model",
-                                                                      fields_prefix="Response Model Field")
+                                                           model_prefix="Response Model",
+                                                           fields_prefix="Response Model Field")
 
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
                                 system_prompt="You are an advanced AI assistant, responding in JSON format. \n\nAvailable JSON response models:\n\n" + documentation + """""",
                                 predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+
+
 
 
 def dataframe(data: str) -> Database:

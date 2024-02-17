@@ -127,7 +127,7 @@ def send_message_to_user_callback(message: str):
     print(message)
 
 
-generation_settings = LlamaCppGenerationSettings(temperature=0.65, top_p=0.5, tfs_z=0.975, stream=True)
+generation_settings = LlamaCppGenerationSettings(temperature=0.65, stream=True)
 
 # Can be saved and loaded like that:
 # generation_settings.save("generation_settings.json")
@@ -135,6 +135,8 @@ generation_settings = LlamaCppGenerationSettings(temperature=0.65, top_p=0.5, tf
 main_model = LlamaCppEndpointSettings(
     "http://localhost:8080/completion"
 )
+
+
 function_call_agent = FunctionCallingAgent(
     # Can be lama-cpp-python Llama class, llama_cpp_agent.llm_settings.LlamaLLMSettings class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerLLMSettings.
     main_model,
@@ -151,6 +153,8 @@ function_call_agent = FunctionCallingAgent(
     # Set to true to allow parallel function calling
     allow_parallel_function_calling=True,
     debug_output=True)
+
+
 user_input = 'Solve the following calculations: 42 * 42, 24 * 24, 5 * 5'
 function_call_agent.generate_response(user_input)
 function_call_agent.save("function_calling_agent.json")

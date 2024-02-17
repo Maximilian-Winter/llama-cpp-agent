@@ -9,25 +9,15 @@ from example_agent_models_auto_coder import SendMessageToUser, GetFileList, Read
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
+from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
 
 function_tools = [LlamaCppFunctionTool(SendMessageToUser), LlamaCppFunctionTool(GetFileList), LlamaCppFunctionTool(ReadTextFile),
                   LlamaCppFunctionTool(WriteTextFile, has_triple_quoted_string=True, triple_quoted_string_field_name="file_content")]
 
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
-main_model = Llama(
-    "../../gguf-models/neuralhermes-2.5-mistral-7b.Q8_0.gguf",
-    n_gpu_layers=46,
-    f16_kv=True,
-    offload_kqv=True,
-    use_mlock=False,
-    embedding=False,
-    n_threads=8,
-    n_batch=1024,
-    n_ctx=8192,
-    last_n_tokens_size=1024,
-    verbose=False,
-    seed=42,
+main_model = LlamaCppEndpointSettings(
+    "http://localhost:8080/completion"
 )
 
 system_prompt_planner = f'''You are an advanced AI agent called AutoPlanner. As AutoPlanner your primary task is to autonomously plan complete software projects based on user specifications. You will create a complete development plans.  Your output is constrained to write JSON function call objects. The content of files is constrained to markdown code blocks with different content types like HTML, CSS, Javascript, Python or  Markdown. Here are your available functions:

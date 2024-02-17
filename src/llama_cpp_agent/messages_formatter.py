@@ -31,10 +31,10 @@ ASSISTANT_PROMPT_END_VICUNA = """"""
 FUNCTION_PROMPT_START_VICUNA = """"""
 FUNCTION_PROMPT_END_VICUNA = """"""
 DEFAULT_VICUNA_STOP_SEQUENCES = ["</s>", "USER:"]
-USER_PROMPT_START_LLAMA_2, USER_PROMPT_END_LLAMA_2 = "[INST]", "[/INST]"
+USER_PROMPT_START_LLAMA_2, USER_PROMPT_END_LLAMA_2 = "[INST] ", " [/INST]"
 
-ASSISTANT_PROMPT_START_LLAMA_2, ASSISTANT_PROMPT_END_LLAMA_2 = "", "</s>"
-SYS_PROMPT_START_LLAMA_2, SYS_PROMPT_END_LLAMA_2 = "<<SYS>>\n", "\n<</SYS>>\n\n"
+ASSISTANT_PROMPT_START_LLAMA_2, ASSISTANT_PROMPT_END_LLAMA_2 = " ", " </s>"
+SYS_PROMPT_START_LLAMA_2, SYS_PROMPT_END_LLAMA_2 = " <<SYS>>\n", "\n<</SYS>>\n\n"
 FUNCTION_PROMPT_START_LLAMA_2, FUNCTION_PROMPT_END_LLAMA_2 = "", ""
 DEFAULT_LLAMA_2_STOP_SEQUENCES = ["</s>", "[INST]"]
 
@@ -46,6 +46,16 @@ ASSISTANT_PROMPT_START_SYNTHIA = """ASSISTANT:"""
 ASSISTANT_PROMPT_END_SYNTHIA = """\n"""
 FUNCTION_PROMPT_START_SYNTHIA = """"""
 FUNCTION_PROMPT_END_SYNTHIA = """"""
+
+SYS_PROMPT_START_ALPACA = """"""
+SYS_PROMPT_END_ALPACA = """\n"""
+USER_PROMPT_START_ALPACA = """### Instruction:\n"""
+USER_PROMPT_END_ALPACA = """ \n"""
+ASSISTANT_PROMPT_START_ALPACA = """### Response:\n"""
+ASSISTANT_PROMPT_END_ALPACA = """\n"""
+FUNCTION_PROMPT_START_ALPACA = """"""
+FUNCTION_PROMPT_END_ALPACA = """"""
+DEFAULT_ALPACA_STOP_SEQUENCES = ["### Instruction:", "### Response:"]
 
 SYS_PROMPT_START_NEURAL_CHAT = """### System:\n"""
 SYS_PROMPT_END_NEURAL_CHAT = """\n"""
@@ -90,6 +100,7 @@ class MessagesFormatterType(Enum):
     NEURAL_CHAT = 6
     SOLAR = 7
     OPEN_CHAT = 8
+    ALPACA = 9
 
 
 class MessagesFormatter:
@@ -170,7 +181,7 @@ class MessagesFormatter:
                 last_role = "assistant"
             elif message["role"] == "function":
                 if isinstance(message["content"], list):
-                    message["content"] = "Results from calling functions:\n" + '\n'.join([str(m) for m in message["content"]])
+                    message["content"] = "Function Return Values in Order:\n" + '\n'.join([json.dumps(m, indent=4) for m in message["content"]])
                 if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
                     formatted_messages += self.USER_PROMPT_START + message["content"] + self.USER_PROMPT_END
                     last_role = "user"
@@ -243,7 +254,7 @@ chatml_formatter = MessagesFormatter("", SYS_PROMPT_START_CHATML, SYS_PROMPT_END
                                      ASSISTANT_PROMPT_END_CHATML, False, DEFAULT_CHATML_STOP_SEQUENCES, True, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
 vicuna_formatter = MessagesFormatter("", SYS_PROMPT_START_VICUNA, SYS_PROMPT_END_VICUNA, USER_PROMPT_START_VICUNA,
                                      USER_PROMPT_END_VICUNA, ASSISTANT_PROMPT_START_VICUNA,
-                                     ASSISTANT_PROMPT_END_VICUNA, False, DEFAULT_VICUNA_STOP_SEQUENCES)
+                                     ASSISTANT_PROMPT_END_VICUNA, True, DEFAULT_VICUNA_STOP_SEQUENCES)
 
 llama_2_formatter = MessagesFormatter("", SYS_PROMPT_START_LLAMA_2, SYS_PROMPT_END_LLAMA_2, USER_PROMPT_START_LLAMA_2,
                                       USER_PROMPT_END_LLAMA_2, ASSISTANT_PROMPT_START_LLAMA_2,
@@ -266,6 +277,13 @@ open_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_OPEN_CHAT, SYS_PROM
                                         USER_PROMPT_START_OPEN_CHAT, USER_PROMPT_END_OPEN_CHAT,
                                         ASSISTANT_PROMPT_START_OPEN_CHAT, ASSISTANT_PROMPT_END_OPEN_CHAT, True,
                                         DEFAULT_OPEN_CHAT_STOP_SEQUENCES, False, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
+
+alpaca_formatter = MessagesFormatter("", SYS_PROMPT_START_ALPACA, SYS_PROMPT_END_ALPACA,
+                                     USER_PROMPT_START_ALPACA, USER_PROMPT_END_ALPACA,
+                                     ASSISTANT_PROMPT_START_ALPACA, ASSISTANT_PROMPT_END_ALPACA, False,
+                                     DEFAULT_ALPACA_STOP_SEQUENCES, False, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
+
+
 predefined_formatter = {
     MessagesFormatterType.MIXTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
@@ -274,7 +292,8 @@ predefined_formatter = {
     MessagesFormatterType.SYNTHIA: synthia_formatter,
     MessagesFormatterType.NEURAL_CHAT: neural_chat_formatter,
     MessagesFormatterType.SOLAR: solar_formatter,
-    MessagesFormatterType.OPEN_CHAT: open_chat_formatter
+    MessagesFormatterType.OPEN_CHAT: open_chat_formatter,
+    MessagesFormatterType.ALPACA: alpaca_formatter
 }
 
 

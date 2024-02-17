@@ -60,13 +60,13 @@ class Calculator(BaseModel):
 def get_current_weather(location, unit):
     """Get the current weather in a given location"""
     if "London" in location:
-        return json.dumps({"location": "London", "temperature": "42", "unit": unit.value})
+        return f"Weather in {location}: {42}° {unit.value}"
     elif "New York" in location:
-        return json.dumps({"location": "New York", "temperature": "24", "unit": unit.value})
+        return f"Weather in {location}: {24}° {unit.value}"
     elif "North Pole" in location:
-        return json.dumps({"location": "North Pole", "temperature": "-42", "unit": unit.value})
+        return f"Weather in {location}: {-42}° {unit.value}"
     else:
-        return json.dumps({"location": location, "temperature": "unknown"})
+        return f"Weather in {location}: unknown"
 
 
 # Here is a function definition in OpenAI style
@@ -99,7 +99,7 @@ def send_message_to_user_callback(message: str):
     print(message)
 
 
-generation_settings = LlamaCppGenerationSettings(temperature=0.65, stream=True)
+generation_settings = LlamaCppGenerationSettings(temperature=0, stream=True)
 
 # Can be saved and loaded like that:
 # generation_settings.save("generation_settings.json")
@@ -123,7 +123,7 @@ function_call_agent = FunctionCallingAgent(
     # Set to true to allow parallel function calling
     allow_parallel_function_calling=True,
     debug_output=True)
-user_input = '''Format the answer clearly: Get the date and time, get the current weather in celsius in London and solve the following calculation: 42 * 42'''
+user_input = '''Format the answer clearly: Get the date and time, get the current weather in celsius in London and solve the following calculation: 42 * 42. And return the result.'''
 function_call_agent.generate_response(user_input)
 function_call_agent.save("function_calling_agent.json")
 user_input = input(">")

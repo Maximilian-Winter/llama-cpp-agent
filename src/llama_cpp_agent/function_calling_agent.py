@@ -144,7 +144,7 @@ class FunctionCallingAgent:
             self.system_prompt = system_prompt
         else:
             # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
-            self.system_prompt = "You are an advanced AI assistant. You are interacting with the user and with your environment by calling functions. You call functions by writing JSON objects, which represent specific function calls.\nBelow is a list of your available function calls:\n\n" + self.tool_registry.get_documentation()
+            self.system_prompt = "You are a helpful AI assistant, which interact with the user by calling functions which are represented as JSON object literals. Your output is constrained to a list of JSON object literals and allows to call multiple functions at once. The return values of the functions you call are only visible to you. Below is a list of your available function calls:\n\n" + self.tool_registry.get_documentation()
         self.llama_cpp_agent = LlamaCppAgent(llama_llm, debug_output=debug_output,
                                              system_prompt="",
                                              predefined_messages_formatter_type=messages_formatter_type,
@@ -247,32 +247,32 @@ class FunctionCallingAgent:
         """
         count = 0
         msg = copy(message)
+        msg_func = None
         while msg:
             if count > 0:
+                break_loop = False
+                for func in msg_func:
+                    if func["function"] == "send_message_to_user":
+                        func["return_value"] = "Message Sent"
+                        break_loop = True
 
-                msg = "Results from calling functions:\n" + '\n\n'.join([str(m) for m in msg])
-                self.llama_cpp_agent.add_message(role="function", message=msg)
-                lines = msg.splitlines()
-
-                found_none = False
-                for line in lines:
-                    if line.startswith("None"):
-                        found_none = True
-                        break
-                if found_none:
+                msg_func_formatted = "Function Return Values:\n" + '\n'.join([json.dumps(m, indent=4) for m in msg_func])
+                self.llama_cpp_agent.add_message(role="function", message=msg_func_formatted)
+                if break_loop:
                     break
-                msg = self.llama_cpp_agent.get_chat_response(system_prompt=self.system_prompt,
-                                                             function_tool_registry=self.tool_registry,
-                                                             streaming_callback=self.streaming_callback,
-                                                             k_last_messages=self.k_last_messages_from_chat_history,
-                                                             **self.llama_generation_settings.as_dict())
+
+                msg_func = self.llama_cpp_agent.get_chat_response(system_prompt=self.system_prompt,
+                                                                  function_tool_registry=self.tool_registry,
+                                                                  streaming_callback=self.streaming_callback,
+                                                                  k_last_messages=self.k_last_messages_from_chat_history,
+                                                                  **self.llama_generation_settings.as_dict())
 
             else:
-                msg = self.llama_cpp_agent.get_chat_response(msg, role="user", system_prompt=self.system_prompt,
-                                                             function_tool_registry=self.tool_registry,
-                                                             streaming_callback=self.streaming_callback,
-                                                             k_last_messages=self.k_last_messages_from_chat_history,
-                                                             **self.llama_generation_settings.as_dict())
+                msg_func = self.llama_cpp_agent.get_chat_response(msg, role="user", system_prompt=self.system_prompt,
+                                                                  function_tool_registry=self.tool_registry,
+                                                                  streaming_callback=self.streaming_callback,
+                                                                  k_last_messages=self.k_last_messages_from_chat_history,
+                                                                  **self.llama_generation_settings.as_dict())
             count += 1
 
     def send_message_to_user(self, message: str):

@@ -77,13 +77,14 @@ class LlamaCppGenerationSettings:
     typical_p: float = 1.0
     repeat_penalty: float = 1.1
     repeat_last_n: int = 64
-    penalize_nl: bool = True
+    penalize_nl: bool = False
     presence_penalty: float = 0.0
     frequency_penalty: float = 0.0
     penalty_prompt: Union[None, str, List[int]] = None
     mirostat_mode: int = 0
     mirostat_tau: float = 5.0
     mirostat_eta: float = 0.1
+    cache_prompt: bool = True
     seed: int = -1
     ignore_eos: bool = False
 

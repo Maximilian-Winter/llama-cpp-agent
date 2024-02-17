@@ -192,7 +192,7 @@ class LlamaCppAgent:
             logit_bias_type:Literal["input_ids", "tokens"] = None
 
         Returns:
-            str: The generated chat response.
+            list[dict]: The generated chat response.
         """
         if function_tool_registry is not None:
             grammar = function_tool_registry.gbnf_grammar

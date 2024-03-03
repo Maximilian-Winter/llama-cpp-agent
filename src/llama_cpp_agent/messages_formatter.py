@@ -3,11 +3,11 @@ from enum import Enum
 from typing import List, Dict, Tuple
 
 SYS_PROMPT_START_MIXTRAL = """"""
-SYS_PROMPT_END_MIXTRAL = """\n"""
+SYS_PROMPT_END_MIXTRAL = """\n\n"""
 USER_PROMPT_START_MIXTRAL = """[INST] """
 USER_PROMPT_END_MIXTRAL = """ [/INST]"""
 ASSISTANT_PROMPT_START_MIXTRAL = """"""
-ASSISTANT_PROMPT_END_MIXTRAL = """</s>"""
+ASSISTANT_PROMPT_END_MIXTRAL = """ </s>"""
 FUNCTION_PROMPT_START_MIXTRAL = """"""
 FUNCTION_PROMPT_END_MIXTRAL = """"""
 DEFAULT_MIXTRAL_STOP_SEQUENCES = ["</s>"]
@@ -177,6 +177,8 @@ class MessagesFormatter:
                     formatted_messages += self.USER_PROMPT_START + message["content"] + self.USER_PROMPT_END
                 last_role = "user"
             elif message["role"] == "assistant":
+                if self.STRIP_PROMPT:
+                    message["content"] = message["content"].strip()
                 formatted_messages += self.ASSISTANT_PROMPT_START + message["content"] + self.ASSISTANT_PROMPT_END
                 last_role = "assistant"
             elif message["role"] == "function":

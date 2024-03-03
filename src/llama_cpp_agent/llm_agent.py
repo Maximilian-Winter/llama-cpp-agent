@@ -68,7 +68,8 @@ class LlamaCppAgent:
         self.last_response = ""
 
     @staticmethod
-    def get_function_tool_registry(function_tool_list: List[LlamaCppFunctionTool], allow_parallel_function_calling=False):
+    def get_function_tool_registry(function_tool_list: List[LlamaCppFunctionTool],
+                                   allow_parallel_function_calling=False):
         """
         Creates and returns a function tool registry from a list of LlamaCppFunctionTool instances.
 
@@ -86,7 +87,8 @@ class LlamaCppAgent:
         function_tool_registry.finalize()
         return function_tool_registry
 
-    def add_message(self, message: str, role: Literal["system"] | Literal["user"] | Literal["assistant"] | Literal["function"] = "user"):
+    def add_message(self, message: str,
+                    role: Literal["system"] | Literal["user"] | Literal["assistant"] | Literal["function"] = "user"):
         """
         Adds a message to the chat history.
 
@@ -97,9 +99,183 @@ class LlamaCppAgent:
         self.messages.append(
             {
                 "role": role,
-                "content": message.strip(),
+                "content": message,
             },
         )
+
+    def get_text_response(
+            self,
+            prompt: str = None,
+            grammar: str = None,
+            function_tool_registry: LlamaCppFunctionToolRegistry = None,
+            streaming_callback: Callable[[StreamingResponse], None] = None,
+            max_tokens: int = 0,
+            temperature: float = 0.4,
+            top_k: int = 0,
+            top_p: float = 1.0,
+            min_p: float = 0.05,
+            typical_p: float = 1.0,
+            repeat_penalty: float = 1.0,
+            mirostat_mode: int = 0,
+            mirostat_tau: float = 5.0,
+            mirostat_eta: float = 0.1,
+            tfs_z: float = 1.0,
+            stop_sequences: List[str] = None,
+            additional_stop_sequences: List[str] = None,
+            stream: bool = True,
+            print_output: bool = True,
+            # Llama Cpp Server and Open AI endpoint settings
+            n_predict: int = -1,
+            n_keep: int = 0,
+            repeat_last_n: int = 64,
+            penalize_nl: bool = True,
+            presence_penalty: float = 0.0,
+            frequency_penalty: float = 0.0,
+            penalty_prompt: Union[None, str, List[int]] = None,
+            seed: int = -1,
+            ignore_eos: bool = False,
+            suffix: str = None,
+            echo: bool = False,
+            logprobs: int = None,
+            logit_bias: Dict[str, float] = None,
+            logit_bias_type: Literal["input_ids", "tokens"] = None,
+            samplers: List[str] = None
+    ):
+        """
+        """
+        if function_tool_registry is not None:
+            grammar = function_tool_registry.gbnf_grammar
+
+        if self.debug_output:
+            print(prompt, end="")
+        if stop_sequences is None:
+            stop_sequences = self.messages_formatter.DEFAULT_STOP_SEQUENCES
+
+        if additional_stop_sequences is not None:
+            stop_sequences.extend(additional_stop_sequences)
+
+        if self.model:
+            if isinstance(self.model, LlamaCppEndpointSettings):
+                completion = self.model.create_completion(
+                    prompt=prompt,
+                    grammar=grammar,
+                    generation_settings=LlamaCppGenerationSettings(
+                        temperature=temperature,
+                        top_k=top_k,
+                        top_p=top_p,
+                        min_p=min_p,
+                        n_predict=n_predict,
+                        n_keep=n_keep,
+                        stream=stream,
+                        stop_sequences=stop_sequences,
+                        tfs_z=tfs_z,
+                        typical_p=typical_p,
+                        repeat_penalty=repeat_penalty,
+                        repeat_last_n=repeat_last_n,
+                        penalize_nl=penalize_nl,
+                        presence_penalty=presence_penalty,
+                        frequency_penalty=frequency_penalty,
+                        penalty_prompt=penalty_prompt,
+                        mirostat_mode=mirostat_mode,
+                        mirostat_tau=mirostat_tau,
+                        mirostat_eta=mirostat_eta,
+                        seed=seed,
+                        samplers=samplers,
+                        ignore_eos=ignore_eos)
+                )
+            elif isinstance(self.model, OpenAIEndpointSettings):
+                completion = self.model.create_completion(
+                    prompt=prompt,
+                    grammar=grammar,
+                    generation_settings=OpenAIGenerationSettings(
+                        temperature=temperature,
+                        top_k=top_k,
+                        top_p=top_p,
+                        min_p=min_p,
+                        suffix=suffix,
+                        stream=stream,
+                        stop_sequences=stop_sequences,
+                        echo=echo,
+                        repeat_penalty=repeat_penalty,
+                        logprobs=logprobs,
+                        presence_penalty=presence_penalty,
+                        frequency_penalty=frequency_penalty,
+                        logit_bias=logit_bias,
+                        logit_bias_type=logit_bias_type,
+                        mirostat_mode=mirostat_mode,
+                        mirostat_tau=mirostat_tau,
+                        mirostat_eta=mirostat_eta,
+                        seed=seed)
+                )
+            else:
+                if isinstance(grammar, str):
+                    if grammar in self.grammar_cache:
+                        grammar = self.grammar_cache[grammar]
+                    else:
+                        grammar_string = grammar
+                        grammar = LlamaGrammar.from_string(grammar, False)
+                        self.grammar_cache[grammar_string] = grammar
+                completion = self.model.create_completion(
+                    prompt=prompt,
+                    max_tokens=max_tokens,
+                    stream=stream,
+                    stop=stop_sequences,
+                    temperature=temperature,
+                    top_k=top_k,
+                    top_p=top_p,
+                    min_p=min_p,
+                    typical_p=typical_p,
+                    mirostat_mode=mirostat_mode,
+                    mirostat_tau=mirostat_tau,
+                    mirostat_eta=mirostat_eta,
+                    tfs_z=tfs_z,
+                    repeat_penalty=repeat_penalty,
+                    grammar=grammar
+                )
+            if stream and print_output:
+                full_response = ""
+                for out in completion:
+                    text = out['choices'][0]['text']
+                    full_response += text
+                    if streaming_callback is not None:
+                        streaming_callback(StreamingResponse(text=text, is_last_response=False))
+                    print(text, end="")
+                if streaming_callback is not None:
+                    streaming_callback(StreamingResponse(text="", is_last_response=True))
+                print("")
+                self.last_response = full_response
+                if function_tool_registry is not None:
+                    full_response = function_tool_registry.handle_function_call(full_response)
+                    return full_response if full_response else None
+                return full_response if full_response else None
+            if stream:
+                full_response = ""
+                for out in completion:
+                    text = out['choices'][0]['text']
+                    full_response += text
+                    if streaming_callback is not None:
+                        streaming_callback(StreamingResponse(text=text, is_last_response=False))
+                if streaming_callback is not None:
+                    streaming_callback(StreamingResponse(text="", is_last_response=True))
+                self.last_response = full_response
+                if function_tool_registry is not None:
+                    full_response = function_tool_registry.handle_function_call(full_response)
+                    return full_response if full_response else None
+                return full_response if full_response else None
+            if print_output:
+                text = completion['choices'][0]['text']
+                print(text)
+                if function_tool_registry is not None:
+                    text = function_tool_registry.handle_function_call(text)
+                    return text if text else None
+                return text if text else None
+            text = completion['choices'][0]['text']
+            self.last_response = text
+            if function_tool_registry is not None:
+                text = function_tool_registry.handle_function_call(text)
+                return text if text else None
+            return text if text else None
+        return "Error: No model loaded!"
 
     def get_chat_response(
             self,
@@ -142,7 +318,8 @@ class LlamaCppAgent:
             echo: bool = False,
             logprobs: int = None,
             logit_bias: Dict[str, float] = None,
-            logit_bias_type: Literal["input_ids", "tokens"] = None
+            logit_bias_type: Literal["input_ids", "tokens"] = None,
+            samplers: List[str] = None
     ):
         """
         Gets a chat response based on the input message and context.
@@ -202,21 +379,21 @@ class LlamaCppAgent:
         messages = [
             {
                 "role": "system",
-                "content": system_prompt.strip(),
+                "content": system_prompt,
             },
         ]
         if message is not None and add_message_to_chat_history:
             self.messages.append(
                 {
                     "role": role,
-                    "content": message.strip(),
+                    "content": message,
                 },
             )
         if not add_message_to_chat_history and message is not None:
             messages.append(
                 {
                     "role": role,
-                    "content": message.strip(),
+                    "content": message,
                 },
             )
         if k_last_messages > 0:
@@ -261,6 +438,7 @@ class LlamaCppAgent:
                         mirostat_mode=mirostat_mode,
                         mirostat_tau=mirostat_tau,
                         mirostat_eta=mirostat_eta,
+                        samplers=samplers,
                         seed=seed,
                         ignore_eos=ignore_eos)
                 )
@@ -326,18 +504,18 @@ class LlamaCppAgent:
                 print("")
                 if prompt_suffix:
                     full_response = prompt_suffix + full_response
-                self.last_response = full_response.strip()
+                self.last_response = full_response
                 if add_response_to_chat_history:
                     self.messages.append(
                         {
                             "role": response_role,
-                            "content": full_response.strip(),
+                            "content": full_response,
                         },
                     )
                 if function_tool_registry is not None:
                     full_response = function_tool_registry.handle_function_call(full_response)
                     return full_response if full_response else None
-                return full_response.strip() if full_response else None
+                return full_response if full_response else None
             if stream:
                 full_response = ""
                 for out in completion:
@@ -349,50 +527,50 @@ class LlamaCppAgent:
                     streaming_callback(StreamingResponse(text="", is_last_response=True))
                 if prompt_suffix:
                     full_response = prompt_suffix + full_response
-                self.last_response = full_response.strip()
+                self.last_response = full_response
                 if add_response_to_chat_history:
                     self.messages.append(
                         {
                             "role": response_role,
-                            "content": full_response.strip(),
+                            "content": full_response,
                         },
                     )
                 if function_tool_registry is not None:
                     full_response = function_tool_registry.handle_function_call(full_response)
                     return full_response if full_response else None
-                return full_response.strip() if full_response else None
+                return full_response if full_response else None
             if print_output:
                 text = completion['choices'][0]['text']
                 print(text)
                 if prompt_suffix:
                     text = prompt_suffix + text
-                self.last_response = text.strip()
+                self.last_response = text
                 if add_response_to_chat_history:
                     self.messages.append(
                         {
                             "role": response_role,
-                            "content": text.strip(),
+                            "content": text,
                         },
                     )
                 if function_tool_registry is not None:
                     text = function_tool_registry.handle_function_call(text)
                     return text if text else None
-                return text.strip() if text else None
+                return text if text else None
             text = completion['choices'][0]['text']
-            self.last_response = text.strip()
+            self.last_response = text
             if prompt_suffix:
                 text = prompt_suffix + text
             if add_response_to_chat_history:
                 self.messages.append(
                     {
                         "role": response_role,
-                        "content": text.strip(),
+                        "content": text,
                     },
                 )
             if function_tool_registry is not None:
                 text = function_tool_registry.handle_function_call(text)
                 return text if text else None
-            return text.strip() if text else None
+            return text if text else None
         return "Error: No model loaded!"
 
     def remove_last_k_chat_messages(self, k: int):

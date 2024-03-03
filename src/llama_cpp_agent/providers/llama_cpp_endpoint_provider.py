@@ -76,7 +76,7 @@ class LlamaCppGenerationSettings:
     tfs_z: float = 1.0
     typical_p: float = 1.0
     repeat_penalty: float = 1.1
-    repeat_last_n: int = 64
+    repeat_last_n: int = -1
     penalize_nl: bool = False
     presence_penalty: float = 0.0
     frequency_penalty: float = 0.0
@@ -87,6 +87,7 @@ class LlamaCppGenerationSettings:
     cache_prompt: bool = True
     seed: int = -1
     ignore_eos: bool = False
+    samplers: List[str] = None
 
     def save(self, file_path: str):
         """
@@ -228,7 +229,8 @@ class LlamaCppEndpointSettings:
         data["stop"] = data["stop_sequences"]
         del data["mirostat_mode"]
         del data["stop_sequences"]
-
+        if "samplers" not in data or data["samplers"] is None:
+            data["samplers"] = ["top_k", "tfs_z", "typical_p", "top_p", "min_p", "temperature"]
         response = requests.post(self.completions_endpoint_url, headers=headers, json=data)
         data = response.json()
 
@@ -245,6 +247,8 @@ class LlamaCppEndpointSettings:
         data["stop"] = data["stop_sequences"]
         del data["mirostat_mode"]
         del data["stop_sequences"]
+        if "samplers" not in data or data["samplers"] is None:
+            data["samplers"] = ["top_k", "tfs_z", "typical_p", "top_p", "min_p", "temperature"]
         response = requests.post(self.completions_endpoint_url, headers=headers, json=data,
                                  stream=generation_settings.stream)
 

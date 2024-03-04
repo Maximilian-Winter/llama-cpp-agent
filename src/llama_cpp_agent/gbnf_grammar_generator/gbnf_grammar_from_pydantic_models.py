@@ -624,7 +624,7 @@ string ::= "\"" (
         "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
       )* "\""
 ws ::= ([ \t\n] ws)?
-float ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? ws
+float ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
 
 integer ::= [0-9]+"""
 
@@ -637,13 +637,13 @@ object ::=
   "{" ws (
             string ":" ws value
     ("," ws string ":" ws value)*
-  )? "}" ws
+  )? "}"
 
 array  ::=
   "[" ws (
             value
     ("," ws value)*
-  )? "]" ws
+  )? "]"
 
 number ::= integer | float"""
 

@@ -183,7 +183,7 @@ class MessagesFormatter:
                 last_role = "assistant"
             elif message["role"] == "function":
                 if isinstance(message["content"], list):
-                    message["content"] = "Function Return Values in Order:\n" + '\n'.join([json.dumps(m, indent=4) for m in message["content"]])
+                    message["content"] = "Function return values in the order of being called:\n" + '\n'.join([json.dumps(m, indent=4) for m in message["content"]])
                 if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
                     formatted_messages += self.USER_PROMPT_START + message["content"] + self.USER_PROMPT_END
                     last_role = "user"
@@ -253,7 +253,7 @@ mixtral_formatter = MessagesFormatter("", SYS_PROMPT_START_MIXTRAL, SYS_PROMPT_E
                                       ASSISTANT_PROMPT_END_MIXTRAL, True, DEFAULT_MIXTRAL_STOP_SEQUENCES)
 chatml_formatter = MessagesFormatter("", SYS_PROMPT_START_CHATML, SYS_PROMPT_END_CHATML, USER_PROMPT_START_CHATML,
                                      USER_PROMPT_END_CHATML, ASSISTANT_PROMPT_START_CHATML,
-                                     ASSISTANT_PROMPT_END_CHATML, False, DEFAULT_CHATML_STOP_SEQUENCES, False, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
+                                     ASSISTANT_PROMPT_END_CHATML, False, DEFAULT_CHATML_STOP_SEQUENCES, True, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
 vicuna_formatter = MessagesFormatter("", SYS_PROMPT_START_VICUNA, SYS_PROMPT_END_VICUNA, USER_PROMPT_START_VICUNA,
                                      USER_PROMPT_END_VICUNA, ASSISTANT_PROMPT_START_VICUNA,
                                      ASSISTANT_PROMPT_END_VICUNA, True, DEFAULT_VICUNA_STOP_SEQUENCES)

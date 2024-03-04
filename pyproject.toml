@@ -10,7 +10,8 @@ description = "A framework for building LLM based AI agents with llama-cpp-pytho
 readme = "ReadMe.md"
 dependencies = [
     "llama-cpp-python>=0.2.26",
-    "pydantic>=2.5.3"
+    "pydantic>=2.5.3",
+    "requests==2.31.0"
 ]
 
 requires-python = ">=3.10"

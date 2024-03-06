@@ -588,7 +588,7 @@ def generate_gbnf_grammar_from_pydantic_models(
                                                                     created_rules)
 
             if not has_special_string:
-                model_rules[0] += r'"\n" ws "}"'
+                model_rules[0] += r'"\n" "}"'
 
             all_rules.extend(model_rules)
 
@@ -767,6 +767,16 @@ def generate_field_markdown(
             field_text += ":\n"
         else:
             field_text += "\n"
+
+    elif issubclass(field_type, Enum):
+        enum_values = [f"'{str(member.value)}'" for member in field_type]
+
+        field_text = f"{indent}{field_name} ({' or '.join(enum_values)})"
+        if field_description != "":
+            field_text += ":\n"
+        else:
+            field_text += "\n"
+
     else:
         field_text = f"{indent}{field_name} ({format_model_and_field_name(field_type.__name__)})"
         if field_description != "":

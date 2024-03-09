@@ -517,7 +517,7 @@ def generate_gbnf_grammar(model: type[BaseModel], processed_models: set[type[Bas
 
 def generate_gbnf_grammar_from_pydantic_models(
         models: list[type[BaseModel]], outer_object_name: str | None = None, outer_object_content: str | None = None,
-        list_of_outputs: bool = False
+        list_of_outputs: bool = False, add_inner_thoughts: bool = True, allow_only_inner_thoughts: bool = True
 ) -> str:
     """
     Generate GBNF Grammar from Pydantic Models.
@@ -566,12 +566,15 @@ def generate_gbnf_grammar_from_pydantic_models(
         else:
             root_rule = f"root ::= {format_model_and_field_name(outer_object_name)}\n"
 
-        model_rule = (
-            rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "Way of thought: " ([^\n])* "\n" "{{" ws "\"{outer_object_name}\""  ":" ws grammar-models'
-        )
+        if add_inner_thoughts:
+            if allow_only_inner_thoughts:
+                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"inner_thoughts\""  ":" ws string ("," "\n" ws "\"{outer_object_name}\""  ":" ws grammar-models)?'
+            else:
+                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"inner_thoughts\""  ":" ws string "," "\n" ws "\"{outer_object_name}\""  ":" ws grammar-models'
+        else:
+            model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{outer_object_name}\""  ":" ws grammar-models'
 
-        fields_joined = " | ".join(
-            [rf"{format_model_and_field_name(model.__name__)}-grammar-model" for model in models])
+        fields_joined = " | ".join([rf"{format_model_and_field_name(model.__name__)}-grammar-model" for model in models])
 
         grammar_model_rules = f"\ngrammar-models ::= {fields_joined}"
         mod_rules = []

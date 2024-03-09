@@ -5,9 +5,9 @@ from typing import List, Dict, Tuple
 SYS_PROMPT_START_MIXTRAL = """"""
 SYS_PROMPT_END_MIXTRAL = """\n\n"""
 USER_PROMPT_START_MIXTRAL = """[INST] """
-USER_PROMPT_END_MIXTRAL = """ [/INST]"""
-ASSISTANT_PROMPT_START_MIXTRAL = """"""
-ASSISTANT_PROMPT_END_MIXTRAL = """ </s>"""
+USER_PROMPT_END_MIXTRAL = """"""
+ASSISTANT_PROMPT_START_MIXTRAL = """ [/INST] """
+ASSISTANT_PROMPT_END_MIXTRAL = """ </s> """
 FUNCTION_PROMPT_START_MIXTRAL = """"""
 FUNCTION_PROMPT_END_MIXTRAL = """"""
 DEFAULT_MIXTRAL_STOP_SEQUENCES = ["</s>"]
@@ -34,7 +34,7 @@ DEFAULT_VICUNA_STOP_SEQUENCES = ["</s>", "USER:"]
 USER_PROMPT_START_LLAMA_2, USER_PROMPT_END_LLAMA_2 = "[INST] ", " [/INST]"
 
 ASSISTANT_PROMPT_START_LLAMA_2, ASSISTANT_PROMPT_END_LLAMA_2 = " ", " </s>"
-SYS_PROMPT_START_LLAMA_2, SYS_PROMPT_END_LLAMA_2 = " <<SYS>>\n", "\n<</SYS>>\n\n"
+SYS_PROMPT_START_LLAMA_2, SYS_PROMPT_END_LLAMA_2 = "<<SYS>>\n", "\n<</SYS>>\n\n"
 FUNCTION_PROMPT_START_LLAMA_2, FUNCTION_PROMPT_END_LLAMA_2 = "", ""
 DEFAULT_LLAMA_2_STOP_SEQUENCES = ["</s>", "[INST]"]
 
@@ -183,7 +183,7 @@ class MessagesFormatter:
                 last_role = "assistant"
             elif message["role"] == "function":
                 if isinstance(message["content"], list):
-                    message["content"] = "Function Return Values in the Order of being called:\n" + '\n'.join([json.dumps(m, indent=4) for m in message["content"]])
+                    message["content"] = "Function Return Values in the Order of being called:\n" + '\n'.join([json.dumps(m, indent=2) for m in message["content"]])
                 if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
                     formatted_messages += self.USER_PROMPT_START + message["content"] + self.USER_PROMPT_END
                     last_role = "user"

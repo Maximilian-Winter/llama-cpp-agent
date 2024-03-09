@@ -567,7 +567,7 @@ def generate_gbnf_grammar_from_pydantic_models(
             root_rule = f"root ::= {format_model_and_field_name(outer_object_name)}\n"
 
         model_rule = (
-            rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{outer_object_name}\""  ":" ws grammar-models'
+            rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "Way of thought: " ([^\n])* "\n" "{{" ws "\"{outer_object_name}\""  ":" ws grammar-models'
         )
 
         fields_joined = " | ".join(
@@ -761,7 +761,10 @@ def generate_field_markdown(
         element_types = get_args(field_type)
         types = []
         for element_type in element_types:
-            types.append(format_model_and_field_name(element_type.__name__))
+            if element_type.__name__ == "NoneType":
+                types.append("null")
+            else:
+                types.append(format_model_and_field_name(element_type.__name__))
         field_text = f"{indent}{field_name} ({' or '.join(types)})"
         if field_description != "":
             field_text += ":\n"
@@ -925,7 +928,10 @@ def generate_field_text(
         element_types = get_args(field_type)
         types = []
         for element_type in element_types:
-            types.append(format_model_and_field_name(element_type.__name__))
+            if element_type.__name__ == "NoneType":
+                types.append("null")
+            else:
+                types.append(format_model_and_field_name(element_type.__name__))
         field_text = f"{indent}{field_name} ({' or '.join(types)})"
         if field_description != "":
             field_text += ":\n"

@@ -38,6 +38,12 @@ def parse_json_response(response: str):
     Returns:
         dict: The parsed JSON object.
     """
+
+    response_lines = response.split("\n")
+    while is_empty_or_whitespace(response_lines[0]):
+        response_lines.pop(0)
+    response_lines.pop(0)
+    response = "\n".join(response_lines)
     sanitized = sanitize_json_string(response.strip())
     json_object = json.loads(sanitized)
     return json_object

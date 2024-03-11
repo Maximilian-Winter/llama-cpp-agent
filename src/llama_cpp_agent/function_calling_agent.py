@@ -111,6 +111,8 @@ class FunctionCallingAgent:
         if add_send_message_to_user_function:
             self.llama_cpp_tools = [
                 LlamaCppFunctionTool(create_dynamic_model_from_function(self.send_message_to_user))]
+        else:
+            self.llama_cpp_tools = []
 
         for tool in self.pydantic_functions:
             self.llama_cpp_tools.append(LlamaCppFunctionTool(tool))

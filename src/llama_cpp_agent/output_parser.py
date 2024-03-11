@@ -1,18 +1,24 @@
 import json
 
 
-def sanitize_json_string(s):
-    """
-    Sanitizes a JSON string by escaping newlines, quotes, and backslashes.
+def sanitize_and_load_json(input_json):
+    try:
+        # Directly load the JSON if it's already in a correct format
+        return json.loads(input_json)
+    except json.JSONDecodeError:
+        # If there's a decode error, attempt to fix and re-parse
 
-    Args:
-        s (str): The input JSON string.
+        # Replace problematic parts of the JSON string here
+        # Note: This is a simplified approach and may need adjustments based on actual LLM output
+        fixed_json = input_json.replace('\n', '\\n').replace('\"', '\\"').replace('\r', '\\r')
 
-    Returns:
-        str: The sanitized JSON string.
-    """
-
-    return s.replace('\n', '').replace('\r', '')
+        # Try loading the JSON again after making replacements
+        try:
+            return json.loads(fixed_json)
+        except json.JSONDecodeError as e:
+            # If there's still an error, print or log the error message
+            print(f"Error parsing JSON: {e}")
+            return None
 
 
 def is_empty_or_whitespace(s):
@@ -43,8 +49,7 @@ def parse_json_response(response: str):
     while is_empty_or_whitespace(response_lines[0]):
         response_lines.pop(0)
     response = "\n".join(response_lines)
-    sanitized = sanitize_json_string(response.strip())
-    json_object = json.loads(sanitized)
+    json_object = sanitize_and_load_json(response.strip())
     return json_object
 
 

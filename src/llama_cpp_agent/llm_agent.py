@@ -69,18 +69,19 @@ class LlamaCppAgent:
 
     @staticmethod
     def get_function_tool_registry(function_tool_list: List[LlamaCppFunctionTool],
-                                   allow_parallel_function_calling=False):
+                                   allow_parallel_function_calling=False, add_inner_thoughts=False, allow_inner_thoughts_only=False):
         """
         Creates and returns a function tool registry from a list of LlamaCppFunctionTool instances.
 
         Args:
             function_tool_list (List[LlamaCppFunctionTool]): List of function tools to register.
             allow_parallel_function_calling: Allow parallel function calling (Default=False)
-
+            add_inner_thoughts: Add inner thoughts (Default=False)
+            allow_inner_thoughts_only: Allow inner thoughts only (Default=False)
         Returns:
             LlamaCppFunctionToolRegistry: The created function tool registry.
         """
-        function_tool_registry = LlamaCppFunctionToolRegistry(allow_parallel_function_calling)
+        function_tool_registry = LlamaCppFunctionToolRegistry(allow_parallel_function_calling, add_inner_thoughts, allow_inner_thoughts_only)
 
         for function_tool in function_tool_list:
             function_tool_registry.register_function_tool(function_tool)

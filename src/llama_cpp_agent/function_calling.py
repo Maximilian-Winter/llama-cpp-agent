@@ -73,18 +73,23 @@ class LlamaCppFunctionToolRegistry:
         grammar (LlamaGrammar): Generated LlamaGrammar instance.
         grammar_documentation (str): Documentation for the generated GBNF grammar.
         gbnf_grammar (str): Generated GBNF grammar as a string.
+        allow_parallel_function_calling (bool): Flag indicating whether to allow parallel function calling.
+        add_inner_thoughts (bool): Flag indicating whether to add inner thoughts to the GBNF grammar.
+        allow_inner_thoughts_only (bool): Flag indicating whether to allow only inner thoughts in the GBNF grammar.
     """
-    def __init__(self, allow_parallel_function_calling):
+    def __init__(self, allow_parallel_function_calling, add_inner_thoughts=True, allow_inner_thoughts_only=True):
         self.tool_root = "function"
         self.tool_rule_content = "params"
-        self.model_prefix = "Function"
-        self.fields_prefix = "Parameters"
+        self.model_prefix = "function"
+        self.fields_prefix = "params"
         self.function_tools = {}
         self.function_tools_containing_field_string = {}
         self.grammar = None
         self.grammar_documentation = None
         self.gbnf_grammar = None
         self.allow_parallel_function_calling = allow_parallel_function_calling
+        self.add_inner_thoughts = add_inner_thoughts
+        self.allow_inner_thoughts_only = allow_inner_thoughts_only
 
     def register_function_tool(self, function_tool: LlamaCppFunctionTool):
         """
@@ -131,7 +136,9 @@ class LlamaCppFunctionToolRegistry:
         gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
             pydantic_function_models, self.tool_root,
             self.tool_rule_content, self.model_prefix,
-            self.fields_prefix, self.allow_parallel_function_calling)
+            self.fields_prefix, self.allow_parallel_function_calling,
+            add_inner_thoughts=self.add_inner_thoughts,
+            allow_only_inner_thoughts=self.allow_inner_thoughts_only)
 
         self.grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
         self.grammar_documentation = documentation

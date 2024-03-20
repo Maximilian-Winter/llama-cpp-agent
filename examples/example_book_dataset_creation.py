@@ -1,12 +1,15 @@
 from enum import Enum
+from typing import List
 
-from llama_cpp import Llama, LlamaGrammar
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import \
-    generate_gbnf_grammar_and_documentation
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
+from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import (
+    generate_gbnf_grammar_and_documentation,
+)
+from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
+    LlamaCppEndpointSettings,
+)
 
 main_model = LlamaCppEndpointSettings(
     completions_endpoint_url="http://127.0.0.1:8080/completion"
@@ -19,6 +22,7 @@ class Category(Enum):
     """
     The category of the book.
     """
+
     Fiction = "Fiction"
     NonFiction = "Non-Fiction"
 
@@ -27,17 +31,22 @@ class Book(BaseModel):
     """
     Represents an entry about a book.
     """
+
     title: str = Field(..., description="Title of the book.")
     author: str = Field(..., description="Author of the book.")
     published_year: int = Field(..., description="Publishing year of the book.")
-    keywords: list[str] = Field(..., description="A list of keywords.")
+    keywords: List[str] = Field(..., description="A list of keywords.")
     category: Category = Field(..., description="Category of the book.")
     summary: str = Field(..., description="Summary of the book.")
 
 
 gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([Book])
 
-llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
-                                system_prompt="You are an advanced AI, tasked to create JSON database entries for books.\n\n\n" + documentation)
+llama_cpp_agent = LlamaCppAgent(
+    main_model,
+    debug_output=True,
+    system_prompt="You are an advanced AI, tasked to create JSON database entries for books.\n\n\n"
+    + documentation,
+)
 
 print(llama_cpp_agent.get_chat_response(text, temperature=0.15, grammar=gbnf_grammar))

@@ -21,7 +21,7 @@ class SendMessageToUser(BaseModel):
 
 
 function_tools = [LlamaCppFunctionTool(SendMessageToUser)]
-agent_core_memory = AgentCoreMemory()q
+agent_core_memory = AgentCoreMemory()
 function_tools.extend(agent_core_memory.get_tool_list())
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 

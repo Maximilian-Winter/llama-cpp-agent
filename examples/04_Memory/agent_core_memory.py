@@ -1,4 +1,4 @@
-from llama_cpp import Llama
+from pydantic import BaseModel, Field
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
@@ -7,11 +7,21 @@ from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
     LlamaCppEndpointSettings,
 )
-from example_agent_models_auto_coder import SendMessageToUser
 
 
-agent_core_memory = AgentCoreMemory()
+class SendMessageToUser(BaseModel):
+    """
+    Send a message to the User.
+    """
+
+    message: str = Field(..., description="Message you want to send to the user.")
+
+    def run(self):
+        print("Message: " + self.message)
+
+
 function_tools = [LlamaCppFunctionTool(SendMessageToUser)]
+agent_core_memory = AgentCoreMemory()q
 function_tools.extend(agent_core_memory.get_tool_list())
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
@@ -37,8 +47,7 @@ while True:
 
     output = llama_cpp_agent.get_chat_response(
         user_input,
-        system_prompt=f"You are Cory, a advanced helpful AI assistant interacting through calling functions in form of JSON objects.\n\n{agent_core_memory.get_core_memory_manager().build_core_memory_context()}\n\nHere are your available functions:\n\n"
-        + function_tool_registry.get_documentation(),
+        system_prompt=f"You are Cory, a advanced helpful AI assistant interacting through calling functions in form of JSON objects.\n\n{agent_core_memory.get_core_memory_manager().build_core_memory_context()}\n\nHere are your available functions:\n\n{function_tool_registry.get_documentation()}",
         add_message_to_chat_history=False,
         add_response_to_chat_history=False,
         temperature=0.65,

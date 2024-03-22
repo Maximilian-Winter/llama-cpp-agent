@@ -4,11 +4,11 @@ from typing import Union
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
-
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
-
+from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
+    LlamaCppEndpointSettings,
+)
 
 
 # Simple calculator tool for the agent that can add, subtract, multiply, and divide.
@@ -23,9 +23,20 @@ class Calculator(BaseModel):
     """
     Perform a math operation on two numbers.
     """
-    number_one: Union[int, float] = Field(..., description="First number.", max_precision=5, min_precision=2)
+
+    number_one: Union[int, float] = Field(
+        ...,
+        description="First number.",
+        max_precision=5,
+        min_precision=2,
+    )
+    number_two: Union[int, float] = Field(
+        ...,
+        description="Second number.",
+        max_precision=5,
+        min_precision=2,
+    )
     operation: MathOperation = Field(..., description="Math operation to perform.")
-    number_two: Union[int, float] = Field(..., description="Second number.", max_precision=5, min_precision=2)
 
     def run(self):
         if self.operation == MathOperation.ADD:
@@ -41,14 +52,20 @@ class Calculator(BaseModel):
 
 
 function_tools = [LlamaCppFunctionTool(Calculator)]
-
-function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
-
-main_model = LlamaCppEndpointSettings(
-    "http://localhost:8080/completion"
+function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools, True)
+model = LlamaCppEndpointSettings("http://localhost:8080/completion")
+llama_cpp_agent = LlamaCppAgent(
+    model,
+    debug_output=False,
+    system_prompt=f"You are an advanced AI, tasked to assist the user by calling functions in JSON format. You can also perform parallel function calls.\n\n\n{function_tool_registry.get_documentation()}",
+    predefined_messages_formatter_type=MessagesFormatterType.CHATML,
 )
-llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
-                                system_prompt="You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n" + function_tool_registry.get_documentation(),
-                                predefined_messages_formatter_type=MessagesFormatterType.CHATML)
-user_input = 'What is 42 * 42?'
-print(llama_cpp_agent.get_chat_response(user_input, temperature=0.45, function_tool_registry=function_tool_registry))
+
+user_input = "Solve the following calculations: 42 * 42, 24 * 24, 5 * 5?"
+print(
+    llama_cpp_agent.get_chat_response(
+        user_input,
+        temperature=0.45,
+        function_tool_registry=function_tool_registry,
+    )
+)

@@ -499,7 +499,10 @@ def generate_gbnf_grammar(model: type[BaseModel], processed_models: set[type[Bas
             has_markdown_code_block = look_for_markdown_code_block
 
     fields_joined = r' "," "\n" '.join(model_rule_parts)
-    model_rule = rf'{model_name} ::= "{{" "\n" {fields_joined} "\n" ws "}}"'
+    if fields_joined != "":
+        model_rule = rf'{model_name} ::= "{{" "\n" {fields_joined} "\n" ws "}}"'
+    else:
+        model_rule = rf'{model_name} ::= "{{" "}}"'
 
     has_special_string = False
     if has_triple_quoted_string:
@@ -517,7 +520,8 @@ def generate_gbnf_grammar(model: type[BaseModel], processed_models: set[type[Bas
 
 def generate_gbnf_grammar_from_pydantic_models(
         models: list[type[BaseModel]], outer_object_name: str | None = None, outer_object_content: str | None = None,
-        list_of_outputs: bool = False, add_inner_thoughts: bool = True, allow_only_inner_thoughts: bool = True
+        list_of_outputs: bool = False, add_inner_thoughts: bool = True, allow_only_inner_thoughts: bool = True, inner_thought_field_name: str = "chain_of_thought",
+        add_request_heartbeat: bool = True, request_heartbeat_field_name: str = "request_heartbeat", request_heartbeat_models: list[str] = None
 ) -> str:
     """
     Generate GBNF Grammar from Pydantic Models.
@@ -543,6 +547,8 @@ def generate_gbnf_grammar_from_pydantic_models(
         # root ::= UserModel | PostModel
         # ...
     """
+    if request_heartbeat_models is None:
+        request_heartbeat_models = []
     processed_models: set[type[BaseModel]] = set()
     all_rules = []
     created_rules: dict[str, list[str]] = {}
@@ -570,9 +576,9 @@ def generate_gbnf_grammar_from_pydantic_models(
 
         if add_inner_thoughts:
             if allow_only_inner_thoughts:
-                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"inner_thoughts\""  ":" ws string ("," "\n" ws "\"{outer_object_name}\""  ":" ws grammar-models)?'
+                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string ("," "\n" ws "\"{outer_object_name}\""  ":" ws grammar-models)?'
             else:
-                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"inner_thoughts\""  ":" ws string "," "\n" ws "\"{outer_object_name}\""  ":" ws grammar-models'
+                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string "," "\n" ws "\"{outer_object_name}\""  ":" ws grammar-models '
         else:
             model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{outer_object_name}\""  ":" ws grammar-models'
 
@@ -591,7 +597,8 @@ def generate_gbnf_grammar_from_pydantic_models(
         for model in models:
             model_rules, has_special_string = generate_gbnf_grammar(model, processed_models,
                                                                     created_rules)
-
+            if add_request_heartbeat and model.__name__ in request_heartbeat_models:
+                model_rules[0] += rf' ",\n" "  " "\"{request_heartbeat_field_name}\""  ":" ws boolean '
             if not has_special_string:
                 model_rules[0] += r'"\n" "}"'
 
@@ -1043,7 +1050,11 @@ def generate_and_save_gbnf_grammar_and_documentation(
         list_of_outputs: bool = False,
         documentation_with_field_description=True,
         add_inner_thoughts: bool = True,
-        allow_only_inner_thoughts: bool = True
+        allow_only_inner_thoughts: bool = True,
+        inner_thoughts_field_name: str = "way_of_thought",
+        add_request_heartbeat: bool = True,
+        request_heartbeat_field_name: str = "request_heartbeat",
+        request_heartbeat_models: List[str] = None
 ):
     """
     Generate GBNF grammar and documentation, and save them to specified files.
@@ -1069,7 +1080,7 @@ def generate_and_save_gbnf_grammar_and_documentation(
         documentation_with_field_description=documentation_with_field_description
     )
     grammar = generate_gbnf_grammar_from_pydantic_models(pydantic_model_list, outer_object_name, outer_object_content,
-                                                         list_of_outputs, add_inner_thoughts, allow_only_inner_thoughts)
+                                                         list_of_outputs, add_inner_thoughts, allow_only_inner_thoughts, inner_thoughts_field_name, add_request_heartbeat, request_heartbeat_field_name, request_heartbeat_models)
     grammar = remove_empty_lines(grammar)
     save_gbnf_grammar_and_documentation(grammar, documentation, grammar_file_path, documentation_file_path)
 
@@ -1083,7 +1094,11 @@ def generate_gbnf_grammar_and_documentation(
         list_of_outputs: bool = False,
         documentation_with_field_description=True,
         add_inner_thoughts: bool = True,
-        allow_only_inner_thoughts: bool = True
+        allow_only_inner_thoughts: bool = True,
+        inner_thoughts_field_name: str = "way_of_thought",
+        add_request_heartbeat: bool = True,
+        request_heartbeat_field_name: str = "request_heartbeat",
+        request_heartbeat_models: List[str] = None
 ):
     """
     Generate GBNF grammar and documentation for a list of Pydantic models.
@@ -1107,7 +1122,7 @@ def generate_gbnf_grammar_and_documentation(
         documentation_with_field_description=documentation_with_field_description
     )
     grammar = generate_gbnf_grammar_from_pydantic_models(pydantic_model_list, outer_object_name, outer_object_content,
-                                                         list_of_outputs, add_inner_thoughts, allow_only_inner_thoughts)
+                                                         list_of_outputs, add_inner_thoughts, allow_only_inner_thoughts, inner_thoughts_field_name, add_request_heartbeat, request_heartbeat_field_name, request_heartbeat_models)
     grammar = remove_empty_lines(grammar + get_primitive_grammar(grammar))
     return grammar, documentation
 
@@ -1121,7 +1136,11 @@ def generate_gbnf_grammar_and_documentation_from_dictionaries(
         list_of_outputs: bool = False,
         documentation_with_field_description=True,
         add_inner_thoughts: bool = True,
-        allow_only_inner_thoughts: bool = True
+        allow_only_inner_thoughts: bool = True,
+        inner_thoughts_field_name: str = "way_of_thought",
+        add_request_heartbeat: bool = True,
+        request_heartbeat_field_name: str = "request_heartbeat",
+        request_heartbeat_models: List[str] = None
 ):
     """
     Generate GBNF grammar and documentation from a list of dictionaries.
@@ -1146,7 +1165,7 @@ def generate_gbnf_grammar_and_documentation_from_dictionaries(
         documentation_with_field_description=documentation_with_field_description
     )
     grammar = generate_gbnf_grammar_from_pydantic_models(pydantic_model_list, outer_object_name, outer_object_content,
-                                                         list_of_outputs, add_inner_thoughts, allow_only_inner_thoughts)
+                                                         list_of_outputs, add_inner_thoughts, allow_only_inner_thoughts, inner_thoughts_field_name, add_request_heartbeat, request_heartbeat_field_name, request_heartbeat_models)
     grammar = remove_empty_lines(grammar + get_primitive_grammar(grammar))
     return grammar, documentation
 

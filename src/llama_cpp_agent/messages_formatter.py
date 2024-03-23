@@ -18,7 +18,7 @@ USER_PROMPT_START_CHATML = """<|im_start|>user\n"""
 USER_PROMPT_END_CHATML = """<|im_end|>\n"""
 ASSISTANT_PROMPT_START_CHATML = """<|im_start|>assistant\n"""
 ASSISTANT_PROMPT_END_CHATML = """<|im_end|>\n"""
-FUNCTION_PROMPT_START_CHATML = """<|im_start|>function\n"""
+FUNCTION_PROMPT_START_CHATML = """<|im_start|>tool\n"""
 FUNCTION_PROMPT_END_CHATML = """<|im_end|>\n"""
 DEFAULT_CHATML_STOP_SEQUENCES = ["<|im_end|>"]
 
@@ -183,7 +183,7 @@ class MessagesFormatter:
                 last_role = "assistant"
             elif message["role"] == "function":
                 if isinstance(message["content"], list):
-                    message["content"] = "Function Return Values in the Order of being called:\n" + '\n'.join([json.dumps(m, indent=2) for m in message["content"]])
+                    message["content"] = '\n'.join([json.dumps(m, indent=2) for m in message["content"]])
                 if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
                     formatted_messages += self.USER_PROMPT_START + message["content"] + self.USER_PROMPT_END
                     last_role = "user"

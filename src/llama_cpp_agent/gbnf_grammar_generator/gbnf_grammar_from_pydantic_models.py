@@ -1051,7 +1051,7 @@ def generate_and_save_gbnf_grammar_and_documentation(
         documentation_with_field_description=True,
         add_inner_thoughts: bool = True,
         allow_only_inner_thoughts: bool = True,
-        inner_thoughts_field_name: str = "way_of_thought",
+        inner_thoughts_field_name: str = "thoughts_and_reasoning",
         add_request_heartbeat: bool = True,
         request_heartbeat_field_name: str = "request_heartbeat",
         request_heartbeat_models: List[str] = None
@@ -1095,7 +1095,7 @@ def generate_gbnf_grammar_and_documentation(
         documentation_with_field_description=True,
         add_inner_thoughts: bool = True,
         allow_only_inner_thoughts: bool = True,
-        inner_thoughts_field_name: str = "way_of_thought",
+        inner_thoughts_field_name: str = "thoughts_and_reasoning",
         add_request_heartbeat: bool = True,
         request_heartbeat_field_name: str = "request_heartbeat",
         request_heartbeat_models: List[str] = None
@@ -1137,7 +1137,7 @@ def generate_gbnf_grammar_and_documentation_from_dictionaries(
         documentation_with_field_description=True,
         add_inner_thoughts: bool = True,
         allow_only_inner_thoughts: bool = True,
-        inner_thoughts_field_name: str = "way_of_thought",
+        inner_thoughts_field_name: str = "thoughts_and_reasoning",
         add_request_heartbeat: bool = True,
         request_heartbeat_field_name: str = "request_heartbeat",
         request_heartbeat_models: List[str] = None

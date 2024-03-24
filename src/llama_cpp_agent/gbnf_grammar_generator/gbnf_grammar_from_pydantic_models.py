@@ -1055,10 +1055,10 @@ def generate_and_save_gbnf_grammar_and_documentation(
         fields_prefix: str = "Output Fields",
         list_of_outputs: bool = False,
         documentation_with_field_description=True,
-        add_inner_thoughts: bool = True,
-        allow_only_inner_thoughts: bool = True,
+        add_inner_thoughts: bool = False,
+        allow_only_inner_thoughts: bool = False,
         inner_thoughts_field_name: str = "thoughts_and_reasoning",
-        add_request_heartbeat: bool = True,
+        add_request_heartbeat: bool = False,
         request_heartbeat_field_name: str = "request_heartbeat",
         request_heartbeat_models: List[str] = None
 ):
@@ -1075,9 +1075,12 @@ def generate_and_save_gbnf_grammar_and_documentation(
         fields_prefix (str): Prefix for the fields section in the documentation.
         list_of_outputs (bool): Whether the output is a list of items.
         documentation_with_field_description (bool): Include field descriptions in the documentation.
-        add_inner_thoughts (bool): Add inner thoughts to the grammar.
-        allow_only_inner_thoughts (bool): Allow only inner thoughts.
-
+        add_inner_thoughts (bool): Add inner thoughts to the grammar. This is useful for adding comments or reasoning to the output.
+        allow_only_inner_thoughts (bool): Allow only inner thoughts. If True, only inner thoughts will be allowed in the output.
+        inner_thoughts_field_name (str): Field name for inner thoughts. Default is "thoughts_and_reasoning".
+        add_request_heartbeat (bool): Add request heartbeat to the grammar. This allows the LLM to decide when to return control to the system.
+        request_heartbeat_field_name (str): Field name for request heartbeat. Default is "request_heartbeat".
+        request_heartbeat_models (List[str]): List of models that will have a request heartbeat field.
     Returns:
         None
     """
@@ -1099,10 +1102,10 @@ def generate_gbnf_grammar_and_documentation(
         fields_prefix: str = "Output Fields",
         list_of_outputs: bool = False,
         documentation_with_field_description=True,
-        add_inner_thoughts: bool = True,
-        allow_only_inner_thoughts: bool = True,
+        add_inner_thoughts: bool = False,
+        allow_only_inner_thoughts: bool = False,
         inner_thoughts_field_name: str = "thoughts_and_reasoning",
-        add_request_heartbeat: bool = True,
+        add_request_heartbeat: bool = False,
         request_heartbeat_field_name: str = "request_heartbeat",
         request_heartbeat_models: List[str] = None
 ):
@@ -1117,8 +1120,12 @@ def generate_gbnf_grammar_and_documentation(
         fields_prefix (str): Prefix for the fields section in the documentation.
         list_of_outputs (bool): Whether the output is a list of items.
         documentation_with_field_description (bool): Include field descriptions in the documentation.
-        add_inner_thoughts (bool): Add inner thoughts to the grammar.
-        allow_only_inner_thoughts (bool): Allow only inner thoughts.
+        add_inner_thoughts (bool): Add inner thoughts to the grammar. This is useful for adding comments or reasoning to the output.
+        allow_only_inner_thoughts (bool): Allow only inner thoughts. If True, only inner thoughts will be allowed in the output.
+        inner_thoughts_field_name (str): Field name for inner thoughts. Default is "thoughts_and_reasoning".
+        add_request_heartbeat (bool): Add request heartbeat to the grammar. This allows the LLM to decide when to return control to the system.
+        request_heartbeat_field_name (str): Field name for request heartbeat. Default is "request_heartbeat".
+        request_heartbeat_models (List[str]): List of models that will have a request heartbeat field.
 
     Returns:
         tuple: GBNF grammar string, documentation string.
@@ -1141,10 +1148,10 @@ def generate_gbnf_grammar_and_documentation_from_dictionaries(
         fields_prefix: str = "Output Fields",
         list_of_outputs: bool = False,
         documentation_with_field_description=True,
-        add_inner_thoughts: bool = True,
-        allow_only_inner_thoughts: bool = True,
+        add_inner_thoughts: bool = False,
+        allow_only_inner_thoughts: bool = False,
         inner_thoughts_field_name: str = "thoughts_and_reasoning",
-        add_request_heartbeat: bool = True,
+        add_request_heartbeat: bool = False,
         request_heartbeat_field_name: str = "request_heartbeat",
         request_heartbeat_models: List[str] = None
 ):
@@ -1159,8 +1166,12 @@ def generate_gbnf_grammar_and_documentation_from_dictionaries(
         fields_prefix (str): Prefix for the fields section in the documentation.
         list_of_outputs (bool): Whether the output is a list of items.
         documentation_with_field_description (bool): Include field descriptions in the documentation.
-        add_inner_thoughts (bool): Add inner thoughts to the grammar.
-        allow_only_inner_thoughts (bool): Allow only inner thoughts.
+        add_inner_thoughts (bool): Add inner thoughts to the grammar. This is useful for adding comments or reasoning to the output.
+        allow_only_inner_thoughts (bool): Allow only inner thoughts. If True, only inner thoughts will be allowed in the output.
+        inner_thoughts_field_name (str): Field name for inner thoughts. Default is "thoughts_and_reasoning".
+        add_request_heartbeat (bool): Add request heartbeat to the grammar. This allows the LLM to decide when to return control to the system.
+        request_heartbeat_field_name (str): Field name for request heartbeat. Default is "request_heartbeat".
+        request_heartbeat_models (List[str]): List of models that will have a request heartbeat field.
 
     Returns:
         tuple: GBNF grammar string, documentation string.

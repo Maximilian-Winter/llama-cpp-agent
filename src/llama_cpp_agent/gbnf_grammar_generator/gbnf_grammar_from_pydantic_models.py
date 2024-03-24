@@ -729,6 +729,12 @@ def generate_markdown_documentation(
                 documentation += generate_field_markdown(
                     name, field_type, model, documentation_with_field_description=documentation_with_field_description
                 )
+            if add_prefix:
+                if documentation.endswith(f"{fields_prefix}:\n"):
+                    documentation += "    None"
+            else:
+                if documentation.endswith("Fields:\n"):
+                    documentation += "    None"
             documentation += "\n"
 
         if hasattr(model, "Config") and hasattr(model.Config,

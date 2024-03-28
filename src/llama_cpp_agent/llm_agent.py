@@ -322,6 +322,7 @@ class LlamaCppAgent:
             logprobs: int = None,
             logit_bias: Dict[str, float] = None,
             logit_bias_type: Literal["input_ids", "tokens"] = None,
+            cache_prompt: bool = False,
             samplers: List[str] = None
     ):
         """
@@ -444,6 +445,7 @@ class LlamaCppAgent:
                         mirostat_eta=mirostat_eta,
                         samplers=samplers,
                         seed=seed,
+                        cache_prompt=cache_prompt,
                         ignore_eos=ignore_eos)
                 )
             elif isinstance(self.model, OpenAIEndpointSettings):

@@ -30,7 +30,7 @@ class LlamaCppFunctionTool:
         __call__(*args, **kwargs): Calls the Pydantic model with the provided keyword arguments.
     """
     def __init__(self, pydantic_model: Type[BaseModel], add_params_to_result=False, has_markdown_code_block=False, has_triple_quoted_string=False,
-                 markdown_code_block_field_name=None, triple_quoted_string_field_name=None,
+                 markdown_code_block_field_name=None, triple_quoted_string_field_name=None, add_outer_request_heartbeat_field=True,
                  **additional_parameters):
         self.model = pydantic_model
         self.add_params_to_result = add_params_to_result
@@ -40,6 +40,7 @@ class LlamaCppFunctionTool:
         self.markdown_code_block_field_name = markdown_code_block_field_name
         self.triple_quoted_string_field_name = triple_quoted_string_field_name
         self.additional_parameters = additional_parameters if additional_parameters else {}
+        self.add_outer_request_heartbeat_field = add_outer_request_heartbeat_field
 
     def __call__(self, *args, **kwargs):
         """
@@ -77,7 +78,7 @@ class LlamaCppFunctionToolRegistry:
         add_inner_thoughts (bool): Flag indicating whether to add inner thoughts to the GBNF grammar.
         allow_inner_thoughts_only (bool): Flag indicating whether to allow only inner thoughts in the GBNF grammar.
     """
-    def __init__(self, allow_parallel_function_calling, add_inner_thoughts=True, allow_inner_thoughts_only=True):
+    def __init__(self, allow_parallel_function_calling, add_inner_thoughts=True, allow_inner_thoughts_only=True, add_request_heartbeat=True):
         self.tool_root = "function"
         self.tool_rule_content = "params"
         self.model_prefix = "function"
@@ -90,6 +91,7 @@ class LlamaCppFunctionToolRegistry:
         self.allow_parallel_function_calling = allow_parallel_function_calling
         self.add_inner_thoughts = add_inner_thoughts
         self.allow_inner_thoughts_only = allow_inner_thoughts_only
+        self.add_request_heartbeat = add_request_heartbeat
 
     def register_function_tool(self, function_tool: LlamaCppFunctionTool):
         """
@@ -126,10 +128,11 @@ class LlamaCppFunctionToolRegistry:
         Finalize the registry, generating the GBNF grammar and documentation.
         """
         pydantic_function_models = []
-
+        request_heartbeat_list = []
         for function_tool in self.function_tools.values():
             pydantic_function_models.append(function_tool.model)
-
+            if function_tool.add_outer_request_heartbeat_field:
+                request_heartbeat_list.append(function_tool.model.__name__)
         for function_tool in self.function_tools_containing_field_string.values():
             pydantic_function_models.append(function_tool.model)
 
@@ -138,7 +141,8 @@ class LlamaCppFunctionToolRegistry:
             self.tool_rule_content, self.model_prefix,
             self.fields_prefix, self.allow_parallel_function_calling,
             add_inner_thoughts=self.add_inner_thoughts,
-            allow_only_inner_thoughts=self.allow_inner_thoughts_only)
+            allow_only_inner_thoughts=self.allow_inner_thoughts_only, add_request_heartbeat=self.add_request_heartbeat,
+            request_heartbeat_models=request_heartbeat_list)
 
         self.grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
         self.grammar_documentation = documentation
@@ -219,9 +223,13 @@ class LlamaCppFunctionToolRegistry:
             call = cls(**call_parameters)
             output = call.run(**function_tool.additional_parameters)
             if function_tool.add_params_to_result:
-                return [{"function": function_tool.model.__name__, "params": call_parameters, "return_value": output}]
+                if self.add_request_heartbeat:
+                    return [{"function": function_tool.model.__name__, "params": call_parameters, "return_value": output, "request_heartbeat": function_call["request_heartbeat"] if "request_heartbeat" in function_call else None}]
+                return [{"function": function_tool.model.__name__, "params": call_parameters, "return_value": output, "request_heartbeat": None}]
             else:
-                return [{"function": function_tool.model.__name__, "return_value": output}]
+                if self.add_request_heartbeat:
+                    return [{"function": function_tool.model.__name__, "return_value": output, "request_heartbeat": function_call["request_heartbeat"] if "request_heartbeat" in function_call else None}]
+                return [{"function": function_tool.model.__name__, "return_value": output, "request_heartbeat": None}]
         except AttributeError as e:
             return f"Error: {e}"
 
@@ -248,7 +256,7 @@ class LlamaCppFunctionToolRegistry:
                     if function_tool.add_params_to_result:
                         result.append({"function": function_tool.model.__name__, "params": call_parameters, "return_value": output})
                     else:
-                        result.append({"function_call_id": function_call["function_call_id"], "function": function_tool.model.__name__, "return_value": output})
+                        result.append({"function": function_tool.model.__name__, "return_value": output})
                 except AttributeError as e:
                     return f"Error: {e}"
         else:

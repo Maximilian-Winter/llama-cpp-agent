@@ -69,7 +69,8 @@ class LlamaCppAgent:
 
     @staticmethod
     def get_function_tool_registry(function_tool_list: List[LlamaCppFunctionTool],
-                                   allow_parallel_function_calling=False, add_inner_thoughts=False, allow_inner_thoughts_only=False):
+                                   allow_parallel_function_calling=False, add_inner_thoughts=False, allow_inner_thoughts_only=False,
+                                   add_request_heartbeat=False):
         """
         Creates and returns a function tool registry from a list of LlamaCppFunctionTool instances.
 
@@ -81,7 +82,7 @@ class LlamaCppAgent:
         Returns:
             LlamaCppFunctionToolRegistry: The created function tool registry.
         """
-        function_tool_registry = LlamaCppFunctionToolRegistry(allow_parallel_function_calling, add_inner_thoughts, allow_inner_thoughts_only)
+        function_tool_registry = LlamaCppFunctionToolRegistry(allow_parallel_function_calling, add_inner_thoughts, allow_inner_thoughts_only, add_request_heartbeat)
 
         for function_tool in function_tool_list:
             function_tool_registry.register_function_tool(function_tool)
@@ -289,6 +290,7 @@ class LlamaCppAgent:
             grammar: str = None,
             function_tool_registry: LlamaCppFunctionToolRegistry = None,
             streaming_callback: Callable[[StreamingResponse], None] = None,
+
             max_tokens: int = 0,
             temperature: float = 0.4,
             top_k: int = 0,
@@ -320,6 +322,7 @@ class LlamaCppAgent:
             logprobs: int = None,
             logit_bias: Dict[str, float] = None,
             logit_bias_type: Literal["input_ids", "tokens"] = None,
+            cache_prompt: bool = False,
             samplers: List[str] = None
     ):
         """
@@ -335,6 +338,7 @@ class LlamaCppAgent:
             grammar (str): The grammar for generating responses in string format.
             function_tool_registry (LlamaCppFunctionToolRegistry): The function tool registry for handling function calls.
             streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
+
             max_tokens (int): The maximum number of tokens in the generated response.
             temperature (float): The temperature parameter for response generation.
             top_k (int): Top-k parameter for response generation.
@@ -368,7 +372,8 @@ class LlamaCppAgent:
             logprobs: int = None,
             logit_bias: Dict[str, float] = None,
             logit_bias_type:Literal["input_ids", "tokens"] = None
-
+            cache_prompt: bool = False,
+            samplers: List[str] = None
         Returns:
             list[dict]: The generated chat response.
         """
@@ -441,6 +446,7 @@ class LlamaCppAgent:
                         mirostat_eta=mirostat_eta,
                         samplers=samplers,
                         seed=seed,
+                        cache_prompt=cache_prompt,
                         ignore_eos=ignore_eos)
                 )
             elif isinstance(self.model, OpenAIEndpointSettings):
@@ -538,6 +544,7 @@ class LlamaCppAgent:
                     )
                 if function_tool_registry is not None:
                     full_response = function_tool_registry.handle_function_call(full_response)
+
                     return full_response if full_response else None
                 return full_response if full_response else None
             if print_output:

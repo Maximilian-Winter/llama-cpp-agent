@@ -10,7 +10,7 @@ def sanitize_and_load_json(input_json):
 
         # Replace problematic parts of the JSON string here
         # Note: This is a simplified approach and may need adjustments based on actual LLM output
-        fixed_json = input_json.replace('\n', '').replace('\r', '\\r')
+        fixed_json = input_json.replace("\n", "").replace("\r", "\\r")
 
         # Try loading the JSON again after making replacements
         try:
@@ -53,7 +53,9 @@ def parse_json_response(response: str):
     return json_object
 
 
-def parse_json_response_with_markdown_code_block_or_triple_quoted_string(json_response, marker):
+def parse_json_response_with_markdown_code_block_or_triple_quoted_string(
+    json_response, marker
+):
     """
     Parses a JSON response string followed by a Markdown code block or triple-quoted string.
 

@@ -24,6 +24,7 @@ class LlamaLLMGenerationSettings:
         stream (bool): If True, generates output as a stream (partial responses); if False, generates complete responses.
         print_output (bool): If True, prints the generated output.
     """
+
     max_tokens: int = 0
     temperature: float = 0.35
     top_k: int = 0
@@ -39,7 +40,6 @@ class LlamaLLMGenerationSettings:
     stream: bool = True
     print_output: bool = True
 
-
     def save(self, file_path: str):
         """
         Save the LlamaLLMGenerationSettings object to a JSON file.
@@ -47,7 +47,7 @@ class LlamaLLMGenerationSettings:
         Args:
             file_path (str): The path to the JSON file.
         """
-        with open(file_path, 'w', encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
@@ -61,7 +61,7 @@ class LlamaLLMGenerationSettings:
         Returns:
             LlamaLLMGenerationSettings: Loaded LlamaLLMGenerationSettings object.
         """
-        with open(file_path, 'r', encoding="utf-8") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             loaded_settings = json.load(file)
             return LlamaLLMGenerationSettings(**loaded_settings)
 
@@ -107,6 +107,7 @@ class LlamaLLMSettings:
         verbose (bool): If True, enables verbose mode.
         seed (int): Random seed for reproducibility.
     """
+
     model_path: str
     n_gpu_layers: int = 0
     f16_kv: bool = True
@@ -127,7 +128,7 @@ class LlamaLLMSettings:
         Args:
             file_path (str): The path to the JSON file.
         """
-        with open(file_path, 'w', encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
@@ -141,7 +142,7 @@ class LlamaLLMSettings:
         Returns:
             LlamaLLMSettings: Loaded LlamaLLMSettings object.
         """
-        with open(file_path, 'r', encoding="utf-8") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             loaded_settings = json.load(file)
             return LlamaLLMSettings(**loaded_settings)
 

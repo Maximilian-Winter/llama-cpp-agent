@@ -18,7 +18,7 @@ Base = declarative_base()
 
 
 class Event(Base):
-    __tablename__ = 'events'
+    __tablename__ = "events"
     id = Column(Integer, primary_key=True)
     event_type = Column(Enum(EventType))
     timestamp = Column(DateTime, index=True)
@@ -26,7 +26,9 @@ class Event(Base):
     event_keywords = Column(Text)  # Storing keywords as JSON string
 
     def __str__(self):
-        content = f'Timestamp: {self.timestamp.strftime("%Y-%m-%d %H:%M")}\n{self.content}'
+        content = (
+            f'Timestamp: {self.timestamp.strftime("%Y-%m-%d %H:%M")}\n{self.content}'
+        )
         return content
 
     def add_keyword(self, keyword):
@@ -43,7 +45,7 @@ class Event(Base):
             "event_type": self.event_type.value,
             "timestamp": self.timestamp.isoformat(),
             "content": self.content,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
     @staticmethod
@@ -52,5 +54,5 @@ class Event(Base):
             event_type=data["event_type"],
             timestamp=datetime.datetime.fromisoformat(data["timestamp"]),
             content=data["content"],
-            metadata=data["metadata"]
+            metadata=data["metadata"],
         )

@@ -18,7 +18,7 @@ USER_PROMPT_START_CHATML = """<|im_start|>user\n"""
 USER_PROMPT_END_CHATML = """<|im_end|>\n"""
 ASSISTANT_PROMPT_START_CHATML = """<|im_start|>assistant\n"""
 ASSISTANT_PROMPT_END_CHATML = """<|im_end|>\n"""
-FUNCTION_PROMPT_START_CHATML = """<|im_start|>functions\n"""
+FUNCTION_PROMPT_START_CHATML = """<|im_start|>function\n"""
 FUNCTION_PROMPT_END_CHATML = """<|im_end|>\n"""
 DEFAULT_CHATML_STOP_SEQUENCES = ["<|im_end|>"]
 
@@ -92,6 +92,7 @@ class MessagesFormatterType(Enum):
     """
     Enum representing different types of predefined messages formatters.
     """
+
     MIXTRAL = 1
     CHATML = 2
     VICUNA = 3
@@ -107,16 +108,23 @@ class MessagesFormatter:
     """
     Class representing a messages formatter for LLMs.
     """
-    def __init__(self, PRE_PROMPT: str, SYS_PROMPT_START: str, SYS_PROMPT_END: str, USER_PROMPT_START: str,
-                 USER_PROMPT_END: str,
-                 ASSISTANT_PROMPT_START: str,
-                 ASSISTANT_PROMPT_END: str,
-                 INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE: bool,
-                 DEFAULT_STOP_SEQUENCES: List[str],
-                 USE_USER_ROLE_FUNCTION_CALL_RESULT: bool = True,
-                 FUNCTION_PROMPT_START: str = "",
-                 FUNCTION_PROMPT_END: str = "",
-                 STRIP_PROMPT: bool = True):
+
+    def __init__(
+        self,
+        PRE_PROMPT: str,
+        SYS_PROMPT_START: str,
+        SYS_PROMPT_END: str,
+        USER_PROMPT_START: str,
+        USER_PROMPT_END: str,
+        ASSISTANT_PROMPT_START: str,
+        ASSISTANT_PROMPT_END: str,
+        INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE: bool,
+        DEFAULT_STOP_SEQUENCES: List[str],
+        USE_USER_ROLE_FUNCTION_CALL_RESULT: bool = True,
+        FUNCTION_PROMPT_START: str = "",
+        FUNCTION_PROMPT_END: str = "",
+        STRIP_PROMPT: bool = True,
+    ):
         """
         Initializes a new MessagesFormatter object.
 
@@ -142,7 +150,9 @@ class MessagesFormatter:
         self.USER_PROMPT_END = USER_PROMPT_END
         self.ASSISTANT_PROMPT_START = ASSISTANT_PROMPT_START
         self.ASSISTANT_PROMPT_END = ASSISTANT_PROMPT_END
-        self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE = INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE
+        self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE = (
+            INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE
+        )
         self.DEFAULT_STOP_SEQUENCES = DEFAULT_STOP_SEQUENCES
         self.FUNCTION_PROMPT_START = FUNCTION_PROMPT_START
         self.FUNCTION_PROMPT_END = FUNCTION_PROMPT_END
@@ -164,7 +174,9 @@ class MessagesFormatter:
         no_user_prompt_start = False
         for message in messages:
             if message["role"] == "system":
-                formatted_messages += self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
+                formatted_messages += (
+                    self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
+                )
                 last_role = "system"
                 if self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE:
                     formatted_messages = self.USER_PROMPT_START + formatted_messages
@@ -174,25 +186,46 @@ class MessagesFormatter:
                     no_user_prompt_start = False
                     formatted_messages += message["content"] + self.USER_PROMPT_END
                 else:
-                    formatted_messages += self.USER_PROMPT_START + message["content"] + self.USER_PROMPT_END
+                    formatted_messages += (
+                        self.USER_PROMPT_START
+                        + message["content"]
+                        + self.USER_PROMPT_END
+                    )
                 last_role = "user"
             elif message["role"] == "assistant":
                 if self.STRIP_PROMPT:
                     message["content"] = message["content"].strip()
-                formatted_messages += self.ASSISTANT_PROMPT_START + message["content"] + self.ASSISTANT_PROMPT_END
+                formatted_messages += (
+                    self.ASSISTANT_PROMPT_START
+                    + message["content"]
+                    + self.ASSISTANT_PROMPT_END
+                )
                 last_role = "assistant"
             elif message["role"] == "function":
                 if isinstance(message["content"], list):
-                    message["content"] = '\n'.join([json.dumps(m, indent=2) for m in message["content"]])
+                    message["content"] = "\n".join(
+                        [json.dumps(m, indent=2) for m in message["content"]]
+                    )
                 if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
-                    formatted_messages += self.USER_PROMPT_START + message["content"] + self.USER_PROMPT_END
+                    formatted_messages += (
+                        self.USER_PROMPT_START
+                        + message["content"]
+                        + self.USER_PROMPT_END
+                    )
                     last_role = "user"
                 else:
-                    formatted_messages += self.FUNCTION_PROMPT_START + message["content"] + self.FUNCTION_PROMPT_END
+                    formatted_messages += (
+                        self.FUNCTION_PROMPT_START
+                        + message["content"]
+                        + self.FUNCTION_PROMPT_END
+                    )
                     last_role = "function"
         if last_role == "system" or last_role == "user" or last_role == "function":
             if self.STRIP_PROMPT:
-                return formatted_messages + self.ASSISTANT_PROMPT_START.strip(), "assistant"
+                return (
+                    formatted_messages + self.ASSISTANT_PROMPT_START.strip(),
+                    "assistant",
+                )
             else:
                 return formatted_messages + self.ASSISTANT_PROMPT_START, "assistant"
         if self.STRIP_PROMPT:
@@ -207,7 +240,7 @@ class MessagesFormatter:
         Args:
            file_path (str): The file path to save the configuration.
         """
-        with open(file_path, 'w', encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
@@ -221,7 +254,7 @@ class MessagesFormatter:
         Returns:
             MessagesFormatter: Loaded messages formatter.
         """
-        with open(file_path, 'r', encoding="utf-8") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             loaded_messages_formatter = json.load(file)
             return MessagesFormatter(**loaded_messages_formatter)
 
@@ -248,42 +281,121 @@ class MessagesFormatter:
         return self.__dict__
 
 
-mixtral_formatter = MessagesFormatter("", SYS_PROMPT_START_MIXTRAL, SYS_PROMPT_END_MIXTRAL, USER_PROMPT_START_MIXTRAL,
-                                      USER_PROMPT_END_MIXTRAL, ASSISTANT_PROMPT_START_MIXTRAL,
-                                      ASSISTANT_PROMPT_END_MIXTRAL, True, DEFAULT_MIXTRAL_STOP_SEQUENCES)
-chatml_formatter = MessagesFormatter("", SYS_PROMPT_START_CHATML, SYS_PROMPT_END_CHATML, USER_PROMPT_START_CHATML,
-                                     USER_PROMPT_END_CHATML, ASSISTANT_PROMPT_START_CHATML,
-                                     ASSISTANT_PROMPT_END_CHATML, False, DEFAULT_CHATML_STOP_SEQUENCES, False, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
-vicuna_formatter = MessagesFormatter("", SYS_PROMPT_START_VICUNA, SYS_PROMPT_END_VICUNA, USER_PROMPT_START_VICUNA,
-                                     USER_PROMPT_END_VICUNA, ASSISTANT_PROMPT_START_VICUNA,
-                                     ASSISTANT_PROMPT_END_VICUNA, True, DEFAULT_VICUNA_STOP_SEQUENCES)
+mixtral_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_MIXTRAL,
+    SYS_PROMPT_END_MIXTRAL,
+    USER_PROMPT_START_MIXTRAL,
+    USER_PROMPT_END_MIXTRAL,
+    ASSISTANT_PROMPT_START_MIXTRAL,
+    ASSISTANT_PROMPT_END_MIXTRAL,
+    True,
+    DEFAULT_MIXTRAL_STOP_SEQUENCES,
+)
+chatml_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_CHATML,
+    SYS_PROMPT_END_CHATML,
+    USER_PROMPT_START_CHATML,
+    USER_PROMPT_END_CHATML,
+    ASSISTANT_PROMPT_START_CHATML,
+    ASSISTANT_PROMPT_END_CHATML,
+    False,
+    DEFAULT_CHATML_STOP_SEQUENCES,
+    False,
+    FUNCTION_PROMPT_START_CHATML,
+    FUNCTION_PROMPT_END_CHATML,
+)
+vicuna_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_VICUNA,
+    SYS_PROMPT_END_VICUNA,
+    USER_PROMPT_START_VICUNA,
+    USER_PROMPT_END_VICUNA,
+    ASSISTANT_PROMPT_START_VICUNA,
+    ASSISTANT_PROMPT_END_VICUNA,
+    True,
+    DEFAULT_VICUNA_STOP_SEQUENCES,
+)
 
-llama_2_formatter = MessagesFormatter("", SYS_PROMPT_START_LLAMA_2, SYS_PROMPT_END_LLAMA_2, USER_PROMPT_START_LLAMA_2,
-                                      USER_PROMPT_END_LLAMA_2, ASSISTANT_PROMPT_START_LLAMA_2,
-                                      ASSISTANT_PROMPT_END_LLAMA_2, True, DEFAULT_LLAMA_2_STOP_SEQUENCES)
+llama_2_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_LLAMA_2,
+    SYS_PROMPT_END_LLAMA_2,
+    USER_PROMPT_START_LLAMA_2,
+    USER_PROMPT_END_LLAMA_2,
+    ASSISTANT_PROMPT_START_LLAMA_2,
+    ASSISTANT_PROMPT_END_LLAMA_2,
+    True,
+    DEFAULT_LLAMA_2_STOP_SEQUENCES,
+)
 
-synthia_formatter = MessagesFormatter("", SYS_PROMPT_START_SYNTHIA, SYS_PROMPT_END_SYNTHIA, USER_PROMPT_START_SYNTHIA,
-                                      USER_PROMPT_END_SYNTHIA, ASSISTANT_PROMPT_START_SYNTHIA,
-                                      ASSISTANT_PROMPT_END_SYNTHIA, False, DEFAULT_VICUNA_STOP_SEQUENCES)
+synthia_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_SYNTHIA,
+    SYS_PROMPT_END_SYNTHIA,
+    USER_PROMPT_START_SYNTHIA,
+    USER_PROMPT_END_SYNTHIA,
+    ASSISTANT_PROMPT_START_SYNTHIA,
+    ASSISTANT_PROMPT_END_SYNTHIA,
+    False,
+    DEFAULT_VICUNA_STOP_SEQUENCES,
+)
 
-neural_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_NEURAL_CHAT, SYS_PROMPT_END_NEURAL_CHAT,
-                                          USER_PROMPT_START_NEURAL_CHAT,
-                                          USER_PROMPT_END_NEURAL_CHAT, ASSISTANT_PROMPT_START_NEURAL_CHAT,
-                                          ASSISTANT_PROMPT_END_NEURAL_CHAT, False, DEFAULT_NEURAL_CHAT_STOP_SEQUENCES, STRIP_PROMPT=False)
+neural_chat_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_NEURAL_CHAT,
+    SYS_PROMPT_END_NEURAL_CHAT,
+    USER_PROMPT_START_NEURAL_CHAT,
+    USER_PROMPT_END_NEURAL_CHAT,
+    ASSISTANT_PROMPT_START_NEURAL_CHAT,
+    ASSISTANT_PROMPT_END_NEURAL_CHAT,
+    False,
+    DEFAULT_NEURAL_CHAT_STOP_SEQUENCES,
+    STRIP_PROMPT=False,
+)
 
-solar_formatter = MessagesFormatter("", SYS_PROMPT_START_SOLAR, SYS_PROMPT_END_SOLAR, USER_PROMPT_START_SOLAR,
-                                    USER_PROMPT_END_SOLAR, ASSISTANT_PROMPT_START_SOLAR,
-                                    ASSISTANT_PROMPT_END_SOLAR, True, DEFAULT_SOLAR_STOP_SEQUENCES)
+solar_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_SOLAR,
+    SYS_PROMPT_END_SOLAR,
+    USER_PROMPT_START_SOLAR,
+    USER_PROMPT_END_SOLAR,
+    ASSISTANT_PROMPT_START_SOLAR,
+    ASSISTANT_PROMPT_END_SOLAR,
+    True,
+    DEFAULT_SOLAR_STOP_SEQUENCES,
+)
 
-open_chat_formatter = MessagesFormatter("", SYS_PROMPT_START_OPEN_CHAT, SYS_PROMPT_END_OPEN_CHAT,
-                                        USER_PROMPT_START_OPEN_CHAT, USER_PROMPT_END_OPEN_CHAT,
-                                        ASSISTANT_PROMPT_START_OPEN_CHAT, ASSISTANT_PROMPT_END_OPEN_CHAT, True,
-                                        DEFAULT_OPEN_CHAT_STOP_SEQUENCES, False, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
+open_chat_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_OPEN_CHAT,
+    SYS_PROMPT_END_OPEN_CHAT,
+    USER_PROMPT_START_OPEN_CHAT,
+    USER_PROMPT_END_OPEN_CHAT,
+    ASSISTANT_PROMPT_START_OPEN_CHAT,
+    ASSISTANT_PROMPT_END_OPEN_CHAT,
+    True,
+    DEFAULT_OPEN_CHAT_STOP_SEQUENCES,
+    False,
+    FUNCTION_PROMPT_START_CHATML,
+    FUNCTION_PROMPT_END_CHATML,
+)
 
-alpaca_formatter = MessagesFormatter("", SYS_PROMPT_START_ALPACA, SYS_PROMPT_END_ALPACA,
-                                     USER_PROMPT_START_ALPACA, USER_PROMPT_END_ALPACA,
-                                     ASSISTANT_PROMPT_START_ALPACA, ASSISTANT_PROMPT_END_ALPACA, False,
-                                     DEFAULT_ALPACA_STOP_SEQUENCES, False, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
+alpaca_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_ALPACA,
+    SYS_PROMPT_END_ALPACA,
+    USER_PROMPT_START_ALPACA,
+    USER_PROMPT_END_ALPACA,
+    ASSISTANT_PROMPT_START_ALPACA,
+    ASSISTANT_PROMPT_END_ALPACA,
+    False,
+    DEFAULT_ALPACA_STOP_SEQUENCES,
+    False,
+    FUNCTION_PROMPT_START_CHATML,
+    FUNCTION_PROMPT_END_CHATML,
+)
 
 
 predefined_formatter = {
@@ -295,11 +407,13 @@ predefined_formatter = {
     MessagesFormatterType.NEURAL_CHAT: neural_chat_formatter,
     MessagesFormatterType.SOLAR: solar_formatter,
     MessagesFormatterType.OPEN_CHAT: open_chat_formatter,
-    MessagesFormatterType.ALPACA: alpaca_formatter
+    MessagesFormatterType.ALPACA: alpaca_formatter,
 }
 
 
-def get_predefined_messages_formatter(formatter_type: MessagesFormatterType) -> MessagesFormatter:
+def get_predefined_messages_formatter(
+    formatter_type: MessagesFormatterType,
+) -> MessagesFormatter:
     """
     Gets a predefined messages formatter based on the formatter type.
 

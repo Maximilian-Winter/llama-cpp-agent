@@ -68,14 +68,14 @@ class CoreMemoryManager:
         Returns:
             str: Formatted multiline description.
         """
-        indent = '    ' * indent_level
-        return indent + description.replace('\n', '\n' + indent)
+        indent = "    " * indent_level
+        return indent + description.replace("\n", "\n" + indent)
 
     def load(self, file_path):
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             self.core_memory = json.load(file)
         self.last_modified = datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
     def save(self, filepath):
-        with open(filepath, 'w', encoding='utf-8') as file:
+        with open(filepath, "w", encoding="utf-8") as file:
             json.dump(self.core_memory, file, indent=4)

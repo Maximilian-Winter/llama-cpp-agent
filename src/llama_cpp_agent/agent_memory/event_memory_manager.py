@@ -20,7 +20,7 @@ class EventMemoryManager:
             event_type=event_type,
             timestamp=datetime.datetime.now(),
             content=content,
-            metadata=json.dumps(metadata)
+            metadata=json.dumps(metadata),
         )
         self.event_queue.append(new_event)
 
@@ -55,9 +55,16 @@ class EventMemoryManager:
 
         return "Event modified successfully."
 
-    def query_events(self, event_types: list = None, start_date: datetime.datetime = None,
-                     end_date: datetime.datetime = None, content_keywords: list = None,
-                     keywords: list = None, page: int = 1, page_size: int = 5) -> str:
+    def query_events(
+        self,
+        event_types: list = None,
+        start_date: datetime.datetime = None,
+        end_date: datetime.datetime = None,
+        content_keywords: list = None,
+        keywords: list = None,
+        page: int = 1,
+        page_size: int = 5,
+    ) -> str:
         query = self.session.query(Event)
 
         # Filtering based on provided criteria
@@ -82,12 +89,18 @@ class EventMemoryManager:
         if formatted_events:
             formatted_events += f"\n\nPage {page} of {query.count() // page_size + 1}"
 
-        return formatted_events if formatted_events else "No recall memories found matching the query."
+        return (
+            formatted_events
+            if formatted_events
+            else "No recall memories found matching the query."
+        )
 
     def save_event_queue(self, filepath):
-        with open(filepath, 'w') as file:
+        with open(filepath, "w") as file:
             json.dump([event.to_dict() for event in self.event_queue], file)
 
     def load_event_queue(self, filepath):
-        with open(filepath, 'r') as file:
-            self.event_queue = [Event.from_dict(event_dict) for event_dict in json.load(file)]
+        with open(filepath, "r") as file:
+            self.event_queue = [
+                Event.from_dict(event_dict) for event_dict in json.load(file)
+            ]

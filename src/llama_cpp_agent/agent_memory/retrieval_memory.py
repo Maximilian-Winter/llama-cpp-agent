@@ -8,45 +8,85 @@ from scipy.spatial.distance import cosine
 
 
 class RetrievalMemory:
-    def __init__(self, persistent_db_path="./retrieval_memory", embedding_model_name="all-MiniLM-L6-v2",
-                 collection_name="retrieval_memory_collection"):
+    def __init__(
+        self,
+        persistent_db_path="./retrieval_memory",
+        embedding_model_name="all-MiniLM-L6-v2",
+        collection_name="retrieval_memory_collection",
+    ):
         self.next_memory_id = 0
         self.client = chromadb.PersistentClient(path=persistent_db_path)
-        self.sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name=embedding_model_name)
-        self.collection = self.client.get_or_create_collection(name=collection_name,
-                                                               embedding_function=self.sentence_transformer_ef)
+        self.sentence_transformer_ef = (
+            embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name=embedding_model_name
+            )
+        )
+        self.collection = self.client.get_or_create_collection(
+            name=collection_name, embedding_function=self.sentence_transformer_ef
+        )
 
-    def add_memory(self, description: str, date: datetime.datetime = datetime.datetime.now(), importance: float = 1.0):
+    def add_memory(
+        self,
+        description: str,
+        date: datetime.datetime = datetime.datetime.now(),
+        importance: float = 1.0,
+    ):
         """Add a memory with a given description and importance to the memory stream."""
         mem = [description]
         ids = [str(self.generate_unique_id())]
-        metadata = {'memory_id': ids[0], 'memory': description, 'importance': importance, 'creation_timestamp': date.strftime("%Y-%m-%d %H:%M:%S"),
-                    'last_access_timestamp': date.strftime("%Y-%m-%d %H:%M:%S")}
+        metadata = {
+            "memory_id": ids[0],
+            "memory": description,
+            "importance": importance,
+            "creation_timestamp": date.strftime("%Y-%m-%d %H:%M:%S"),
+            "last_access_timestamp": date.strftime("%Y-%m-%d %H:%M:%S"),
+        }
         self.collection.add(documents=mem, metadatas=metadata, ids=ids)
         self.next_memory_id += 1
 
-    def retrieve_memories(self, query: str, k, date=datetime.datetime.now(), alpha_recency=1, alpha_relevance=1,
-                          alpha_importance=1):
+    def retrieve_memories(
+        self,
+        query: str,
+        k,
+        date=datetime.datetime.now(),
+        alpha_recency=1,
+        alpha_relevance=1,
+        alpha_importance=1,
+    ):
         query_embedding = self.sentence_transformer_ef([query])
-        query_result = self.collection.query(query_embedding, n_results=k * 4, include=["metadatas", "embeddings", "documents",
-                                                                                        "distances"])  # Increase candidate pool size
-        if len(query_result['metadatas'][0]) == 0:
+        query_result = self.collection.query(
+            query_embedding,
+            n_results=k * 4,
+            include=["metadatas", "embeddings", "documents", "distances"],
+        )  # Increase candidate pool size
+        if len(query_result["metadatas"][0]) == 0:
             return []
         # Step 2: Apply scoring to the candidate memories
         scores = []
-        for index in range(len(query_result['metadatas'][0])):
-            scores.append(self.compute_memory_score(query_result['metadatas'][0][index], query_result['embeddings'][0][index], query_embedding, date, alpha_recency, alpha_relevance, alpha_importance))
+        for index in range(len(query_result["metadatas"][0])):
+            scores.append(
+                self.compute_memory_score(
+                    query_result["metadatas"][0][index],
+                    query_result["embeddings"][0][index],
+                    query_embedding,
+                    date,
+                    alpha_recency,
+                    alpha_relevance,
+                    alpha_importance,
+                )
+            )
 
         # Normalize and select top k memories based on scores
         normalized_scores = self.normalize_scores(np.array(scores))
         top_indices = self.get_top_indices(normalized_scores, k)
-        retrieved_memories = [query_result['metadatas'][0][i] for i in top_indices]
+        retrieved_memories = [query_result["metadatas"][0][i] for i in top_indices]
 
         # Update last access time
         for memory in retrieved_memories:
             memory = self.update_last_access(memory, date)
-            self.collection.upsert(ids=memory['memory_id'], documents=[memory['memory']], metadatas=memory)
+            self.collection.upsert(
+                ids=memory["memory_id"], documents=[memory["memory"]], metadatas=memory
+            )
         return retrieved_memories
 
     @staticmethod
@@ -54,23 +94,38 @@ class RetrievalMemory:
         unique_id = str(uuid.uuid4())
         return unique_id
 
-    def compute_memory_score(self, metadata, memory_embedding, query_embedding, date, alpha_recency, alpha_relevance, alpha_importance):
+    def compute_memory_score(
+        self,
+        metadata,
+        memory_embedding,
+        query_embedding,
+        date,
+        alpha_recency,
+        alpha_relevance,
+        alpha_importance,
+    ):
         recency = self.compute_recency(metadata, date)
         relevance = self.compute_relevance(memory_embedding, query_embedding)
-        importance = metadata['importance']
-        return alpha_recency * recency + alpha_relevance * relevance + alpha_importance * importance
+        importance = metadata["importance"]
+        return (
+            alpha_recency * recency
+            + alpha_relevance * relevance
+            + alpha_importance * importance
+        )
 
     @staticmethod
     def update_last_access(metadata, date):
-        metadata['last_access_timestamp'] = date.strftime("%Y-%m-%d %H:%M:%S")
+        metadata["last_access_timestamp"] = date.strftime("%Y-%m-%d %H:%M:%S")
         return metadata
 
     @staticmethod
     def compute_recency(metadata, date):
         decay_factor = 0.99
-        time_diff = date - datetime.datetime.strptime(metadata['last_access_timestamp'], "%Y-%m-%d %H:%M:%S")
+        time_diff = date - datetime.datetime.strptime(
+            metadata["last_access_timestamp"], "%Y-%m-%d %H:%M:%S"
+        )
         hours_diff = time_diff.total_seconds() / 3600
-        recency = decay_factor ** hours_diff
+        recency = decay_factor**hours_diff
         return recency
 
     @staticmethod

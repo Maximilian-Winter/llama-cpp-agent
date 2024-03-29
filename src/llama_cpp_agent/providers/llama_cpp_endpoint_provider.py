@@ -7,7 +7,6 @@ from dataclasses import dataclass, field
 from typing import List, Union
 
 
-
 @dataclass
 class LlamaCppGenerationSettings:
     """
@@ -65,6 +64,7 @@ class LlamaCppGenerationSettings:
         as_dict() -> dict: Convert the settings to a dictionary.
 
     """
+
     temperature: float = 0.8
     top_k: int = 40
     top_p: float = 0.95
@@ -96,7 +96,7 @@ class LlamaCppGenerationSettings:
         Args:
             file_path (str): The path to the file.
         """
-        with open(file_path, 'w', encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
@@ -110,7 +110,7 @@ class LlamaCppGenerationSettings:
         Returns:
             LlamaCppGenerationSettings: The loaded settings.
         """
-        with open(file_path, 'r', encoding="utf-8") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             loaded_settings = json.load(file)
             return LlamaCppGenerationSettings(**loaded_settings)
 
@@ -156,6 +156,7 @@ class LlamaCppEndpointSettings:
         create_completion(prompt, grammar, generation_settings: LlamaCppServerGenerationSettings): Create a completion using the server.
 
     """
+
     completions_endpoint_url: str
 
     def save(self, file_path: str):
@@ -165,7 +166,7 @@ class LlamaCppEndpointSettings:
         Args:
             file_path (str): The path to the file.
         """
-        with open(file_path, 'w', encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
@@ -179,7 +180,7 @@ class LlamaCppEndpointSettings:
         Returns:
             LlamaCppEndpointSettings: The loaded settings.
         """
-        with open(file_path, 'r', encoding="utf-8") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             loaded_settings = json.load(file)
             return LlamaCppEndpointSettings(**loaded_settings)
 
@@ -205,7 +206,9 @@ class LlamaCppEndpointSettings:
         """
         return self.__dict__
 
-    def create_completion(self, prompt, grammar, generation_settings: LlamaCppGenerationSettings):
+    def create_completion(
+        self, prompt, grammar, generation_settings: LlamaCppGenerationSettings
+    ):
         """
         Create a completion using the Llama.cpp server.
 
@@ -230,11 +233,20 @@ class LlamaCppEndpointSettings:
         del data["mirostat_mode"]
         del data["stop_sequences"]
         if "samplers" not in data or data["samplers"] is None:
-            data["samplers"] = ["top_k", "tfs_z", "typical_p", "top_p", "min_p", "temperature"]
-        response = requests.post(self.completions_endpoint_url, headers=headers, json=data)
+            data["samplers"] = [
+                "top_k",
+                "tfs_z",
+                "typical_p",
+                "top_p",
+                "min_p",
+                "temperature",
+            ]
+        response = requests.post(
+            self.completions_endpoint_url, headers=headers, json=data
+        )
         data = response.json()
 
-        returned_data = {'choices': [{'text': data["content"]}]}
+        returned_data = {"choices": [{"text": data["content"]}]}
         return returned_data
 
     def get_response_stream(self, prompt, grammar, generation_settings):
@@ -248,9 +260,20 @@ class LlamaCppEndpointSettings:
         del data["mirostat_mode"]
         del data["stop_sequences"]
         if "samplers" not in data or data["samplers"] is None:
-            data["samplers"] = ["top_k", "tfs_z", "typical_p", "top_p", "min_p", "temperature"]
-        response = requests.post(self.completions_endpoint_url, headers=headers, json=data,
-                                 stream=generation_settings.stream)
+            data["samplers"] = [
+                "top_k",
+                "tfs_z",
+                "typical_p",
+                "top_p",
+                "min_p",
+                "temperature",
+            ]
+        response = requests.post(
+            self.completions_endpoint_url,
+            headers=headers,
+            json=data,
+            stream=generation_settings.stream,
+        )
 
         # Check if the request was successful
         response.raise_for_status()
@@ -261,9 +284,9 @@ class LlamaCppEndpointSettings:
                 decoded_chunk = ""
                 for chunk in response.iter_lines():
                     if chunk:
-                        decoded_chunk += chunk.decode('utf-8')
+                        decoded_chunk += chunk.decode("utf-8")
                         new_data = json.loads(decoded_chunk.replace("data: ", ""))
-                        returned_data = {'choices': [{'text': new_data["content"]}]}
+                        returned_data = {"choices": [{"text": new_data["content"]}]}
                         yield returned_data
                         decoded_chunk = ""
 

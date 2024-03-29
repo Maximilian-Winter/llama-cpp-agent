@@ -12,6 +12,7 @@ class PromptTemplateField:
         name (str): The name of the template field.
         value (str): The value associated with the template field.
     """
+
     name: str
     value: str
 
@@ -34,7 +35,6 @@ class PromptTemplateFields:
     """
 
     def __init__(self):
-
         self.fields: List[PromptTemplateField] = []
 
     def add_field(self, name: str, value: str):
@@ -107,7 +107,9 @@ class PromptTemplate:
         elif template_string:
             self.template = template_string
         else:
-            raise ValueError("Either 'template_file' or 'template_string' must be provided")
+            raise ValueError(
+                "Either 'template_file' or 'template_string' must be provided"
+            )
 
     @classmethod
     def from_string(cls, template_string):
@@ -148,13 +150,16 @@ class PromptTemplate:
             str: Text with empty placeholders removed.
         """
         # Remove lines that contain only the empty placeholder
-        text = re.sub(rf'^{"__EMPTY_TEMPLATE_FIELD__"}$', '', text, flags=re.MULTILINE)
+        text = re.sub(rf'^{"__EMPTY_TEMPLATE_FIELD__"}$', "", text, flags=re.MULTILINE)
         # Remove the empty placeholder from lines with other content
-        text = re.sub(rf'{"__EMPTY_TEMPLATE_FIELD__"}', '', text)
+        text = re.sub(rf'{"__EMPTY_TEMPLATE_FIELD__"}', "", text)
         return text
 
-    def generate_prompt(self, template_fields: Union[dict, PromptTemplateFields],
-                        remove_empty_template_field=True) -> str:
+    def generate_prompt(
+        self,
+        template_fields: Union[dict, PromptTemplateFields],
+        remove_empty_template_field=True,
+    ) -> str:
         """
         Generate a prompt by replacing placeholders in the template with values.
 
@@ -174,6 +179,7 @@ class PromptTemplate:
             template_fields = template_fields.get_fields_dict()
 
         if not remove_empty_template_field:
+
             def replace_placeholder(match):
                 placeholder = match.group(1)
                 return template_fields.get(placeholder, match.group(0))
@@ -183,7 +189,7 @@ class PromptTemplate:
 
         def replace_placeholder(match):
             placeholder = match.group(1)
-            if template_fields.get(placeholder, match.group(0)) != '':
+            if template_fields.get(placeholder, match.group(0)) != "":
                 return template_fields.get(placeholder, match.group(0))
             return "__EMPTY_TEMPLATE_FIELD__"
 

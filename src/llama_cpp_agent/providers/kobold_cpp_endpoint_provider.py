@@ -43,7 +43,7 @@ class KoboldCppGenerationSettings:
         Args:
             file_path (str): The path to the file.
         """
-        with open(file_path, 'w', encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
@@ -57,7 +57,7 @@ class KoboldCppGenerationSettings:
         Returns:
             KoboldCppGenerationSettings: The loaded settings.
         """
-        with open(file_path, 'r', encoding="utf-8") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             loaded_settings = json.load(file)
             return KoboldCppGenerationSettings(**loaded_settings)
 
@@ -82,6 +82,8 @@ class KoboldCppGenerationSettings:
             dict: The dictionary representation of the settings.
         """
         return self.__dict__
+
+
 @dataclass
 class KoboldCppEndpointSettings:
     """
@@ -101,6 +103,7 @@ class KoboldCppEndpointSettings:
         create_completion(prompt, grammar, generation_settings: LlamaCppServerGenerationSettings): Create a completion using the server.
 
     """
+
     completions_endpoint_url: str
 
     def save(self, file_path: str):
@@ -110,7 +113,7 @@ class KoboldCppEndpointSettings:
         Args:
             file_path (str): The path to the file.
         """
-        with open(file_path, 'w', encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
@@ -124,7 +127,7 @@ class KoboldCppEndpointSettings:
         Returns:
             KoboldCppEndpointSettings: The loaded settings.
         """
-        with open(file_path, 'r', encoding="utf-8") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             loaded_settings = json.load(file)
             return KoboldCppEndpointSettings(**loaded_settings)
 
@@ -150,7 +153,9 @@ class KoboldCppEndpointSettings:
         """
         return self.__dict__
 
-    def create_completion(self, prompt, grammar, generation_settings: KoboldCppGenerationSettings):
+    def create_completion(
+        self, prompt, grammar, generation_settings: KoboldCppGenerationSettings
+    ):
         """
         Create a completion using the Llama.cpp server.
 
@@ -175,10 +180,12 @@ class KoboldCppEndpointSettings:
         del data["mirostat_mode"]
         del data["stop_sequences"]
 
-        response = requests.post(self.completions_endpoint_url, headers=headers, json=data)
+        response = requests.post(
+            self.completions_endpoint_url, headers=headers, json=data
+        )
         data = response.json()
 
-        returned_data = {'choices': [{'text': data["content"]}]}
+        returned_data = {"choices": [{"text": data["content"]}]}
         return returned_data
 
     def get_response_stream(self, prompt, grammar, generation_settings):
@@ -191,8 +198,12 @@ class KoboldCppEndpointSettings:
         data["stop_sequence"] = data["stop_sequences"]
         del data["mirostat_mode"]
         del data["stop_sequences"]
-        response = requests.post(self.completions_endpoint_url, headers=headers, json=data,
-                                 stream=generation_settings.stream)
+        response = requests.post(
+            self.completions_endpoint_url,
+            headers=headers,
+            json=data,
+            stream=generation_settings.stream,
+        )
 
         # Check if the request was successful
         response.raise_for_status()
@@ -203,9 +214,9 @@ class KoboldCppEndpointSettings:
                 decoded_chunk = ""
                 for chunk in response.iter_lines():
                     if chunk:
-                        decoded_chunk += chunk.decode('utf-8')
+                        decoded_chunk += chunk.decode("utf-8")
                         new_data = json.loads(decoded_chunk.replace("data: ", ""))
-                        returned_data = {'choices': [{'text': new_data["content"]}]}
+                        returned_data = {"choices": [{"text": new_data["content"]}]}
                         yield returned_data
                         decoded_chunk = ""
 
@@ -213,5 +224,3 @@ class KoboldCppEndpointSettings:
                 print(f"Request failed: {e}")
 
         return generate_text_chunks()
-
-

@@ -10,7 +10,7 @@ def sanitize_and_load_json(input_json):
 
         # Replace problematic parts of the JSON string here
         # Note: This is a simplified approach and may need adjustments based on actual LLM output
-        fixed_json = input_json.replace('\n', '\\n').replace('\"', '\\"').replace('\r', '\\r')
+        fixed_json = input_json.replace('\n', '').replace('\r', '\\r')
 
         # Try loading the JSON again after making replacements
         try:

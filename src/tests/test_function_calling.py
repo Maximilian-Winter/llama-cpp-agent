@@ -1,7 +1,7 @@
 from llama_cpp import LlamaGrammar
 import pytest
 
-from src.llama_cpp_agent.function_calling import (
+from llama_cpp_agent.function_calling import (
     LlamaCppFunctionTool,
     LlamaCppFunctionToolRegistry,
     BaseModel,
@@ -58,8 +58,7 @@ def test_llama_cpp_function_tool_registry_finalization(llama_tool_registry):
     assert isinstance(llama_tool_registry.grammar, LlamaGrammar)
     print(llama_tool_registry.get_documentation())
     assert (
-        llama_tool_registry.get_documentation()
-        == "function: MockModel\n  params:\n    arg1 (int)\n    arg2 (int)\n\n"
+        llama_tool_registry.get_documentation() == "function: MockModel\n  params:\n    arg1 (int)\n    arg2 (int)\n\n"
     )
 
 

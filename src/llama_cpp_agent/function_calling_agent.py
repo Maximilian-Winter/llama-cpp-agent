@@ -1,3 +1,4 @@
+import datetime
 import json
 from copy import copy
 from typing import Type, List, Callable, Union, Literal
@@ -13,6 +14,16 @@ from .gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import create_dyn
     create_dynamic_models_from_dictionaries, add_run_method_to_dynamic_model
 from .providers.llama_cpp_endpoint_provider import LlamaCppGenerationSettings, LlamaCppEndpointSettings
 from .providers.openai_endpoint_provider import OpenAIGenerationSettings, OpenAIEndpointSettings
+
+
+class activate_message_mode(BaseModel):
+    """
+    Switch to message mode. This setting enables the creation of messages in a freeform text format, as opposed to structured JSON. This function should be invoked only once for each batch of JSON objects.
+    """
+
+    def run(self, agent):
+        agent.message_mode = True
+        return None
 
 
 class FunctionCallingAgent:
@@ -110,7 +121,7 @@ class FunctionCallingAgent:
         self.send_message_to_user_callback = send_message_to_user_callback
         if add_send_message_to_user_function:
             self.llama_cpp_tools = [
-                LlamaCppFunctionTool(create_dynamic_model_from_function(self.send_message_to_user))]
+                LlamaCppFunctionTool(activate_message_mode, agent=self)]
         else:
             self.llama_cpp_tools = []
 
@@ -118,7 +129,8 @@ class FunctionCallingAgent:
             self.llama_cpp_tools.append(LlamaCppFunctionTool(tool))
 
         self.tool_registry = LlamaCppAgent.get_function_tool_registry(self.llama_cpp_tools,
-                                                                      allow_parallel_function_calling)
+                                                                      add_inner_thoughts=True,
+                                                                      allow_parallel_function_calling=allow_parallel_function_calling)
 
         if llama_generation_settings is None:
             if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings):
@@ -142,11 +154,24 @@ class FunctionCallingAgent:
 
         self.llama_generation_settings = llama_generation_settings
 
+        self.message_mode = False
         if system_prompt is not None:
             self.system_prompt = system_prompt
         else:
             # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
-            self.system_prompt = "You are a helpful AI assistant, which interact with the user by calling functions which are represented as JSON object literals. Your output is constrained to a list of JSON object literals and allows to call multiple functions at once. The return values of the functions you call are only visible to you. Below is a list of your available function calls:\n\n" + self.tool_registry.get_documentation()
+            self.system_prompt = """You are a helpful AI assistant, which interact with the user by calling functions which are represented as JSON object literals. Your output is constrained to a list of JSON object literals and allows to call multiple functions at once. The return values of the functions you call are only visible to you.
+
+Encapsulate your function calls in a JSON list. Each function call object should contain the following fields:
+- "thoughts_and_reasoning": Think step-by-step about the task at hand and document your thought process. Plan your next steps and outline the rationale behind each function call.
+- "function": Specifies the function you intend to execute.
+- "params": Details the necessary parameters for the function's execution.
+
+Always begin your function calls with '[', and end them with ']'. Each function call object should be separated by a comma.
+
+After you have completed your function calls you will get the results. When your task is finished, you can send a response to the user by calling the 'activate_message_mode' function.
+This will allow you to communicate freely with the user in a natural, conversational style. In this mode, you can write responses to the user without any constraints. Don't write any function calls in this mode.
+
+Below is a list of your available function calls:\n\n""" + self.tool_registry.get_documentation()
         self.llama_cpp_agent = LlamaCppAgent(llama_llm, debug_output=debug_output,
                                              system_prompt="",
                                              predefined_messages_formatter_type=messages_formatter_type,
@@ -240,42 +265,48 @@ class FunctionCallingAgent:
         """
         return self.__dict__
 
-    def generate_response(self, message: str):
-        """
-        Generate a response based on the input message.
+    def generate_response(self, message: str, additional_stop_sequences: List[str] = None):
+        self.llama_cpp_agent.add_message(role="user", message=message)
 
-        Args:
-            message (str): The input message.
-        """
-        count = 0
-        msg = copy(message)
-        msg_func = None
-        while msg:
-            if count > 0:
-                break_loop = False
-                for func in msg_func:
-                    if func["function"] == "send_message_to_user":
-                        func["return_value"] = "Message Sent"
-                        break_loop = True
+        result = self.intern_get_response(additional_stop_sequences=additional_stop_sequences)
 
-                msg_func_formatted = "Function Return Values:\n" + '\n'.join([json.dumps(m, indent=4) for m in msg_func])
-                self.llama_cpp_agent.add_message(role="function", message=msg_func_formatted)
-                if break_loop:
-                    break
+        while True:
+            if isinstance(result, str):
+                self.send_message_to_user(result)
+                break
+            function_message = f""""""
+            count = 0
+            for res in result:
+                count += 1
+                if not isinstance(res, str):
+                    function_message += f"""{count}. Function: "{res["function"]}"\nReturn Value: {res["return_value"]}\n\n"""
+                else:
+                    function_message += res + "\n\n"
+                if not isinstance(res, str) and "request_heartbeat" in res and res["request_heartbeat"] is not None and \
+                        res["request_heartbeat"]:
+                    next_result = True
+                elif isinstance(res, str) or (not isinstance(res, str) and res["function"] == "activate_message_mode"):
+                    next_result = True
+            self.llama_cpp_agent.add_message(role="function", message=function_message.strip())
+            result = self.intern_get_response(additional_stop_sequences=additional_stop_sequences)
 
-                msg_func = self.llama_cpp_agent.get_chat_response(system_prompt=self.system_prompt,
-                                                                  function_tool_registry=self.tool_registry,
-                                                                  streaming_callback=self.streaming_callback,
-                                                                  k_last_messages=self.k_last_messages_from_chat_history,
-                                                                  **self.llama_generation_settings.as_dict())
+    def intern_get_response(self, additional_stop_sequences: List[str] = None):
 
-            else:
-                msg_func = self.llama_cpp_agent.get_chat_response(msg, role="user", system_prompt=self.system_prompt,
-                                                                  function_tool_registry=self.tool_registry,
-                                                                  streaming_callback=self.streaming_callback,
-                                                                  k_last_messages=self.k_last_messages_from_chat_history,
-                                                                  **self.llama_generation_settings.as_dict())
-            count += 1
+        message_mode = False
+        if self.message_mode:
+            message_mode = True
+            self.message_mode = False
+
+        result = self.llama_cpp_agent.get_chat_response(system_prompt=self.system_prompt,
+                                                        streaming_callback=self.streaming_callback,
+                                                        function_tool_registry=self.tool_registry if not message_mode else None,
+                                                        additional_stop_sequences=additional_stop_sequences,
+                                                        n_predict=1024,
+                                                        temperature=0.7, top_k=0, top_p=1.0, repeat_penalty=1.1,
+                                                        repeat_last_n=512,
+                                                        min_p=0.0, tfs_z=1.0, penalize_nl=False)
+
+        return result
 
     def send_message_to_user(self, message: str):
         """

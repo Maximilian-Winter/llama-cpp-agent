@@ -254,9 +254,15 @@ class LlamaCppFunctionToolRegistry:
                     call = cls(**call_parameters)
                     output = call.run(**function_tool.additional_parameters)
                     if function_tool.add_params_to_result:
-                        result.append({"function": function_tool.model.__name__, "params": call_parameters, "return_value": output})
+                        if self.add_request_heartbeat:
+                            result.append({"function": function_tool.model.__name__, "params": call_parameters, "return_value": output, "request_heartbeat": function_call["request_heartbeat"] if "request_heartbeat" in function_call else None})
+                        else:
+                            result.append({"function": function_tool.model.__name__, "params": call_parameters, "return_value": output})
                     else:
-                        result.append({"function": function_tool.model.__name__, "return_value": output})
+                        if self.add_request_heartbeat:
+                            result.append({"function": function_tool.model.__name__, "return_value": output, "request_heartbeat": function_call["request_heartbeat"] if "request_heartbeat" in function_call else None})
+                        else:
+                            result.append({"function": function_tool.model.__name__, "return_value": output})
                 except AttributeError as e:
                     return f"Error: {e}"
         else:
@@ -268,9 +274,15 @@ class LlamaCppFunctionToolRegistry:
                     call = cls(**call_parameters)
                     output = call.run(**function_tool.additional_parameters)
                     if function_tool.add_params_to_result:
-                        result.append({"function": function_tool.model.__name__, "params": call_parameters, "return_value": output})
+                        if self.add_request_heartbeat:
+                            result.append({"function": function_tool.model.__name__, "params": call_parameters, "return_value": output, "request_heartbeat": function_call["request_heartbeat"] if "request_heartbeat" in function_call else None})
+                        else:
+                            result.append({"function": function_tool.model.__name__, "params": call_parameters, "return_value": output})
                     else:
-                        result.append({"function": function_tool.model.__name__, "return_value": output})
+                        if self.add_request_heartbeat:
+                            result.append({"function": function_tool.model.__name__, "return_value": output, "request_heartbeat": function_call["request_heartbeat"] if "request_heartbeat" in function_call else None})
+                        else:
+                            result.append({"function": function_tool.model.__name__, "return_value": output})
                 except AttributeError as e:
                     return f"Error: {e}"
         return result

@@ -1,14 +1,12 @@
 # Example that uses the FunctionCallingAgent class to create a function calling agent.
 import datetime
-import json
 from enum import Enum
-from typing import Union, Any, Optional
+from typing import Union, Optional
 
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.llm_settings import LlamaLLMSettings, LlamaLLMGenerationSettings
-
 from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
+from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings, LlamaCppGenerationSettings
 
 
@@ -34,7 +32,7 @@ class MathOperation(Enum):
 
 # llama-cpp-agent also supports "Instructor" library like function definitions as Pydantic models for function calling.
 # Simple pydantic calculator tool for the agent that can add, subtract, multiply, and divide. Docstring and description of fields will be used in system prompt.
-class Calculator(BaseModel):
+class calculator(BaseModel):
     """
     Perform a math operation on two numbers.
     """
@@ -60,7 +58,7 @@ class Calculator(BaseModel):
 def get_current_weather(location, unit):
     """Get the current weather in a given location"""
     if "London" in location:
-        return f"Weather in {location}: {42}° {unit.value}"
+        return f"Weather in {location}: {22}° {unit.value}"
     elif "New York" in location:
         return f"Weather in {location}: {24}° {unit.value}"
     elif "North Pole" in location:
@@ -99,7 +97,7 @@ def send_message_to_user_callback(message: str):
     print(message)
 
 
-generation_settings = LlamaCppGenerationSettings(temperature=0, stream=True)
+generation_settings = LlamaCppGenerationSettings(temperature=0, top_k=0, top_p=1.0, stream=True)
 
 # Can be saved and loaded like that:
 # generation_settings.save("generation_settings.json")
@@ -117,14 +115,15 @@ function_call_agent = FunctionCallingAgent(
     # Just a list of type hinted functions for normal Python functions
     python_functions=[get_current_datetime],
     # Just a list of pydantic types
-    pydantic_functions=[Calculator],
+    pydantic_functions=[calculator],
     # Callback for receiving messages for the user.
     send_message_to_user_callback=send_message_to_user_callback,
     # Set to true to allow parallel function calling
     allow_parallel_function_calling=True,
+    messages_formatter_type=MessagesFormatterType.CHATML,
     debug_output=True)
 user_input = '''Format the answer clearly: Get the date and time, get the current weather in celsius in London and solve the following calculation: 42 * 42. And return the result.'''
-function_call_agent.generate_response(user_input)
+function_call_agent.generate_response(user_input, ["<|end_of_turn|>"])
 function_call_agent.save("function_calling_agent.json")
 user_input = input(">")
 function_call_agent.generate_response(user_input)

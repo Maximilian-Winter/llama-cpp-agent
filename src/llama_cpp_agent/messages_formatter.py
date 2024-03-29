@@ -18,7 +18,7 @@ USER_PROMPT_START_CHATML = """<|im_start|>user\n"""
 USER_PROMPT_END_CHATML = """<|im_end|>\n"""
 ASSISTANT_PROMPT_START_CHATML = """<|im_start|>assistant\n"""
 ASSISTANT_PROMPT_END_CHATML = """<|im_end|>\n"""
-FUNCTION_PROMPT_START_CHATML = """<|im_start|>tool\n"""
+FUNCTION_PROMPT_START_CHATML = """<|im_start|>functions\n"""
 FUNCTION_PROMPT_END_CHATML = """<|im_end|>\n"""
 DEFAULT_CHATML_STOP_SEQUENCES = ["<|im_end|>"]
 
@@ -253,7 +253,7 @@ mixtral_formatter = MessagesFormatter("", SYS_PROMPT_START_MIXTRAL, SYS_PROMPT_E
                                       ASSISTANT_PROMPT_END_MIXTRAL, True, DEFAULT_MIXTRAL_STOP_SEQUENCES)
 chatml_formatter = MessagesFormatter("", SYS_PROMPT_START_CHATML, SYS_PROMPT_END_CHATML, USER_PROMPT_START_CHATML,
                                      USER_PROMPT_END_CHATML, ASSISTANT_PROMPT_START_CHATML,
-                                     ASSISTANT_PROMPT_END_CHATML, False, DEFAULT_CHATML_STOP_SEQUENCES, True, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
+                                     ASSISTANT_PROMPT_END_CHATML, False, DEFAULT_CHATML_STOP_SEQUENCES, False, FUNCTION_PROMPT_START_CHATML, FUNCTION_PROMPT_END_CHATML)
 vicuna_formatter = MessagesFormatter("", SYS_PROMPT_START_VICUNA, SYS_PROMPT_END_VICUNA, USER_PROMPT_START_VICUNA,
                                      USER_PROMPT_END_VICUNA, ASSISTANT_PROMPT_START_VICUNA,
                                      ASSISTANT_PROMPT_END_VICUNA, True, DEFAULT_VICUNA_STOP_SEQUENCES)

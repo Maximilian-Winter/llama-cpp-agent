@@ -401,7 +401,6 @@ class LlamaCppAgent:
             stop_sequences=stop_sequences,
             additional_stop_sequences=additional_stop_sequences,
             stream=stream,
-            print_output=print_output,
             k_last_messages=k_last_messages,
             n_predict=n_predict,
             n_keep=n_keep,

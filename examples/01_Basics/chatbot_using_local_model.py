@@ -31,5 +31,5 @@ while True:
     user_input = input("User: ")
     if user_input == "exit":
         break
-    chatbot_output = bot.get_chat_response(user_input, temperature=0.7, stream=True)
-    print("AI: " + chatbot_output)
+    bot_output = bot.get_chat_response(user_input, temperature=0.7, stream=True)
+    print(f"AI: { bot_output}")

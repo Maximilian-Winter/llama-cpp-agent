@@ -16,9 +16,7 @@ from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
     LlamaCppEndpointSettings,
 )
 
-model = LlamaCppEndpointSettings(
-    completions_endpoint_url="http://127.0.0.1:8080/completion"
-)
+model = LlamaCppEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080/completion")
 
 
 class File(BaseModel):
@@ -26,9 +24,7 @@ class File(BaseModel):
     Correctly named file with contents.
     """
 
-    file_name: str = Field(
-        ..., description="The name of the file including the extension"
-    )
+    file_name: str = Field(..., description="The name of the file including the extension")
 
     # markdown_code_block is a special field used to give the LLM relatively free output to generate the file contents
     file_content: str = Field(..., description="Correct contents of a file")
@@ -46,12 +42,7 @@ class Program(BaseModel):
     files: List[File] = Field(..., description="List of files")
 
 
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
-    pydantic_model_list=[Program]
-)
-
-print(gbnf_grammar)
-
+gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(pydantic_model_list=[Program])
 
 llama_cpp_agent = LlamaCppAgent(
     model,

@@ -4,9 +4,7 @@ from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
     LlamaCppEndpointSettings,
 )
 
-model = LlamaCppEndpointSettings(
-    completions_endpoint_url="http://127.0.0.1:8080/completion"
-)
+model = LlamaCppEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080/completion")
 
 bot = LlamaCppAgent(
     model,
@@ -19,5 +17,5 @@ while True:
     user_input = input("User: ")
     if user_input == "exit":
         break
-    chatbot_output = bot.get_chat_response(user_input, temperature=0.7, stream=True)
-    print("AI: " + chatbot_output)
+    bot_output = bot.get_chat_response(user_input, temperature=0.7, stream=True)
+    print(f"AI: { bot_output}")

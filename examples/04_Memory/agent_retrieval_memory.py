@@ -1,11 +1,23 @@
 from llama_cpp import Llama
+from pydantic import BaseModel, Field
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 
-from example_agent_models_auto_coder import SendMessageToUser
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.agent_memory.memory_tools import AgentRetrievalMemory
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
+
+
+class SendMessageToUser(BaseModel):
+    """
+    Send a message to the User.
+    """
+
+    message: str = Field(..., description="Message you want to send to the user.")
+
+    def run(self):
+        print("Message: " + self.message)
+
 
 agent_retrieval_memory = AgentRetrievalMemory()
 
@@ -44,6 +56,3 @@ while True:
         temperature=1.25, function_tool_registry=function_tool_registry)
 
     user_input = '\n'.join([str(output) for output in user_input])
-
-
-

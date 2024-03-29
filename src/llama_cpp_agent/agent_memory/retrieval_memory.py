@@ -29,24 +29,24 @@ class RetrievalMemory:
     def retrieve_memories(self, query: str, k, date=datetime.datetime.now(), alpha_recency=1, alpha_relevance=1,
                           alpha_importance=1):
         query_embedding = self.sentence_transformer_ef([query])
-        query_result = self.collection.query(query_embedding, n_results=k * 4, include=["metadatas", "documents",
+        query_result = self.collection.query(query_embedding, n_results=k * 4, include=["metadatas", "embeddings", "documents",
                                                                                         "distances"])  # Increase candidate pool size
-        if len(query_result['metadatas']) == 0:
+        if len(query_result['metadatas'][0]) == 0:
             return []
         # Step 2: Apply scoring to the candidate memories
-        scores = [
-            self.compute_memory_score(metadata, query_embedding, date, alpha_recency, alpha_relevance, alpha_importance)
-            for metadata in query_result['metadatas']]
+        scores = []
+        for index in range(len(query_result['metadatas'][0])):
+            scores.append(self.compute_memory_score(query_result['metadatas'][0][index], query_result['embeddings'][0][index], query_embedding, date, alpha_recency, alpha_relevance, alpha_importance))
 
         # Normalize and select top k memories based on scores
         normalized_scores = self.normalize_scores(np.array(scores))
         top_indices = self.get_top_indices(normalized_scores, k)
-        retrieved_memories = [query_result['metadatas'][i] for i in top_indices]
+        retrieved_memories = [query_result['metadatas'][0][i] for i in top_indices]
 
         # Update last access time
         for memory in retrieved_memories:
             memory = self.update_last_access(memory, date)
-            self.collection.upsert(memory['memory_id'], metadatas=memory)
+            self.collection.upsert(ids=memory['memory_id'], documents=[memory['memory']], metadatas=memory)
         return retrieved_memories
 
     @staticmethod
@@ -54,28 +54,28 @@ class RetrievalMemory:
         unique_id = str(uuid.uuid4())
         return unique_id
 
-    def compute_memory_score(self, metadata, query_embedding, date, alpha_recency, alpha_relevance, alpha_importance):
+    def compute_memory_score(self, metadata, memory_embedding, query_embedding, date, alpha_recency, alpha_relevance, alpha_importance):
         recency = self.compute_recency(metadata, date)
-        relevance = self.compute_relevance(metadata['embedding'], query_embedding)
+        relevance = self.compute_relevance(memory_embedding, query_embedding)
         importance = metadata['importance']
         return alpha_recency * recency + alpha_relevance * relevance + alpha_importance * importance
 
     @staticmethod
     def update_last_access(metadata, date):
-        metadata['last_access_timestamp'].last_access_timestamp = date
+        metadata['last_access_timestamp'] = date.strftime("%Y-%m-%d %H:%M:%S")
         return metadata
 
     @staticmethod
     def compute_recency(metadata, date):
         decay_factor = 0.99
-        time_diff = date - metadata['last_access_timestamp']
+        time_diff = date - datetime.datetime.strptime(metadata['last_access_timestamp'], "%Y-%m-%d %H:%M:%S")
         hours_diff = time_diff.total_seconds() / 3600
         recency = decay_factor ** hours_diff
         return recency
 
     @staticmethod
     def compute_relevance(memory_embedding, query_embedding):
-        relevance = 1 - cosine(memory_embedding, query_embedding)
+        relevance = 1 - cosine(memory_embedding, query_embedding[0])
         return relevance
 
     @staticmethod

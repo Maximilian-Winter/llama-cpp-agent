@@ -624,7 +624,6 @@ class LlamaCppAgent:
             stop_sequences=stop_sequences,
             additional_stop_sequences=additional_stop_sequences,
             stream=stream,
-            print_output=print_output,
             k_last_messages=k_last_messages,
             n_predict=n_predict,
             n_keep=n_keep,
@@ -738,7 +737,24 @@ class LlamaCppAgent:
             return text if text else None
         return "Error: No model loaded!"
 
-    def get_response_role_and_completion(self, function_tool_registry: LlamaCppFunctionToolRegistry = None, system_prompt: str = None, message: str = None, add_message_to_chat_history: bool = True, role: Literal["system", "user", "assistant", "function"] = "user", grammar: str = None, prompt_suffix: str = None, max_tokens: int = 0, temperature: float = 0.4, top_k: int = 0, top_p: float = 1.0, min_p: float = 0.05, typical_p: float = 1.0, repeat_penalty: float = 1.0, mirostat_mode: int = 0, mirostat_tau: float = 5.0, mirostat_eta: float = 0.1, tfs_z: float = 1.0, stop_sequences: List[str] = None, additional_stop_sequences: List[str] = None, stream: bool = True, print_output: bool = True, k_last_messages: int = 0, n_predict: int = -1, n_keep: int = 0, repeat_last_n: int = 64, penalize_nl: bool = True, presence_penalty: float = 0.0, frequency_penalty: float = 0.0, penalty_prompt: Union[None, str, List[int]] = None, seed: int = -1, ignore_eos: bool = False, suffix: str = None, echo: bool = False, logprobs: int = None, logit_bias: Dict[str, float] = None, logit_bias_type: Literal["input_ids", "tokens"] = None, cache_prompt: bool = False, samplers: List[str] = None):
+    def get_response_role_and_completion(self, function_tool_registry: LlamaCppFunctionToolRegistry = None,
+                                         system_prompt: str = None, message: str = None,
+                                         add_message_to_chat_history: bool = True,
+                                         role: Literal["system", "user", "assistant", "function"] = "user",
+                                         grammar: str = None, prompt_suffix: str = None, max_tokens: int = 0,
+                                         temperature: float = 0.4, top_k: int = 0, top_p: float = 1.0,
+                                         min_p: float = 0.05, typical_p: float = 1.0, repeat_penalty: float = 1.0,
+                                         mirostat_mode: int = 0, mirostat_tau: float = 5.0, mirostat_eta: float = 0.1,
+                                         tfs_z: float = 1.0, stop_sequences: List[str] = None,
+                                         additional_stop_sequences: List[str] = None, stream: bool = True,
+                                         k_last_messages: int = 0, n_predict: int = -1,
+                                         n_keep: int = 0, repeat_last_n: int = 64, penalize_nl: bool = True,
+                                         presence_penalty: float = 0.0, frequency_penalty: float = 0.0,
+                                         penalty_prompt: Union[None, str, List[int]] = None, seed: int = -1,
+                                         ignore_eos: bool = False, suffix: str = None, echo: bool = False,
+                                         logprobs: int = None, logit_bias: Dict[str, float] = None,
+                                         logit_bias_type: Literal["input_ids", "tokens"] = None,
+                                         cache_prompt: bool = False, samplers: List[str] = None):
         if function_tool_registry is not None:
             grammar = function_tool_registry.gbnf_grammar
 
@@ -862,6 +878,7 @@ class LlamaCppAgent:
                 )
             return completion, response_role
         return "Error: No model loaded!"
+
     def remove_last_k_chat_messages(self, k: int):
         """
         Removes the last k messages from the chat history.

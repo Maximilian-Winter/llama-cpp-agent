@@ -290,7 +290,7 @@ class LlamaCppAgent:
             grammar: str = None,
             function_tool_registry: LlamaCppFunctionToolRegistry = None,
             streaming_callback: Callable[[StreamingResponse], None] = None,
-            yield_streaming_responses: bool = False,
+
             max_tokens: int = 0,
             temperature: float = 0.4,
             top_k: int = 0,
@@ -338,7 +338,7 @@ class LlamaCppAgent:
             grammar (str): The grammar for generating responses in string format.
             function_tool_registry (LlamaCppFunctionToolRegistry): The function tool registry for handling function calls.
             streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
-            yield_streaming_responses (bool): Indicates whether to yield streaming responses.
+
             max_tokens (int): The maximum number of tokens in the generated response.
             temperature (float): The temperature parameter for response generation.
             top_k (int): Top-k parameter for response generation.
@@ -372,7 +372,8 @@ class LlamaCppAgent:
             logprobs: int = None,
             logit_bias: Dict[str, float] = None,
             logit_bias_type:Literal["input_ids", "tokens"] = None
-
+            cache_prompt: bool = False,
+            samplers: List[str] = None
         Returns:
             list[dict]: The generated chat response.
         """
@@ -502,8 +503,6 @@ class LlamaCppAgent:
                 for out in completion:
                     text = out['choices'][0]['text']
                     full_response += text
-                    if yield_streaming_responses:
-                        yield text
                     if streaming_callback is not None:
                         streaming_callback(StreamingResponse(text=text, is_last_response=False))
                     print(text, end="")
@@ -522,19 +521,13 @@ class LlamaCppAgent:
                     )
                 if function_tool_registry is not None:
                     full_response = function_tool_registry.handle_function_call(full_response)
-                    if yield_streaming_responses:
-                        return
                     return full_response if full_response else None
-                if yield_streaming_responses:
-                    return
                 return full_response if full_response else None
             if stream:
                 full_response = ""
                 for out in completion:
                     text = out['choices'][0]['text']
                     full_response += text
-                    if yield_streaming_responses:
-                        yield text
                     if streaming_callback is not None:
                         streaming_callback(StreamingResponse(text=text, is_last_response=False))
                 if streaming_callback is not None:
@@ -551,11 +544,8 @@ class LlamaCppAgent:
                     )
                 if function_tool_registry is not None:
                     full_response = function_tool_registry.handle_function_call(full_response)
-                    if yield_streaming_responses:
-                        return
+
                     return full_response if full_response else None
-                if yield_streaming_responses:
-                    return
                 return full_response if full_response else None
             if print_output:
                 text = completion['choices'][0]['text']

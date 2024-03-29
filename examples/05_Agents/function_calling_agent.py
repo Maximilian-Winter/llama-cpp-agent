@@ -122,7 +122,7 @@ function_call_agent = FunctionCallingAgent(
     allow_parallel_function_calling=True,
     messages_formatter_type=MessagesFormatterType.CHATML,
     debug_output=True)
-user_input = '''Format the answer clearly: Get the date and time, get the current weather in celsius in London and solve the following calculation: 42 * 42. And return the result.'''
+user_input = '''Format the answer clearly: Get the date and time, get the current weather in celsius in London and solve the following calculations: 42 * 42, 74 + 26 and 96/8. And return the result.'''
 function_call_agent.generate_response(user_input, ["<|end_of_turn|>"])
 function_call_agent.save("function_calling_agent.json")
 user_input = input(">")

@@ -26,7 +26,7 @@ def load_files_and_generate_json(file_path1, file_path2):
             "personality": text1
         },
         "human": {
-            "personality": text2
+            "name": text2
         }
     }
 
@@ -38,7 +38,7 @@ def load_files_and_generate_json(file_path1, file_path2):
     return json_data
 
 
-file_name_ai = "prompts/testus.txt"
-file_name_human = "prompts/human.txt"
+file_name_ai = "agent.txt"
+file_name_human = "human.txt"
 
 result = load_files_and_generate_json(file_name_ai, file_name_human)

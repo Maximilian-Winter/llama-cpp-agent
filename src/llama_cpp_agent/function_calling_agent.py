@@ -281,12 +281,7 @@ Below is a list of your available function calls:\n\n""" + self.tool_registry.ge
                 if not isinstance(res, str):
                     function_message += f"""{count}. Function: "{res["function"]}"\nReturn Value: {res["return_value"]}\n\n"""
                 else:
-                    function_message += res + "\n\n"
-                if not isinstance(res, str) and "request_heartbeat" in res and res["request_heartbeat"] is not None and \
-                        res["request_heartbeat"]:
-                    next_result = True
-                elif isinstance(res, str) or (not isinstance(res, str) and res["function"] == "activate_message_mode"):
-                    next_result = True
+                    function_message += f"{count}. " + res + "\n\n"
             self.llama_cpp_agent.add_message(role="function", message=function_message.strip())
             result = self.intern_get_response(additional_stop_sequences=additional_stop_sequences)
 

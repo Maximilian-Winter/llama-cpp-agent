@@ -256,7 +256,7 @@ class LlamaCppFunctionToolRegistry:
                     if function_tool.add_params_to_result:
                         result.append({"function": function_tool.model.__name__, "params": call_parameters, "return_value": output})
                     else:
-                        result.append({"function_call_id": function_call["function_call_id"], "function": function_tool.model.__name__, "return_value": output})
+                        result.append({"function": function_tool.model.__name__, "return_value": output})
                 except AttributeError as e:
                     return f"Error: {e}"
         else:

@@ -302,9 +302,9 @@ Below is a list of your available function calls:\n\n""" + self.tool_registry.ge
                                                         function_tool_registry=self.tool_registry if not message_mode else None,
                                                         additional_stop_sequences=additional_stop_sequences,
                                                         n_predict=1024,
-                                                        temperature=0.7, top_k=0, top_p=1.0, repeat_penalty=1.1,
+                                                        temperature=1.0, top_k=0, top_p=1.0, repeat_penalty=1.1,
                                                         repeat_last_n=512,
-                                                        min_p=0.0, tfs_z=1.0, penalize_nl=False)
+                                                        min_p=0.1, tfs_z=0.975, penalize_nl=False)
 
         return result
 

@@ -27,26 +27,26 @@ from .providers.openai_endpoint_provider import (
 
 class activate_message_mode(BaseModel):
     """
-    Switch to message mode. This function enables the direct sending of messages to the user.
+    Enable message mode. This function enables the direct sending of messages to the user. Warning: The function call has to be the last in the function call list.
     """
 
     def run(self, agent: "FunctionCallingAgent"):
         agent.without_grammar_mode = True
-        agent.without_grammar_mode_function = agent.send_message_to_user
-        return None
+        agent.without_grammar_mode_function.append(agent.send_message_to_user)
+        return "Activated message mode."
 
 
 class activate_write_file_mode(BaseModel):
     """
-    Switch to write file mode. This function enables the direct writing of content to a file.
+    Enable write file mode. This function call takes a file path and enables a special output mode to write the content of a file after its performed. Warning: The function call has to be the last in the function call list.
     """
 
     file_path: str = Field(..., description="The path to the file.")
 
     def run(self, agent: "FunctionCallingAgent"):
         agent.without_grammar_mode = True
-        agent.without_grammar_mode_function = self.write_file
-        return None
+        agent.without_grammar_mode_function.append(self.write_file)
+        return "Activated write file mode."
 
     def write_file(self, content: str):
         """
@@ -236,34 +236,24 @@ class FunctionCallingAgent:
         self.llama_generation_settings = llama_generation_settings
 
         self.without_grammar_mode = False
-        self.without_grammar_mode_function = None
+        self.without_grammar_mode_function = []
         if system_prompt is not None:
             self.system_prompt = system_prompt
         else:
             # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
             self.system_prompt = (
-                """You are a helpful AI assistant, which interact with the user by calling functions which are represented as JSON object literals. Your output is constrained to a list of JSON object literals and allows to call multiple functions at once. The return values of the functions you call are only visible to you.
+                """You are an advanced AI agent that call functions. These function calls are represented as JSON object literals in a JSON array.
 
-Encapsulate your function calls in a JSON list. Each function call object should contain the following fields:
-- "thoughts": Contains the thoughts behind the function call.
-- "function": Specifies the function you intend to execute.
-- "params": Details the necessary parameters for the function's execution.
+Encapsulate your function calls in a JSON array. Each function call object should contain the following fields:
+"thoughts_and_reasoning": Contains the thoughts behind the function call.
+"function": Specifies the function you intend to execute.
+"params": Details the necessary parameters for the function's execution.
 
-Always begin your function calls with '[', and end them with ']'. Each function call object should be separated by a comma.
+### Functions:
+Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
+Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
 
-After you have completed your function calls you will get the results. When your task is finished, you can send a response to the user by calling the 'activate_message_mode' function.
-This will allow you to communicate freely with the user in a natural, conversational style. In this mode, you can write responses to the user without any constraints. Don't write any function calls in this mode.
-When calling a function to activate a mode, only call it once, like in the following example:
-
-[
-  {
-    "thoughts_and_reasoning": "Switching to message mode.",
-    "function": "activate_message_mode",
-    "params": {}
-  }
-]
-
-Below is a list of your available function calls:\n\n"""
+Available functions:\n\n"""
                 + self.tool_registry.get_documentation()
             )
         self.llama_cpp_agent = LlamaCppAgent(
@@ -387,7 +377,12 @@ Below is a list of your available function calls:\n\n"""
 
         while True:
             if isinstance(result, str):
-                self.send_message_to_user(result)
+                if len(self.without_grammar_mode_function) > 0:
+                    func_list = []
+                    for func in self.without_grammar_mode_function:
+                        if "activate_message_mode" == func.__name__ and func.__name__ not in func_list:
+                            func(result)
+                            func_list.append(func.__name__)
                 break
             function_message = f""""""
             count = 0

@@ -98,7 +98,7 @@ def send_message_to_user_callback(message: str):
 
 
 generation_settings = LlamaCppGenerationSettings(n_predict=4096,
-                                                 temperature=1.0, top_k=0, top_p=1.0, repeat_penalty=1.1,
+                                                 temperature=0.0, top_k=0, top_p=1.0, repeat_penalty=1.1,
                                                  repeat_last_n=512,
                                                  min_p=0.0, tfs_z=1.0, penalize_nl=False, stream=True)
 
@@ -125,6 +125,7 @@ function_call_agent = FunctionCallingAgent(
     allow_parallel_function_calling=True,
     messages_formatter_type=MessagesFormatterType.CHATML,
     debug_output=True)
+
 user_input = '''Get the date and time in '%d-%m-%Y %H:%M' format, get the current weather in celsius in London, New York and at the North Pole, and solve the following calculations: 42 * 42, 74 + 26 and 96/8.'''
 function_call_agent.generate_response(user_input, ["<|end_of_turn|>"])
 function_call_agent.save("function_calling_agent.json")

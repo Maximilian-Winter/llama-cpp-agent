@@ -104,8 +104,8 @@ class LlamaCppFunctionToolRegistry:
     ):
         self.tool_root = "function"
         self.tool_rule_content = "params"
-        self.model_prefix = "Function"
-        self.fields_prefix = "\nParameters"
+        self.model_prefix = "#### Function"
+        self.fields_prefix = "Parameters"
         self.function_tools = {}
         self.function_tools_containing_field_string = {}
         self.grammar = None
@@ -166,7 +166,6 @@ class LlamaCppFunctionToolRegistry:
             self.model_prefix,
             self.fields_prefix,
             self.allow_parallel_function_calling,
-            inner_thoughts_field_name="thoughts",
             add_inner_thoughts=self.add_inner_thoughts,
             allow_only_inner_thoughts=self.allow_inner_thoughts_only,
             add_request_heartbeat=self.add_request_heartbeat,

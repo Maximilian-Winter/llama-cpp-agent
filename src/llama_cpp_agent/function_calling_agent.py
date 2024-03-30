@@ -27,18 +27,18 @@ from .providers.openai_endpoint_provider import (
 
 class activate_message_mode(BaseModel):
     """
-    Enable message mode. This function enables the direct sending of messages to the user. Warning: The function call has to be the last in the function call list.
+    Activate message mode.
     """
 
     def run(self, agent: "FunctionCallingAgent"):
         agent.without_grammar_mode = True
         agent.without_grammar_mode_function.append(agent.send_message_to_user)
-        return "Activated message mode."
+        return None
 
 
-class activate_write_file_mode(BaseModel):
+class activate_file_mode(BaseModel):
     """
-    Enable write file mode. This function call takes a file path and enables a special output mode to write the content of a file after its performed. Warning: The function call has to be the last in the function call list.
+    Activate file mode.
     """
 
     file_path: str = Field(..., description="The path to the file.")
@@ -46,7 +46,7 @@ class activate_write_file_mode(BaseModel):
     def run(self, agent: "FunctionCallingAgent"):
         agent.without_grammar_mode = True
         agent.without_grammar_mode_function.append(self.write_file)
-        return "Activated write file mode."
+        return "Write file mode activated. Please write the content of the file."
 
     def write_file(self, content: str):
         """
@@ -60,7 +60,7 @@ class activate_write_file_mode(BaseModel):
         return None
 
 
-class read_file(BaseModel):
+class read_text_file(BaseModel):
     """
     Reads the content of a file.
     """
@@ -68,7 +68,7 @@ class read_file(BaseModel):
     file_path: str = Field(..., description="The path to the file.")
 
     def run(self):
-        return read_file()
+        return self.read_file()
 
     def read_file(self):
         """
@@ -191,9 +191,9 @@ class FunctionCallingAgent:
         else:
             self.llama_cpp_tools = []
         if basic_file_tools:
-            self.llama_cpp_tools.append(LlamaCppFunctionTool(read_file))
+            self.llama_cpp_tools.append(LlamaCppFunctionTool(read_text_file))
             self.llama_cpp_tools.append(
-                LlamaCppFunctionTool(activate_write_file_mode, agent=self)
+                LlamaCppFunctionTool(activate_file_mode, agent=self)
             )
         for tool in self.pydantic_functions:
             self.llama_cpp_tools.append(LlamaCppFunctionTool(tool))
@@ -242,19 +242,18 @@ class FunctionCallingAgent:
         else:
             # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
             self.system_prompt = (
-                """You are an advanced AI agent that call functions. These function calls are represented as JSON object literals in a JSON array.
+                """You are an function calling agent, executing tasks through function calls represented as JSON object literals.
+                
+To perform tasks, you respond with a JSON object containing three fields:
+- "thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
+- "function": The name of the function you want to call.
+- "params": The parameters required for the function.
 
-Encapsulate your function calls in a JSON array. Each function call object should contain the following fields:
-"thoughts_and_reasoning": Contains the thoughts behind the function call.
-"function": Specifies the function you intend to execute.
-"params": Details the necessary parameters for the function's execution.
+To send a message to the user, use the 'activate_message_mode' function. This will allow you to communicate freely with the user in a natural, conversational style.
+To write content to a file, call the 'activate_file_mode' function. You can write completely free-form text after calling this function and don't have to use JSON object literals.
 
-### Functions:
-Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
-Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
-
-Available functions:\n\n"""
-                + self.tool_registry.get_documentation()
+Functions:
+""" + self.tool_registry.get_documentation()
             )
         self.llama_cpp_agent = LlamaCppAgent(
             llama_llm,
@@ -380,7 +379,7 @@ Available functions:\n\n"""
                 if len(self.without_grammar_mode_function) > 0:
                     func_list = []
                     for func in self.without_grammar_mode_function:
-                        if "activate_message_mode" == func.__name__ and func.__name__ not in func_list:
+                        if func.__name__ not in func_list:
                             func(result)
                             func_list.append(func.__name__)
                 break
@@ -406,7 +405,7 @@ Available functions:\n\n"""
             self.without_grammar_mode = False
         if additional_stop_sequences is None:
             additional_stop_sequences = []
-        additional_stop_sequences.append("(End of message)")
+        #additional_stop_sequences.append("(End of message)")
         result = self.llama_cpp_agent.get_chat_response(
             system_prompt=self.system_prompt,
             streaming_callback=self.streaming_callback,

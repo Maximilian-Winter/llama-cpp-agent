@@ -18,6 +18,7 @@ USER_PROMPT_START_CHATML = """<|im_start|>user\n"""
 USER_PROMPT_END_CHATML = """<|im_end|>\n"""
 ASSISTANT_PROMPT_START_CHATML = """<|im_start|>assistant\n"""
 ASSISTANT_PROMPT_END_CHATML = """<|im_end|>\n"""
+
 FUNCTION_PROMPT_START_CHATML = """<|im_start|>function\n"""
 FUNCTION_PROMPT_END_CHATML = """<|im_end|>\n"""
 DEFAULT_CHATML_STOP_SEQUENCES = ["<|im_end|>"]

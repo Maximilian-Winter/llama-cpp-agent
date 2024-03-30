@@ -22,7 +22,7 @@ email = "maximilian.winter.91@gmail.com"
 
 
 [project.optional-dependencies]
-retrieval_memory = ["chromadb", "numpy", "scipy"]
+retrieval_memory = ["chromadb", "SQLAlchemy", "numpy", "scipy"]
 
 [project.urls]
 Homepage = "https://github.com/Maximilian-Winter/llama-cpp-agent"

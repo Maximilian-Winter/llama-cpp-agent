@@ -37,7 +37,7 @@ class OpenAIGenerationSettings:
         Args:
             file_path (str): The path to the file.
         """
-        with open(file_path, 'w', encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
@@ -51,7 +51,7 @@ class OpenAIGenerationSettings:
         Returns:
             CreateCompletionRequest: The loaded settings.
         """
-        with open(file_path, 'r', encoding="utf-8") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             loaded_settings = json.load(file)
             return OpenAIGenerationSettings(**loaded_settings)
 
@@ -97,6 +97,7 @@ class OpenAIEndpointSettings:
         create_completion(prompt, grammar, generation_settings: CompletionRequestSettings): Create a completion using the server.
 
     """
+
     completions_endpoint_url: str
 
     def save(self, file_path: str):
@@ -106,7 +107,7 @@ class OpenAIEndpointSettings:
         Args:
             file_path (str): The path to the file.
         """
-        with open(file_path, 'w', encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(self.as_dict(), file, indent=4)
 
     @staticmethod
@@ -120,7 +121,7 @@ class OpenAIEndpointSettings:
         Returns:
             OpenAIEndpointSettings: The loaded settings.
         """
-        with open(file_path, 'r', encoding="utf-8") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             loaded_settings = json.load(file)
             return OpenAIEndpointSettings(**loaded_settings)
 
@@ -146,7 +147,9 @@ class OpenAIEndpointSettings:
         """
         return self.__dict__
 
-    def create_completion(self, prompt, grammar, generation_settings: OpenAIGenerationSettings):
+    def create_completion(
+        self, prompt, grammar, generation_settings: OpenAIGenerationSettings
+    ):
         """
         Create a completion using the Llama.cpp server.
 
@@ -169,10 +172,12 @@ class OpenAIEndpointSettings:
         data["stop"] = data["stop_sequences"]
         del data["stop_sequences"]
 
-        response = requests.post(self.completions_endpoint_url, headers=headers, json=data)
+        response = requests.post(
+            self.completions_endpoint_url, headers=headers, json=data
+        )
         data = response.json()
 
-        returned_data = {'choices': data["choices"]}
+        returned_data = {"choices": data["choices"]}
         return returned_data
 
     def get_response_stream(self, prompt, grammar, generation_settings):
@@ -183,8 +188,12 @@ class OpenAIEndpointSettings:
         data["grammar"] = grammar
         data["stop"] = data["stop_sequences"]
         del data["stop_sequences"]
-        response = requests.post(self.completions_endpoint_url, headers=headers, json=data,
-                                 stream=generation_settings.stream)
+        response = requests.post(
+            self.completions_endpoint_url,
+            headers=headers,
+            json=data,
+            stream=generation_settings.stream,
+        )
 
         # Check if the request was successful
         response.raise_for_status()
@@ -195,9 +204,9 @@ class OpenAIEndpointSettings:
                 decoded_chunk = ""
                 for chunk in response.iter_lines():
                     if chunk:
-                        decoded_chunk += chunk.decode('utf-8')
+                        decoded_chunk += chunk.decode("utf-8")
                         new_data = json.loads(decoded_chunk.replace("data: ", ""))
-                        returned_data = {'choices': new_data["choices"]}
+                        returned_data = {"choices": new_data["choices"]}
                         yield returned_data
                         decoded_chunk = ""
             except requests.exceptions.RequestException as e:

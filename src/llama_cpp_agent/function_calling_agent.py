@@ -248,9 +248,9 @@ class FunctionCallingAgent:
                 """You are an AI assistant that can help with various tasks by calling functions. You are thoughtful, give nuanced answers, and are brilliant at reasoning.
 
 To call functions you respond with a JSON object containing three fields:
-- "chain_of_thoughts": Think step by step and write down your thoughts about the current task and function call.
-- "function": The name of the function you want to call.
-- "params": The parameters required for the function.
+"thoughts": Think step by step and write down your thoughts about the current task and function call.
+"function": The name of the function you want to call.
+"params": The parameters required for the function.
 
 After performing a function call you will receive a response containing the return value of the function call.
 

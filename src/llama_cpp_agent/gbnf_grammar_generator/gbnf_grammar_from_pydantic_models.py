@@ -711,13 +711,13 @@ def generate_gbnf_grammar_from_pydantic_models(
                 + "\n"
             )
         else:
-            root_rule = f"root ::= {format_model_and_field_name(outer_object_name)}\n"
+            root_rule = f"root ::= ws {format_model_and_field_name(outer_object_name)}\n"
 
         if add_inner_thoughts:
             if allow_only_inner_thoughts:
-                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string (("," "\n" ws "\"{outer_object_name}\""  ":" ws grammar-models)? | "\n" "}}")'
+                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string (("," "\n" ws "\"{outer_object_name}\""  ":" grammar-models)? | "\n" "}}")'
             else:
-                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string "," "\n" ws "\"{outer_object_name}\""  ":" ws grammar-models '
+                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string "," "\n" ws "\"{outer_object_name}\""  ":" grammar-models '
         else:
             model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{outer_object_name}\""  ":" ws grammar-models'
 
@@ -735,7 +735,7 @@ def generate_gbnf_grammar_from_pydantic_models(
                 rf"{format_model_and_field_name(model.__name__)}-grammar-model ::= "
             )
             mod_rule += (
-                rf'"\"{model.__name__}\"" "," ws "\"{outer_object_content}\"" ":" ws {format_model_and_field_name(model.__name__)}'
+                rf'"\"{model.__name__}\"" "," ws "\"{outer_object_content}\"" ":" {format_model_and_field_name(model.__name__)}'
                 + "\n"
             )
             mod_rules.append(mod_rule)
@@ -785,7 +785,7 @@ string ::= "\"" (
         [^"\\] |
         "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
       )* "\""
-ws ::= ([ \t\n] ws)?
+ws ::= ([ \t\n]+)
 float ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
 
 integer ::= [0-9]+"""

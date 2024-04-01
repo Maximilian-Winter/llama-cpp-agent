@@ -32,7 +32,7 @@ class activate_message_mode(BaseModel):
 
     def run(self, agent: "FunctionCallingAgent"):
         agent.without_grammar_mode = True
-        agent.prompt_suffix = "\nWriting message content in free form text:\n"
+        agent.prompt_suffix = "\nWriting message content in free form text:"
         agent.without_grammar_mode_function.append(agent.send_message_to_user)
         return True
 
@@ -46,7 +46,7 @@ class activate_file_mode(BaseModel):
 
     def run(self, agent: "FunctionCallingAgent"):
         agent.without_grammar_mode = True
-        agent.prompt_suffix = "\nWriting file content in free form text:\n"
+        agent.prompt_suffix = "\nWriting file content in free form text:"
         agent.without_grammar_mode_function.append(self.write_file)
         return True
 

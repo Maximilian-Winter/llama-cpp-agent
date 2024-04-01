@@ -895,10 +895,10 @@ def generate_markdown_documentation(
                 )
             if add_prefix:
                 if documentation.endswith(f"{fields_prefix}:\n"):
-                    documentation += "None\n"
+                    documentation += "none\n"
             else:
                 if documentation.endswith("Fields:\n"):
-                    documentation += "None\n"
+                    documentation += "none\n"
             documentation += "\n"
 
         if (
@@ -1069,7 +1069,7 @@ def generate_text_documentation(
             # Indenting the fields section
             documentation += f"  {fields_prefix}:\n"
         else:
-            documentation += f"  Fields:\n"
+            documentation += f"  fields:\n"
         if isclass(model) and issubclass(model, BaseModel):
             for name, field_type in model.__annotations__.items():
                 # if name == "markdown_code_block":
@@ -1093,10 +1093,10 @@ def generate_text_documentation(
                 )
             if add_prefix:
                 if documentation.endswith(f"{fields_prefix}:\n"):
-                    documentation += "    None\n"
+                    documentation += "    none\n"
             else:
-                if documentation.endswith("Fields:\n"):
-                    documentation += "    None\n"
+                if documentation.endswith("fields:\n"):
+                    documentation += "    none\n"
             documentation += "\n"
 
         if (

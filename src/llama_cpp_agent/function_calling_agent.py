@@ -32,8 +32,9 @@ class activate_message_mode(BaseModel):
 
     def run(self, agent: "FunctionCallingAgent"):
         agent.without_grammar_mode = True
+        agent.prompt_suffix = "\nWriting message content in free form text:\n"
         agent.without_grammar_mode_function.append(agent.send_message_to_user)
-        return None
+        return True
 
 
 class activate_file_mode(BaseModel):
@@ -45,8 +46,9 @@ class activate_file_mode(BaseModel):
 
     def run(self, agent: "FunctionCallingAgent"):
         agent.without_grammar_mode = True
+        agent.prompt_suffix = "\nWriting file content in free form text:\n"
         agent.without_grammar_mode_function.append(self.write_file)
-        return "Write file mode activated. Please write the content of the file."
+        return True
 
     def write_file(self, content: str):
         """
@@ -237,22 +239,25 @@ class FunctionCallingAgent:
 
         self.without_grammar_mode = False
         self.without_grammar_mode_function = []
+        self.prompt_suffix = ""
         if system_prompt is not None:
             self.system_prompt = system_prompt
         else:
             # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
             self.system_prompt = (
-                """You are an function calling agent, executing tasks through function calls represented as JSON object literals.
-                
-To perform tasks, you respond with a JSON object containing three fields:
-- "thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
+                """You are an AI assistant that can help with various tasks by calling functions. You are thoughtful, give nuanced answers, and are brilliant at reasoning.
+
+To call functions you respond with a JSON object containing three fields:
+- "chain_of_thoughts": Think step by step and write down your thoughts about the current task and function call.
 - "function": The name of the function you want to call.
 - "params": The parameters required for the function.
 
-To send a message to the user, use the 'activate_message_mode' function. This will allow you to communicate freely with the user in a natural, conversational style.
-To write content to a file, call the 'activate_file_mode' function. You can write completely free-form text after calling this function and don't have to use JSON object literals.
+After performing a function call you will receive a response containing the return value of the function call.
 
-Functions:
+You have access to special modes, such as message mode and file mode, which allow you to communicate with the user and write to a file respectively. After activating these modes, your next response will be send to the or written to a file, depending on the mode you activated. Functions calls won't be recognized in these modes.
+
+Available Functions:
+
 """ + self.tool_registry.get_documentation()
             )
         self.llama_cpp_agent = LlamaCppAgent(
@@ -383,17 +388,18 @@ Functions:
                             func(result)
                             func_list.append(func.__name__)
                 break
-            function_message = f""""""
+            function_message = f"""Function Call Results:\n\n"""
             count = 0
-            for res in result:
-                count += 1
-                if not isinstance(res, str):
-                    function_message += f"""{count}. Function: "{res["function"]}"\nReturn Value: {res["return_value"]}\n\n"""
-                else:
-                    function_message += f"{count}. " + res + "\n\n"
-            self.llama_cpp_agent.add_message(
-                role="function", message=function_message.strip()
-            )
+            if result is not None:
+                for res in result:
+                    count += 1
+                    if not isinstance(res, str):
+                        function_message += f"""{count}. Function: "{res["function"]}"\nReturn Value: {res["return_value"]}\n\n"""
+                    else:
+                        function_message += f"{count}. " + res + "\n\n"
+                self.llama_cpp_agent.add_message(
+                    role="function", message=function_message.strip()
+                )
             result = self.intern_get_response(
                 additional_stop_sequences=additional_stop_sequences
             )
@@ -413,9 +419,11 @@ Functions:
             if not without_grammar_mode
             else None,
             additional_stop_sequences=additional_stop_sequences,
+            prompt_suffix=self.prompt_suffix,
             **self.llama_generation_settings.as_dict(),
         )
-
+        if without_grammar_mode:
+            self.prompt_suffix = ""
         return result
 
     def send_message_to_user(self, message: str):

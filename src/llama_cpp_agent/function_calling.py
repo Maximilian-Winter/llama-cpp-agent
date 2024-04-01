@@ -166,6 +166,7 @@ class LlamaCppFunctionToolRegistry:
             self.model_prefix,
             self.fields_prefix,
             self.allow_parallel_function_calling,
+            inner_thoughts_field_name="chain_of_thoughts",
             add_inner_thoughts=self.add_inner_thoughts,
             allow_only_inner_thoughts=self.allow_inner_thoughts_only,
             add_request_heartbeat=self.add_request_heartbeat,
@@ -249,6 +250,7 @@ class LlamaCppFunctionToolRegistry:
                 output = self.intern_function_call(function_call)
             else:
                 output = self.intern_parallel_function_call(function_call)
+
             return output
 
         except AttributeError as e:

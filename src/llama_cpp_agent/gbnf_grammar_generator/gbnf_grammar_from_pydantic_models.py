@@ -749,9 +749,6 @@ def generate_gbnf_grammar_from_pydantic_models(
             model_rules, has_special_string = generate_gbnf_grammar(
                 model, processed_models, created_rules
             )
-            model_rules[
-                0
-            ] += rf' ",\n" ws "\"next_step\""  ":" ws string '
             if add_request_heartbeat and model.__name__ in request_heartbeat_models:
                 model_rules[
                     0
@@ -1454,12 +1451,14 @@ def generate_gbnf_grammar_and_documentation_from_dictionaries(
     return grammar, documentation
 
 
-def create_dynamic_model_from_function(func: Callable[..., Any]):
+def create_dynamic_model_from_function(func: Callable[..., Any], add_inner_thoughts: bool = False, inner_thoughts_field_name: str = "inner_thoughts"):
     """
     Creates a dynamic Pydantic model from a given function's type hints and adds the function as a 'run' method.
 
     Args:
         func (Callable): A function with type hints from which to create the model.
+        add_inner_thoughts (bool): Add an 'inner_thoughts' field at the params level to the model. Default is False.
+        inner_thoughts_field_name (str): Field name for inner thoughts. Default is "inner_thoughts".
 
     Returns:
         A dynamic Pydantic model class with the provided function as a 'run' method.
@@ -1474,6 +1473,8 @@ def create_dynamic_model_from_function(func: Callable[..., Any]):
 
     dynamic_fields = {}
     param_docs = []
+    if add_inner_thoughts:
+        dynamic_fields[inner_thoughts_field_name] = (str, None)
     for param in sig.parameters.values():
         # Exclude 'self' parameter
         if param.name == "self":
@@ -1508,7 +1509,8 @@ def create_dynamic_model_from_function(func: Callable[..., Any]):
         )
     # Creating the dynamic model
     dynamic_model = create_model(f"{func.__name__}", **dynamic_fields)  # type: ignore[call-overload]
-
+    if add_inner_thoughts:
+        dynamic_model.model_fields[inner_thoughts_field_name].description = "Deep inner monologue private to you only."
     for name, param_doc in param_docs:
         dynamic_model.model_fields[name].description = param_doc.description
 

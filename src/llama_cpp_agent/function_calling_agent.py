@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 from copy import copy
 from typing import Type, List, Callable, Union, Literal
 
@@ -32,7 +33,7 @@ class activate_message_mode(BaseModel):
 
     def run(self, agent: "FunctionCallingAgent"):
         agent.without_grammar_mode = True
-        agent.prompt_suffix = "\nWriting message content in free form text:"
+        agent.prompt_suffix = "\nWrite message in plain text format:"
         agent.without_grammar_mode_function.append(agent.send_message_to_user)
         return True
 
@@ -46,7 +47,7 @@ class activate_file_mode(BaseModel):
 
     def run(self, agent: "FunctionCallingAgent"):
         agent.without_grammar_mode = True
-        agent.prompt_suffix = "\nWriting file content in free form text:"
+        agent.prompt_suffix = "\nWrite file content in plain text format:"
         agent.without_grammar_mode_function.append(self.write_file)
         return True
 
@@ -76,9 +77,11 @@ class read_text_file(BaseModel):
         """
         Reads the content of a file.
         """
-        with open(self.file_path, "r", encoding="utf-8") as file:
-            return file.read()
-
+        if os.path.exists(self.file_path):
+            with open(self.file_path, "r", encoding="utf-8") as file:
+                return file.read()
+        else:
+            return f"File not found."
 
 class FunctionCallingAgent:
     """
@@ -248,9 +251,9 @@ class FunctionCallingAgent:
                 """You are an AI assistant that can help with various tasks by calling functions. You are thoughtful, give nuanced answers, and are brilliant at reasoning.
 
 To call functions you respond with a JSON object containing three fields:
-"thoughts": Think step by step and write down your thoughts about the current task and function call.
-"function": The name of the function you want to call.
-"params": The parameters required for the function.
+- "thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
+- "function": The name of the function you want to call.
+- "params": The parameters required for the function.
 
 After performing a function call you will receive a response containing the return value of the function call.
 
@@ -385,7 +388,7 @@ Available Functions:
                     func_list = []
                     for func in self.without_grammar_mode_function:
                         if func.__name__ not in func_list:
-                            func(result)
+                            func(result.strip())
                             func_list.append(func.__name__)
                 break
             function_message = f"""Function Call Results:\n\n"""

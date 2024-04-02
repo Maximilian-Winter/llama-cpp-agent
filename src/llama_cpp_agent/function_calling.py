@@ -166,7 +166,7 @@ class LlamaCppFunctionToolRegistry:
             self.model_prefix,
             self.fields_prefix,
             self.allow_parallel_function_calling,
-            inner_thoughts_field_name="thoughts",
+            inner_thoughts_field_name="thoughts_and_reasoning",
             add_inner_thoughts=self.add_inner_thoughts,
             allow_only_inner_thoughts=self.allow_inner_thoughts_only,
             add_request_heartbeat=self.add_request_heartbeat,

@@ -808,8 +808,7 @@ array  ::=
             value
     ("," ws value)*
   )? "]"
-
-number ::= integer | float"""
+"""
 
     markdown_code_block_grammar = ""
     if "markdown-code-block" in grammar:

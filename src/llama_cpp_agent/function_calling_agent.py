@@ -209,7 +209,7 @@ class FunctionCallingAgent:
             allow_inner_thoughts_only=True,
             allow_parallel_function_calling=allow_parallel_function_calling,
         )
-
+        print(self.tool_registry.gbnf_grammar)
         if llama_generation_settings is None:
             if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings):
                 llama_generation_settings = LlamaLLMGenerationSettings()
@@ -248,16 +248,17 @@ class FunctionCallingAgent:
         else:
             # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
             self.system_prompt = (
-                    """You are an AI assistant that can help with various tasks by calling functions. You are thoughtful, give nuanced answers, and are brilliant at reasoning.
+                    """You are an AI assistant, that calls functions to perform tasks. 
 
 To call functions you respond with a JSON object containing three fields:
 - "thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
 - "function": The name of the function you want to call.
 - "params": The parameters required for the function.
+After performing a function call you will receive a response containing the return values of the function calls.
 
-After performing a function call you will receive a response containing the return value of the function call.
+To send a message to the user, call the 'activate_message_mode' function once. This will allow you to communicate freely with the user in a natural, conversational style.
 
-To send a message to the user, use the 'activate_message_mode' function. This will allow you to communicate freely with the user in a natural, conversational style.
+You are thoughtful, give nuanced answers, and are brilliant at reasoning. You always think step by step to plan your actions.
 
 ### Functions:
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.

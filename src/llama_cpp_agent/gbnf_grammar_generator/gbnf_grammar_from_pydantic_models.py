@@ -47,8 +47,8 @@ class PydanticDataType(Enum):
     TRIPLE_QUOTED_STRING = "triple_quoted_string"
     MARKDOWN_CODE_BLOCK = "markdown_code_block"
     BOOLEAN = "boolean"
-    INTEGER = "integer"
-    FLOAT = "float"
+    INTEGER = "number"
+    FLOAT = "number"
     OBJECT = "object"
     ARRAY = "array"
     ENUM = "enum"
@@ -426,8 +426,12 @@ def generate_gbnf_rule_for_type(
         if len(union_rules) == 1:
             union_grammar_rule = f"{model_name}-{field_name}-optional ::= {' | '.join(union_rules)} | null"
         else:
+            uni = []
+            for rule in union_rules:
+                if rule not in uni:
+                    uni.append(rule)
             union_grammar_rule = (
-                f"{model_name}-{field_name}-union ::= {' | '.join(union_rules)}"
+                f"{model_name}-{field_name}-union ::= {' | '.join(uni)}"
             )
         rules.append(union_grammar_rule)
         if len(union_rules) == 1:
@@ -786,9 +790,7 @@ string ::= "\"" (
         "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
       )* "\""
 ws ::= ([ \t\n]+)
-float ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?
-
-integer ::= [0-9]+"""
+number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?"""
 
     any_block = ""
     if "custom-class-any" in grammar:
@@ -1052,7 +1054,7 @@ def generate_text_documentation(
         if add_prefix:
             documentation += f"{model_prefix}: {model.__name__}\n"
         else:
-            documentation += f"Model: {model.__name__}\n"
+            documentation += f"model: {model.__name__}\n"
 
         # Handling multi-line model description with proper indentation
 
@@ -1063,7 +1065,7 @@ def generate_text_documentation(
         )
         if class_description != "":
             documentation += "  description: "
-            documentation += format_multiline_description(class_description, 0) + "\n"
+            documentation += format_multiline_description(class_description, 1) + "\n"
 
         if add_prefix:
             # Indenting the fields section
@@ -1199,7 +1201,7 @@ def generate_field_text(
             field_text += f"{indent}  Example: {example_text}\n"
 
     if isclass(field_type) and issubclass(field_type, BaseModel):
-        field_text += f"{indent}  Details:\n"
+        field_text += f"{indent}  details:\n"
         for name, type_ in field_type.__annotations__.items():
             field_text += generate_field_markdown(name, type_, field_type, depth + 2)
 
@@ -1218,7 +1220,7 @@ def format_multiline_description(description: str, indent_level: int) -> str:
         str: Formatted multiline description.
     """
     indent = "    " * indent_level
-    return indent + description.replace("\n", "\n" + indent)
+    return description.replace("\n", " " )
 
 
 def save_gbnf_grammar_and_documentation(

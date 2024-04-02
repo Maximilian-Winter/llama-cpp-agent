@@ -98,9 +98,9 @@ def send_message_to_user_callback(message: str):
 
 
 generation_settings = LlamaCppGenerationSettings(n_predict=4096,
-                                                 temperature=0.0, top_k=0, top_p=1.0, repeat_penalty=1.1,
+                                                 temperature=0.4, top_k=0, top_p=1.0, repeat_penalty=1.1,
                                                  repeat_last_n=512,
-                                                 min_p=0.0, tfs_z=1.0, penalize_nl=False, stream=True)
+                                                 min_p=0.1, tfs_z=0.95, penalize_nl=False, stream=True)
 
 # Can be saved and loaded like that:
 # generation_settings.save("generation_settings.json")

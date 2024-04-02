@@ -103,9 +103,9 @@ class LlamaCppFunctionToolRegistry:
         add_request_heartbeat=True,
     ):
         self.tool_root = "function"
-        self.tool_rule_content = "params"
+        self.tool_rule_content = "arguments"
         self.model_prefix = "function"
-        self.fields_prefix = "params"
+        self.fields_prefix = "parameters"
         self.function_tools = {}
         self.function_tools_containing_field_string = {}
         self.grammar = None

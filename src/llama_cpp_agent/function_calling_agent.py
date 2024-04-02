@@ -26,9 +26,9 @@ from .providers.openai_endpoint_provider import (
 )
 
 
-class activate_message_mode(BaseModel):
+class enable_respond_to_user_mode(BaseModel):
     """
-    Activate message mode.
+    Enable respond to user mode.
     """
 
     def run(self, agent: "FunctionCallingAgent"):
@@ -191,7 +191,7 @@ class FunctionCallingAgent:
         self.send_message_to_user_callback = send_message_to_user_callback
         if add_send_message_to_user_function:
             self.llama_cpp_tools = [
-                LlamaCppFunctionTool(activate_message_mode, agent=self)
+                LlamaCppFunctionTool(enable_respond_to_user_mode, agent=self)
             ]
         else:
             self.llama_cpp_tools = []
@@ -209,7 +209,7 @@ class FunctionCallingAgent:
             allow_inner_thoughts_only=True,
             allow_parallel_function_calling=allow_parallel_function_calling,
         )
-        
+
         if llama_generation_settings is None:
             if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings):
                 llama_generation_settings = LlamaLLMGenerationSettings()
@@ -253,10 +253,12 @@ class FunctionCallingAgent:
 To call functions you respond with a JSON object containing three fields:
 - "thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
 - "function": The name of the function you want to call.
-- "params": The parameters required for the function.
+- "arguments": The arguments required for the function.
+- "observations": Any observations you have made during writing the function call.
+
 After performing a function call you will receive a response containing the return values of the function calls.
 
-To send a message to the user, call the 'activate_message_mode' function once. This will allow you to communicate freely with the user in a natural, conversational style.
+To send a response to the user, call the 'enable_respond_to_user_mode' function. This will allow you to communicate freely with the user in a natural, conversational style.
 
 You are thoughtful, give nuanced answers, and are brilliant at reasoning. You always think step by step to plan your actions.
 

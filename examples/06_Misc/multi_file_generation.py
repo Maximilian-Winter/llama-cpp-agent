@@ -58,8 +58,8 @@ def develop(data: str) -> Program:
     prompt = data
     response = llama_cpp_agent.get_chat_response(
         message=prompt,
-        temperature=0.35,
-        mirostat_mode=2,
+        temperature=0.45,
+        mirostat_mode=0,
         mirostat_tau=4.0,
         mirostat_eta=0.1,
         grammar=gbnf_grammar,
@@ -72,7 +72,7 @@ def develop(data: str) -> Program:
 
 program = develop(
     """
-    Implement system for a swarm of large language model agents using huggingface transformers. The system should be based on natural behavior of ants and bees."""
+Implement system for a swarm of large language model agents using huggingface transformers. The system should be based on natural behavior of ants and bees.""".strip()
 )
 
 for file in program.files:

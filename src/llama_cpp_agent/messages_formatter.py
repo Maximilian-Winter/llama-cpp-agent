@@ -18,6 +18,7 @@ USER_PROMPT_START_CHATML = """<|im_start|>user\n"""
 USER_PROMPT_END_CHATML = """<|im_end|>\n"""
 ASSISTANT_PROMPT_START_CHATML = """<|im_start|>assistant\n"""
 ASSISTANT_PROMPT_END_CHATML = """<|im_end|>\n"""
+
 FUNCTION_PROMPT_START_CHATML = """<|im_start|>function\n"""
 FUNCTION_PROMPT_END_CHATML = """<|im_end|>\n"""
 DEFAULT_CHATML_STOP_SEQUENCES = ["<|im_end|>"]
@@ -47,15 +48,16 @@ ASSISTANT_PROMPT_END_SYNTHIA = """\n"""
 FUNCTION_PROMPT_START_SYNTHIA = """"""
 FUNCTION_PROMPT_END_SYNTHIA = """"""
 
-SYS_PROMPT_START_ALPACA = """"""
+SYS_PROMPT_START_ALPACA = """### Instruction:\n"""
 SYS_PROMPT_END_ALPACA = """\n"""
-USER_PROMPT_START_ALPACA = """### Instruction:\n"""
+USER_PROMPT_START_ALPACA = """### Input:\n"""
 USER_PROMPT_END_ALPACA = """ \n"""
 ASSISTANT_PROMPT_START_ALPACA = """### Response:\n"""
 ASSISTANT_PROMPT_END_ALPACA = """\n"""
 FUNCTION_PROMPT_START_ALPACA = """"""
 FUNCTION_PROMPT_END_ALPACA = """"""
-DEFAULT_ALPACA_STOP_SEQUENCES = ["### Instruction:", "### Response:"]
+DEFAULT_ALPACA_STOP_SEQUENCES = ["### Instruction:", "### Input:", "### Response:"]
+
 
 SYS_PROMPT_START_NEURAL_CHAT = """### System:\n"""
 SYS_PROMPT_END_NEURAL_CHAT = """\n"""
@@ -79,9 +81,9 @@ DEFAULT_SOLAR_STOP_SEQUENCES = ["### User:"]
 
 SYS_PROMPT_START_OPEN_CHAT = """"""
 SYS_PROMPT_END_OPEN_CHAT = """  """
-USER_PROMPT_START_OPEN_CHAT = """GPT4 Correct User:"""
+USER_PROMPT_START_OPEN_CHAT = """GPT4 Correct User: """
 USER_PROMPT_END_OPEN_CHAT = """<|end_of_turn|>"""
-ASSISTANT_PROMPT_START_OPEN_CHAT = """GPT4 Correct Assistant:"""
+ASSISTANT_PROMPT_START_OPEN_CHAT = """GPT4 Correct Assistant: """
 ASSISTANT_PROMPT_END_OPEN_CHAT = """<|end_of_turn|>"""
 FUNCTION_PROMPT_START_OPEN_CHAT = """"""
 FUNCTION_PROMPT_END_OPEN_CHAT = """"""
@@ -377,9 +379,9 @@ open_chat_formatter = MessagesFormatter(
     ASSISTANT_PROMPT_END_OPEN_CHAT,
     True,
     DEFAULT_OPEN_CHAT_STOP_SEQUENCES,
-    False,
-    FUNCTION_PROMPT_START_CHATML,
-    FUNCTION_PROMPT_END_CHATML,
+    True,
+    FUNCTION_PROMPT_START_OPEN_CHAT,
+    FUNCTION_PROMPT_END_OPEN_CHAT,
 )
 
 alpaca_formatter = MessagesFormatter(

@@ -209,7 +209,7 @@ class FunctionCallingAgent:
             allow_inner_thoughts_only=True,
             allow_parallel_function_calling=allow_parallel_function_calling,
         )
-        print(self.tool_registry.gbnf_grammar)
+        
         if llama_generation_settings is None:
             if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings):
                 llama_generation_settings = LlamaLLMGenerationSettings()

@@ -721,9 +721,9 @@ def generate_gbnf_grammar_from_pydantic_models(
 
         if add_inner_thoughts:
             if allow_only_inner_thoughts:
-                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string (("," "\n" ws "\"{outer_object_name}\""  ":" grammar-models)? | "\n" ws "}}")'
+                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string (("," ws "\"{outer_object_name}\""  ":" grammar-models)? | ws "}}")'
             else:
-                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string "," "\n" ws "\"{outer_object_name}\""  ":" grammar-models '
+                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string "," ws "\"{outer_object_name}\""  ":" grammar-models '
         else:
             model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{outer_object_name}\""  ":" ws grammar-models'
 

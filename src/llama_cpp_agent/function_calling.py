@@ -207,7 +207,10 @@ class LlamaCppFunctionToolRegistry:
         """
         try:
             for name, tool in self.function_tools_containing_field_string.items():
-                if f'"function": "{name}"' in function_call_response or f'"function":"{name}"' in function_call_response:
+                if (
+                    f'"function": "{name}"' in function_call_response
+                    or f'"function":"{name}"' in function_call_response
+                ):
                     marker = (
                         "'''"
                         if self.function_tools_containing_field_string[

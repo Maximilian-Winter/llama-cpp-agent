@@ -630,7 +630,7 @@ def generate_gbnf_grammar(
 
     fields_joined = r' "," "\n" '.join(model_rule_parts)
     if fields_joined != "":
-        model_rule = rf'{model_name} ::= "{{" "\n" {fields_joined} "\n" ws "}}"'
+        model_rule = rf'{model_name} ::= "{{" "\n" {fields_joined} ws "}}"'
     else:
         model_rule = rf'{model_name} ::= "{{" "}}"'
 
@@ -715,7 +715,9 @@ def generate_gbnf_grammar_from_pydantic_models(
                 + "\n"
             )
         else:
-            root_rule = f"root ::= ws {format_model_and_field_name(outer_object_name)}\n"
+            root_rule = (
+                f"root ::= ws {format_model_and_field_name(outer_object_name)}\n"
+            )
 
         if add_inner_thoughts:
             if allow_only_inner_thoughts:
@@ -754,7 +756,7 @@ def generate_gbnf_grammar_from_pydantic_models(
                     0
                 ] += rf' ",\n" ws "\"{request_heartbeat_field_name}\""  ":" ws boolean '
             if not has_special_string:
-                model_rules[0] += r'"\n" ws "}"'
+                model_rules[0] += r'"\n" "}"'
 
             all_rules.extend(model_rules)
 
@@ -934,7 +936,7 @@ def generate_field_markdown(
     Returns:
         str: Generated text documentation for the field.
     """
-    indent = "" * depth
+    indent = "  " * depth
 
     field_info = model.model_fields.get(field_name)
     field_description = (
@@ -1086,6 +1088,8 @@ def generate_text_documentation(
                             element_type, BaseModel
                         ):
                             pyd_models.append((element_type, False))
+                if isclass(field_type) and issubclass(field_type, BaseModel):
+                    pyd_models.append((field_type, False))
                 documentation += generate_field_text(
                     name,
                     field_type,
@@ -1141,7 +1145,9 @@ def generate_field_text(
 
     if get_origin(field_type) == list:
         element_type = get_args(field_type)[0]
-        field_text = f"{indent}{field_name} ({format_model_and_field_name(field_type.__name__)} of {format_model_and_field_name(element_type.__name__)})"
+        field_text = (
+            f"{indent}{field_name} ({field_type.__name__} of {element_type.__name__})"
+        )
         if field_description != "":
             field_text += ": "
         else:
@@ -1153,7 +1159,7 @@ def generate_field_text(
             if element_type.__name__ == "NoneType":
                 types.append("null")
             else:
-                types.append(format_model_and_field_name(element_type.__name__))
+                types.append(element_type.__name__)
         field_text = f"{indent}{field_name} ({' or '.join(types)})"
         if field_description != "":
             field_text += ": "
@@ -1199,11 +1205,6 @@ def generate_field_text(
             )
             field_text += f"{indent}  Example: {example_text}\n"
 
-    if isclass(field_type) and issubclass(field_type, BaseModel):
-        field_text += f"{indent}  details:\n"
-        for name, type_ in field_type.__annotations__.items():
-            field_text += generate_field_markdown(name, type_, field_type, depth + 2)
-
     return field_text
 
 
@@ -1219,7 +1220,7 @@ def format_multiline_description(description: str, indent_level: int) -> str:
         str: Formatted multiline description.
     """
     indent = "    " * indent_level
-    return description.replace("\n", " " )
+    return indent + description.replace("\n", indent + "\n")
 
 
 def save_gbnf_grammar_and_documentation(
@@ -1451,7 +1452,11 @@ def generate_gbnf_grammar_and_documentation_from_dictionaries(
     return grammar, documentation
 
 
-def create_dynamic_model_from_function(func: Callable[..., Any], add_inner_thoughts: bool = False, inner_thoughts_field_name: str = "inner_thoughts"):
+def create_dynamic_model_from_function(
+    func: Callable[..., Any],
+    add_inner_thoughts: bool = False,
+    inner_thoughts_field_name: str = "inner_thoughts",
+):
     """
     Creates a dynamic Pydantic model from a given function's type hints and adds the function as a 'run' method.
 
@@ -1510,7 +1515,9 @@ def create_dynamic_model_from_function(func: Callable[..., Any], add_inner_thoug
     # Creating the dynamic model
     dynamic_model = create_model(f"{func.__name__}", **dynamic_fields)  # type: ignore[call-overload]
     if add_inner_thoughts:
-        dynamic_model.model_fields[inner_thoughts_field_name].description = "Deep inner monologue private to you only."
+        dynamic_model.model_fields[
+            inner_thoughts_field_name
+        ].description = "Deep inner monologue private to you only."
     for name, param_doc in param_docs:
         dynamic_model.model_fields[name].description = param_doc.description
 

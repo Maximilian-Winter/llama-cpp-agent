@@ -26,9 +26,9 @@ from .providers.openai_endpoint_provider import (
 )
 
 
-class enable_respond_to_user_mode(BaseModel):
+class activate_message_mode(BaseModel):
     """
-    Enable respond to user mode.
+    Activates message mode.
     """
 
     def run(self, agent: "FunctionCallingAgent"):
@@ -191,7 +191,7 @@ class FunctionCallingAgent:
         self.send_message_to_user_callback = send_message_to_user_callback
         if add_send_message_to_user_function:
             self.llama_cpp_tools = [
-                LlamaCppFunctionTool(enable_respond_to_user_mode, agent=self)
+                LlamaCppFunctionTool(activate_message_mode, agent=self)
             ]
         else:
             self.llama_cpp_tools = []
@@ -258,7 +258,7 @@ To call functions, you respond with a JSON object containing three fields:
 
 After performing a function call, you will receive a response containing the return values of the function calls.
 
-To send a response to the user, call the 'enable_respond_to_user_mode' function. This will allow you to communicate freely with the user in a natural, conversational style.
+For direct communication with the user, employ the 'activate_message_mode' function. After you have finished your call to 'activate_message_mode', you can freely write a response to the user without any JSON constraints. This enables you to converse naturally. Ensure to end your message with '(End of message)' to signify its conclusion.
 
 ### Functions:
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
@@ -418,7 +418,7 @@ Choose the appropriate function based on the task you want to perform. Provide y
             self.without_grammar_mode = False
         if additional_stop_sequences is None:
             additional_stop_sequences = []
-        # additional_stop_sequences.append("(End of message)")
+        additional_stop_sequences.append("(End of message)")
         result = self.llama_cpp_agent.get_chat_response(
             system_prompt=self.system_prompt,
             streaming_callback=self.streaming_callback,
@@ -426,7 +426,6 @@ Choose the appropriate function based on the task you want to perform. Provide y
             if not without_grammar_mode
             else None,
             additional_stop_sequences=additional_stop_sequences,
-            prompt_suffix=self.prompt_suffix,
             **self.llama_generation_settings.as_dict(),
         )
         if without_grammar_mode:

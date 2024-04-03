@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 import json
 import re
+import typing
 from copy import copy
 from enum import Enum
 from inspect import getdoc, isclass
@@ -389,8 +390,7 @@ def generate_gbnf_rule_for_type(
             processed_models,
             created_rules,
         )
-        gbnf_type = rf'{gbnf_type} ::= "{{"  ( {additional_key_type} ": "  {additional_value_type} ("," "\n" ws {additional_key_type} ":"  {additional_value_type})*  )? "}}" '
-
+        rules.extend([rf'{gbnf_type} ::= "{{"  ( {additional_key_type} ": "  {additional_value_type} ("," "\n" ws {additional_key_type} ":"  {additional_value_type})*  )? "}}" '])
         rules.extend(additional_key_rules)
         rules.extend(additional_value_rules)
     elif gbnf_type.startswith("union-"):
@@ -1066,7 +1066,7 @@ def generate_text_documentation(
         )
         if class_description != "":
             documentation += "  description: "
-            documentation += format_multiline_description(class_description, 0) + "\n"
+            documentation += format_multiline_description(class_description, 2) + "\n"
 
         if add_prefix:
             # Indenting the fields section
@@ -1165,7 +1165,24 @@ def generate_field_text(
             field_text += ": "
         else:
             field_text += "\n"
+    elif isinstance(field_type, GenericAlias):
+        if field_type.__origin__ == dict:
+            key_type, value_type = get_args(field_type)
 
+            additional_key_type = key_type.__name__
+            additional_value_type = value_type.__name__
+            field_text = f"{indent}{field_name} (dict of {additional_key_type} to {additional_value_type})"
+            if field_description != "":
+                field_text += ": "
+            else:
+                field_text += "\n"
+        elif field_type.__origin__ == list:
+            element_type = get_args(field_type)[0]
+            field_text = f"{indent}{field_name} (list of {element_type.__name__})"
+            if field_description != "":
+                field_text += ": "
+            else:
+                field_text += "\n"
     elif issubclass(field_type, Enum):
         enum_values = [f"'{str(member.value)}'" for member in field_type]
 
@@ -1219,8 +1236,8 @@ def format_multiline_description(description: str, indent_level: int) -> str:
     Returns:
         str: Formatted multiline description.
     """
-    indent = "    " * indent_level
-    return indent + description.replace("\n", indent + "\n")
+    indent = "  " * indent_level
+    return description.replace("\n", "\n" + indent)
 
 
 def save_gbnf_grammar_and_documentation(

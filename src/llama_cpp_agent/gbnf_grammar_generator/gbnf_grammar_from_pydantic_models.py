@@ -754,7 +754,7 @@ def generate_gbnf_grammar_from_pydantic_models(
             if add_request_heartbeat and model.__name__ in request_heartbeat_models:
                 model_rules[
                     0
-                ] += rf' ",\n" ws "\"{request_heartbeat_field_name}\""  ":" ws boolean '
+                ] += rf' "," ws "\"{request_heartbeat_field_name}\""  ":" ws boolean '
             if not has_special_string:
                 model_rules[0] += r' ws "}"'
 
@@ -1066,7 +1066,7 @@ def generate_text_documentation(
         )
         if class_description != "":
             documentation += "  description: "
-            documentation += format_multiline_description(class_description, 1) + "\n"
+            documentation += format_multiline_description(class_description, 0) + "\n"
 
         if add_prefix:
             # Indenting the fields section

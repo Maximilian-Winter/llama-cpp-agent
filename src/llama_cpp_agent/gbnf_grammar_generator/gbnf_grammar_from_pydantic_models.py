@@ -756,7 +756,7 @@ def generate_gbnf_grammar_from_pydantic_models(
                     0
                 ] += rf' ",\n" ws "\"{request_heartbeat_field_name}\""  ":" ws boolean '
             if not has_special_string:
-                model_rules[0] += r'"\n" "}"'
+                model_rules[0] += r' ws "}"'
 
             all_rules.extend(model_rules)
 

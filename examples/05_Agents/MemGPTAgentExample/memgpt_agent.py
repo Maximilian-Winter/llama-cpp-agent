@@ -161,7 +161,11 @@ class MemGptAgent:
 
         self.function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools, add_inner_thoughts=True,
                                                                                allow_inner_thoughts_only=False,
-                                                                               add_request_heartbeat=True)
+                                                                               add_request_heartbeat=True,
+                                                                               tool_root="function",
+                                                                               tool_rule_content="params",
+                                                                               model_prefix="",
+                                                                               fields_prefix="")
         # print(self.function_tool_registry.gbnf_grammar)
         self.last_update_date_time = datetime.datetime.now()
         self.is_first_message = True

@@ -93,6 +93,12 @@ class LlamaCppAgent:
         add_inner_thoughts=False,
         allow_inner_thoughts_only=False,
         add_request_heartbeat=False,
+        tool_root="function",
+        tool_rule_content="parameters",
+        model_prefix="function",
+        fields_prefix="parameters",
+        inner_thoughts_field_name="thoughts_and_reasoning",
+        request_heartbeat_field_name="request_heartbeat"
     ):
         """
         Creates and returns a function tool registry from a list of LlamaCppFunctionTool instances.
@@ -100,8 +106,15 @@ class LlamaCppAgent:
         Args:
             function_tool_list (List[LlamaCppFunctionTool]): List of function tools to register.
             allow_parallel_function_calling: Allow parallel function calling (Default=False)
-            add_inner_thoughts: Add inner thoughts (Default=False)
+            add_inner_thoughts: Add inner thoughts field (Default=False)
             allow_inner_thoughts_only: Allow inner thoughts only (Default=False)
+            add_request_heartbeat: Add request heartbeat field (Default=False)
+            tool_root: The root name of the tool (Default="function")
+            tool_rule_content: The content of the tool rule (Default="parameters")
+            model_prefix: The prefix for the model in the documentation (Default="function")
+            fields_prefix: The prefix for the fields in the documentation (Default="parameters")
+            inner_thoughts_field_name: The name of the inner thoughts field (Default="thoughts_and_reasoning")
+            request_heartbeat_field_name: The name of the request heartbeat field (Default="request_heartbeat")
         Returns:
             LlamaCppFunctionToolRegistry: The created function tool registry.
         """
@@ -110,6 +123,12 @@ class LlamaCppAgent:
             add_inner_thoughts,
             allow_inner_thoughts_only,
             add_request_heartbeat,
+            tool_root,
+            tool_rule_content,
+            model_prefix,
+            fields_prefix,
+            inner_thoughts_field_name,
+            request_heartbeat_field_name
         )
 
         for function_tool in function_tool_list:
@@ -417,7 +436,7 @@ class LlamaCppAgent:
             cache_prompt: bool = False,
             samplers: List[str] = None
         Returns:
-            list[dict]: The generated chat response.
+            list[dict]|str: The generated chat response.
         """
         completion, response_role = self.get_response_role_and_completion(
             function_tool_registry=function_tool_registry,

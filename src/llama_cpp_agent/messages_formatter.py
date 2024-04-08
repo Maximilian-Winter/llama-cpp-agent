@@ -21,7 +21,12 @@ ASSISTANT_PROMPT_END_CHATML = """<|im_end|>\n"""
 
 FUNCTION_PROMPT_START_CHATML = """<|im_start|>function\n"""
 FUNCTION_PROMPT_END_CHATML = """<|im_end|>\n"""
-DEFAULT_CHATML_STOP_SEQUENCES = ["<|im_end|>"]
+DEFAULT_CHATML_STOP_SEQUENCES = [
+    "<|im_end|>",
+    "<|im_start|>assistant",
+    "<|im_start|>user",
+    "<|im_start|>system",
+]
 
 SYS_PROMPT_START_VICUNA = """"""
 SYS_PROMPT_END_VICUNA = """\n\n"""

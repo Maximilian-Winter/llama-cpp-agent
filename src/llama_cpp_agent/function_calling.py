@@ -103,9 +103,9 @@ class LlamaCppFunctionToolRegistry:
         add_request_heartbeat=True,
     ):
         self.tool_root = "function"
-        self.tool_rule_content = "params"
+        self.tool_rule_content = "arguments"
         self.model_prefix = "function"
-        self.fields_prefix = "params"
+        self.fields_prefix = "parameters"
         self.function_tools = {}
         self.function_tools_containing_field_string = {}
         self.grammar = None
@@ -207,7 +207,10 @@ class LlamaCppFunctionToolRegistry:
         """
         try:
             for name, tool in self.function_tools_containing_field_string.items():
-                if f'"function": "{name}"' in function_call_response or f'"function":"{name}"' in function_call_response:
+                if (
+                    f'"function": "{name}"' in function_call_response
+                    or f'"function":"{name}"' in function_call_response
+                ):
                     marker = (
                         "'''"
                         if self.function_tools_containing_field_string[

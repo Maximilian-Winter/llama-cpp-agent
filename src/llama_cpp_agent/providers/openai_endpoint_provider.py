@@ -177,7 +177,7 @@ class OpenAIEndpointSettings:
         )
         data = response.json()
 
-        returned_data = {"choices": data["choices"]}
+        returned_data = {"choices": [{"text": data["content"]}]}
         return returned_data
 
     def get_response_stream(self, prompt, grammar, generation_settings):
@@ -206,7 +206,7 @@ class OpenAIEndpointSettings:
                     if chunk:
                         decoded_chunk += chunk.decode("utf-8")
                         new_data = json.loads(decoded_chunk.replace("data: ", ""))
-                        returned_data = {"choices": new_data["choices"]}
+                        returned_data = {"choices": [{"text": new_data["content"]}]}
                         yield returned_data
                         decoded_chunk = ""
             except requests.exceptions.RequestException as e:

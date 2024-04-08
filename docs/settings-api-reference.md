@@ -8,7 +8,7 @@ Settings for the llama-cpp-python backend.
 ### llama.cpp server backend
 Settings for the llama.cpp server backend.
 
-::: llama_cpp_agent.providers.llama_cpp_server_provider
+::: llama_cpp_agent.providers.llama_cpp_endpoint_provider
 
 ### OpenAI endpoint backend
 Settings for the OpenAI backend.

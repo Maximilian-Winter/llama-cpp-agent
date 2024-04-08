@@ -28,8 +28,8 @@ def calculate_a_to_the_power_b(a: Union[int, float], b: Union[int, float]):
     return f"Result: {math.pow(a, b)}"
 
 
-DynamicSampleModel = create_dynamic_model_from_function(calculate_a_to_the_power_b)
-function_tools = [LlamaCppFunctionTool(DynamicSampleModel)]
+dynamic_pydantic_example_model = create_dynamic_model_from_function(calculate_a_to_the_power_b)
+function_tools = [LlamaCppFunctionTool(dynamic_pydantic_example_model)]
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 
 llama_cpp_agent = LlamaCppAgent(

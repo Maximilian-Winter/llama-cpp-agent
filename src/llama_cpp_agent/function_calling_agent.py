@@ -28,7 +28,7 @@ from .providers.openai_endpoint_provider import (
 
 class activate_message_mode(BaseModel):
     """
-    Activate message mode.
+    Activates message mode.
     """
 
     def run(self, agent: "FunctionCallingAgent"):
@@ -38,17 +38,16 @@ class activate_message_mode(BaseModel):
         return True
 
 
-class activate_file_mode(BaseModel):
+class write_text_file(BaseModel):
     """
-    Activate file mode.
+    Writes content to a file.
     """
 
     file_path: str = Field(..., description="The path to the file.")
+    content: str = Field(..., description="The content to write to the file.")
 
     def run(self, agent: "FunctionCallingAgent"):
-        agent.without_grammar_mode = True
-        agent.prompt_suffix = "\nWrite file content in plain text format:"
-        agent.without_grammar_mode_function.append(self.write_file)
+        self.write_file(self.content)
         return True
 
     def write_file(self, content: str):
@@ -82,6 +81,7 @@ class read_text_file(BaseModel):
                 return file.read()
         else:
             return f"File not found."
+
 
 class FunctionCallingAgent:
     """
@@ -198,7 +198,7 @@ class FunctionCallingAgent:
         if basic_file_tools:
             self.llama_cpp_tools.append(LlamaCppFunctionTool(read_text_file))
             self.llama_cpp_tools.append(
-                LlamaCppFunctionTool(activate_file_mode, agent=self)
+                LlamaCppFunctionTool(write_text_file, agent=self)
             )
         for tool in self.pydantic_functions:
             self.llama_cpp_tools.append(LlamaCppFunctionTool(tool))
@@ -248,20 +248,24 @@ class FunctionCallingAgent:
         else:
             # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
             self.system_prompt = (
-                """You are an AI assistant that can help with various tasks by calling functions. You are thoughtful, give nuanced answers, and are brilliant at reasoning.
+                """You are Funky, an AI assistant that calls functions to perform tasks. You are thoughtful, give nuanced answers, and are brilliant at reasoning.
 
-To call functions you respond with a JSON object containing three fields:
-- "thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
-- "function": The name of the function you want to call.
-- "params": The parameters required for the function.
+To call functions, you respond with a JSON object containing three fields:
+"thoughts "and reasoning": Your thoughts and reasoning behind the function call.
+"function": The name of the function you want to call.
+"arguments": The arguments required for the function.
+"next_step": The next step you want to take.
 
-After performing a function call you will receive a response containing the return value of the function call.
+After performing a function call, you will receive a response containing the return values of the function calls.
 
-You have access to special modes, such as message mode and file mode, which allow you to communicate with the user and write to a file respectively. After activating these modes, your next response will be send to the or written to a file, depending on the mode you activated. Functions calls won't be recognized in these modes.
+For direct communication with the user, employ the 'activate_message_mode' function. After you have finished your call to 'activate_message_mode', you can freely write a response to the user without any JSON constraints. This enables you to converse naturally. Ensure to end your message with '(End of message)' to signify its conclusion.
 
-Available Functions:
+### Functions:
+Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
+Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
 
-""" + self.tool_registry.get_documentation()
+"""
+                + self.tool_registry.get_documentation().strip()
             )
         self.llama_cpp_agent = LlamaCppAgent(
             llama_llm,
@@ -414,7 +418,7 @@ Available Functions:
             self.without_grammar_mode = False
         if additional_stop_sequences is None:
             additional_stop_sequences = []
-        #additional_stop_sequences.append("(End of message)")
+        additional_stop_sequences.append("(End of message)")
         result = self.llama_cpp_agent.get_chat_response(
             system_prompt=self.system_prompt,
             streaming_callback=self.streaming_callback,
@@ -422,7 +426,6 @@ Available Functions:
             if not without_grammar_mode
             else None,
             additional_stop_sequences=additional_stop_sequences,
-            prompt_suffix=self.prompt_suffix,
             **self.llama_generation_settings.as_dict(),
         )
         if without_grammar_mode:

@@ -381,6 +381,7 @@ class LlamaCppAgent:
         stream: bool = True,
         print_output: bool = True,
         k_last_messages: int = 0,
+
         # Llama Cpp Server and Open AI endpoint settings
         n_predict: int = -1,
         n_keep: int = 0,

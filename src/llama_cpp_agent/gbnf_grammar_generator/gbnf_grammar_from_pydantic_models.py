@@ -350,7 +350,7 @@ def generate_gbnf_rule_for_type(
             created_rules,
         )
         rules.extend(additional_rules)
-        array_rule = f"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})*  "]" """
+        array_rule = fr"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* "\n" "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 
@@ -365,7 +365,7 @@ def generate_gbnf_rule_for_type(
             created_rules,
         )
         rules.extend(additional_rules)
-        array_rule = f"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})*  "]" """
+        array_rule = fr"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* "\n" "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 
@@ -621,16 +621,16 @@ def generate_gbnf_grammar(
             if rule_name not in created_rules:
                 created_rules[rule_name] = additional_rules
             model_rule_parts.append(
-                f' ws "\\"{field_name}\\"" ":" ws {rule_name}'
+                f' ws "\\"{field_name}\\"" ": " {rule_name}'
             )  # Adding escaped quotes
             nested_rules.extend(additional_rules)
         else:
             has_triple_quoted_string = look_for_triple_quoted_string
             has_markdown_code_block = look_for_markdown_code_block
 
-    fields_joined = r' "," "\n" '.join(model_rule_parts)
+    fields_joined = r' "," '.join(model_rule_parts)
     if fields_joined != "":
-        model_rule = rf'{model_name} ::= "{{" "\n" {fields_joined} ws "}}"'
+        model_rule = rf'{model_name} ::= "{{" {fields_joined} ws "}}"'
     else:
         model_rule = rf'{model_name} ::= "{{" "}}"'
 
@@ -698,7 +698,7 @@ def generate_gbnf_grammar_from_pydantic_models(
 
         if list_of_outputs:
             root_rule = (
-                r'root ::= (" "| "\n") "[" ws grammar-models ("," ws grammar-models)* ws "]"'
+                r'root ::= (" "| "\n") "[" ws grammar-models ("," ws grammar-models)* "\n" "]"'
                 + "\n"
             )
         else:
@@ -716,7 +716,7 @@ def generate_gbnf_grammar_from_pydantic_models(
             )
         else:
             root_rule = (
-                f"root ::= ws {format_model_and_field_name(outer_object_name)}\n"
+                f"root ::= {format_model_and_field_name(outer_object_name)}\n"
             )
 
         if add_inner_thoughts:
@@ -741,7 +741,7 @@ def generate_gbnf_grammar_from_pydantic_models(
                 rf"{format_model_and_field_name(model.__name__)}-grammar-model ::= "
             )
             mod_rule += (
-                rf'"\"{model.__name__}\"" "," ws "\"{outer_object_content}\"" ":" {format_model_and_field_name(model.__name__)}'
+                rf'"\"{model.__name__}\"" "," ws "\"{outer_object_content}\"" ": " {format_model_and_field_name(model.__name__)}'
                 + "\n"
             )
             mod_rules.append(mod_rule)
@@ -792,7 +792,7 @@ string ::= "\"" (
         "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
       )* "\""
 ws ::= ([ \t\n]+)
-number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?"""
+number ::= "-"? ([0-9]+ | [0-9]+ "." [0-9]+) ([eE] [-+]? [0-9]+)?"""
 
     any_block = ""
     if "custom-class-any" in grammar:

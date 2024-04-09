@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Literal
 
 SYS_PROMPT_START_MIXTRAL = """"""
 SYS_PROMPT_END_MIXTRAL = """\n\n"""
@@ -166,18 +166,19 @@ class MessagesFormatter:
         self.USE_USER_ROLE_FUNCTION_CALL_RESULT = USE_USER_ROLE_FUNCTION_CALL_RESULT
         self.STRIP_PROMPT = STRIP_PROMPT
 
-    def format_messages(self, messages: List[Dict[str, str]]) -> Tuple[str, str]:
+    def format_messages(self, messages: List[Dict[str, str]], response_role: Literal["user", "assistant"] | None = None) -> Tuple[str, str]:
         """
         Formats a list of messages into a conversation string.
 
         Args:
             messages (List[Dict[str, str]]): List of messages with role and content.
-
+            response_role(Literal["system", "user", "assistant", "function"]|None): Forces the response role to be "system", "user" or "assistant".
         Returns:
             Tuple[str, str]: Formatted conversation string and the role of the last message.
         """
         formatted_messages = self.PRE_PROMPT
         last_role = "assistant"
+
         no_user_prompt_start = False
         for message in messages:
             if message["role"] == "system":
@@ -229,16 +230,46 @@ class MessagesFormatter:
                     last_role = "function"
         if last_role == "system" or last_role == "user" or last_role == "function":
             if self.STRIP_PROMPT:
-                return (
-                    formatted_messages + self.ASSISTANT_PROMPT_START.strip(),
-                    "assistant",
-                )
+                if response_role is not None:
+                    if response_role == "assistant":
+                        return (
+                            formatted_messages + self.ASSISTANT_PROMPT_START.strip(),
+                            "assistant",
+                        )
+                    if response_role == "user":
+                        return (
+                            formatted_messages + self.USER_PROMPT_START.strip(),
+                            "user",
+                        )
+                else:
+                    return (
+                        formatted_messages + self.ASSISTANT_PROMPT_START.strip(),
+                        "assistant",
+                    )
             else:
-                return formatted_messages + self.ASSISTANT_PROMPT_START, "assistant"
+                if response_role is not None:
+                    if response_role == "assistant":
+                        return formatted_messages + self.ASSISTANT_PROMPT_START, "assistant"
+                    if response_role == "user":
+                        return formatted_messages + self.USER_PROMPT_START, "user"
+                else:
+                    return formatted_messages + self.ASSISTANT_PROMPT_START, "assistant"
         if self.STRIP_PROMPT:
-            return formatted_messages + self.USER_PROMPT_START.strip(), "user"
+            if response_role is not None:
+                if response_role == "assistant":
+                    return formatted_messages + self.ASSISTANT_PROMPT_START.strip(), "assistant"
+                if response_role == "user":
+                    return formatted_messages + self.USER_PROMPT_START.strip(), "user"
+            else:
+                return formatted_messages + self.USER_PROMPT_START.strip(), "user"
         else:
-            return formatted_messages + self.USER_PROMPT_START, "user"
+            if response_role is not None:
+                if response_role == "assistant":
+                    return formatted_messages + self.ASSISTANT_PROMPT_START, "assistant"
+                if response_role == "user":
+                    return formatted_messages + self.USER_PROMPT_START, "user"
+            else:
+                return formatted_messages + self.USER_PROMPT_START, "user"
 
     def save(self, file_path: str):
         """

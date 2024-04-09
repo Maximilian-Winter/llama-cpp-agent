@@ -253,8 +253,7 @@ class FunctionCallingAgent:
 To call functions, you respond with a JSON object containing three fields:
 "thoughts "and reasoning": Your thoughts and reasoning behind the function call.
 "function": The name of the function you want to call.
-"arguments": The arguments required for the function.
-"next_step": The next step you want to take.
+"parameters": The arguments required for the function.
 
 After performing a function call, you will receive a response containing the return values of the function calls.
 

@@ -1,4 +1,5 @@
 import json
+from copy import copy
 from dataclasses import dataclass
 from typing import List, Dict, Literal, Callable, Union
 
@@ -58,6 +59,7 @@ class LlamaCppAgent:
         predefined_messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
         custom_messages_formatter: MessagesFormatter = None,
         debug_output: bool = False,
+        function_tool_registry: LlamaCppFunctionToolRegistry = None,
     ):
         """
         Initializes a new LlamaCppAgent object.
@@ -69,6 +71,7 @@ class LlamaCppAgent:
            predefined_messages_formatter_type (MessagesFormatterType): The type of predefined messages formatter.
            custom_messages_formatter (MessagesFormatter): Custom messages formatter.
            debug_output (bool): Indicates whether debug output should be enabled.
+           function_tool_registry (LlamaCppFunctionToolRegistry): The Llama function tool registry.
         """
         if isinstance(model, LlamaLLMSettings):
             model = Llama(**model.as_dict())
@@ -85,6 +88,7 @@ class LlamaCppAgent:
                 predefined_messages_formatter_type
             )
         self.last_response = ""
+        self.function_tool_registry = function_tool_registry
 
     @staticmethod
     def get_function_tool_registry(
@@ -163,6 +167,7 @@ class LlamaCppAgent:
         prompt: str = None,
         grammar: str = None,
         function_tool_registry: LlamaCppFunctionToolRegistry = None,
+        do_not_use_grammar: bool = False,
         streaming_callback: Callable[[StreamingResponse], None] = None,
         max_tokens: int = 0,
         temperature: float = 0.4,
@@ -196,6 +201,10 @@ class LlamaCppAgent:
         samplers: List[str] = None,
     ):
         """ """
+        if function_tool_registry is None and do_not_use_grammar is False:
+            if self.function_tool_registry is not None:
+                function_tool_registry = self.function_tool_registry
+
         if function_tool_registry is not None:
             grammar = function_tool_registry.gbnf_grammar
 
@@ -347,12 +356,14 @@ class LlamaCppAgent:
         self,
         message: str = None,
         role: Literal["system", "user", "assistant", "function"] = "user",
+        response_role: Literal["user", "assistant"] | None = None,
         system_prompt: str = None,
         prompt_suffix: str = None,
         add_message_to_chat_history: bool = True,
         add_response_to_chat_history: bool = True,
         grammar: str = None,
         function_tool_registry: LlamaCppFunctionToolRegistry = None,
+        do_not_use_grammar: bool = False,
         streaming_callback: Callable[[StreamingResponse], None] = None,
         max_tokens: int = 0,
         temperature: float = 0.4,
@@ -393,12 +404,14 @@ class LlamaCppAgent:
         Args:
             message (str): The input message.
             role (Literal["system", "user", "assistant", "function"]): The role of the message sender.
+            response_role (Literal["user", "assistant"]): The role of the message response.
             system_prompt (str): The system prompt used in chat interactions.
             prompt_suffix: Suffix to append after the prompt.
             add_message_to_chat_history (bool): Indicates whether to add the input message to the chat history.
             add_response_to_chat_history (bool): Indicates whether to add the generated response to the chat history.
             grammar (str): The grammar for generating responses in string format.
             function_tool_registry (LlamaCppFunctionToolRegistry): The function tool registry for handling function calls.
+            do_not_use_grammar (bool): Indicates whether to use grammar when generating responses.
             streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
 
             max_tokens (int): The maximum number of tokens in the generated response.
@@ -438,12 +451,16 @@ class LlamaCppAgent:
         Returns:
             list[dict]|str: The generated chat response.
         """
+        if function_tool_registry is None and do_not_use_grammar is False:
+            if self.function_tool_registry is not None:
+                function_tool_registry = self.function_tool_registry
         completion, response_role = self.get_response_role_and_completion(
             function_tool_registry=function_tool_registry,
             system_prompt=system_prompt,
             message=message,
             add_message_to_chat_history=add_message_to_chat_history,
             role=role,
+            response_role=response_role,
             grammar=grammar,
             prompt_suffix=prompt_suffix,
             max_tokens=max_tokens,
@@ -571,12 +588,14 @@ class LlamaCppAgent:
         self,
         message: str = None,
         role: Literal["system", "user", "assistant", "function"] = "user",
+        response_role: Literal["user", "assistant"] | None = None,
         system_prompt: str = None,
         prompt_suffix: str = None,
         add_message_to_chat_history: bool = True,
         add_response_to_chat_history: bool = True,
         grammar: str = None,
         function_tool_registry: LlamaCppFunctionToolRegistry = None,
+        do_not_use_grammar: bool = False,
         streaming_callback: Callable[[StreamingResponse], None] = None,
         yield_streaming_responses: bool = False,
         max_tokens: int = 0,
@@ -618,12 +637,14 @@ class LlamaCppAgent:
         Args:
             message (str): The input message.
             role (Literal["system", "user", "assistant", "function"]): The role of the message sender.
+            response_role (Literal["user", "assistant"]): The role of the message response.
             system_prompt (str): The system prompt used in chat interactions.
             prompt_suffix: Suffix to append after the prompt.
             add_message_to_chat_history (bool): Indicates whether to add the input message to the chat history.
             add_response_to_chat_history (bool): Indicates whether to add the generated response to the chat history.
             grammar (str): The grammar for generating responses in string format.
             function_tool_registry (LlamaCppFunctionToolRegistry): The function tool registry for handling function calls.
+            do_not_use_grammar (bool): Indicates whether to use grammar when generating responses.
             streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
             yield_streaming_responses (bool): Indicates whether to yield streaming responses.
             max_tokens (int): The maximum number of tokens in the generated response.
@@ -663,12 +684,17 @@ class LlamaCppAgent:
         Returns:
             list[dict]: The generated chat response.
         """
+        if function_tool_registry is None and do_not_use_grammar is False:
+            if self.function_tool_registry is not None:
+                function_tool_registry = self.function_tool_registry
+
         completion, response_role = self.get_response_role_and_completion(
             function_tool_registry=function_tool_registry,
             system_prompt=system_prompt,
             message=message,
             add_message_to_chat_history=add_message_to_chat_history,
             role=role,
+            response_role=response_role,
             grammar=grammar,
             prompt_suffix=prompt_suffix,
             max_tokens=max_tokens,
@@ -811,6 +837,7 @@ class LlamaCppAgent:
         message: str = None,
         add_message_to_chat_history: bool = True,
         role: Literal["system", "user", "assistant", "function"] = "user",
+        response_role: Literal["user", "assistant"] | None = None,
         grammar: str = None,
         prompt_suffix: str = None,
         max_tokens: int = 0,
@@ -874,7 +901,7 @@ class LlamaCppAgent:
         else:
             messages.extend(self.messages)
 
-        prompt, response_role = self.messages_formatter.format_messages(messages)
+        prompt, response_role = self.messages_formatter.format_messages(messages, response_role)
 
         if prompt_suffix:
             prompt += prompt_suffix
@@ -1059,24 +1086,24 @@ class LlamaCppAgent:
                 "content": initial_message,
             }
         ]
-        last_role = "user"
         for _ in range(number_of_turns):
             for a in agent_list:
-                a.messages = responses
+                a.messages = copy(responses)
+                for response in a.messages:
+                    if response["content"].strip().startswith(a.name):
+                        response["role"] = "assistant"
                 response = a.get_chat_response(
                     add_response_to_chat_history=False,
                     add_message_to_chat_history=False,
+                    prompt_suffix=f"\n{a.name}:"
                 )
                 response = (
-                    f"{a.name}: {response}"
-                    if not response.strip().startswith(a.name)
-                    else response
+                    f"{a.name}:{response[0]}"
                 )
                 responses.append(
                     {
-                        "role": "user" if last_role == "assistant" else "assistant",
+                        "role": "user",
                         "content": response,
                     }
                 )
-                last_role = responses[-1]["role"]
         print("Conversation ended.")

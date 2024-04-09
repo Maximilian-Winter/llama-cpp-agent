@@ -61,7 +61,7 @@ llama_cpp_agent = LlamaCppAgent(
     predefined_messages_formatter_type=MessagesFormatterType.CHATML,
 )
 
-user_input = "Solve the following calculations: 42 * 42, 24 * 24, 5 * 5?"
+user_input = "Solve the following calculations: 42 * 42, 24 * 24, 5 * 5, 89 * 75, 42 * 46, 69 * 85, 422 * 420, 753 * 321, 72 * 55, 240 * 204, 789 * 654, 123 * 321, 432 * 89, 564 * 321?"
 print(
     llama_cpp_agent.get_chat_response(
         user_input,

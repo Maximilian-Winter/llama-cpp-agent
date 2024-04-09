@@ -93,6 +93,10 @@ class LlamaCppFunctionToolRegistry:
         allow_parallel_function_calling (bool): Flag indicating whether to allow parallel function calling.
         add_inner_thoughts (bool): Flag indicating whether to add inner thoughts to the GBNF grammar.
         allow_inner_thoughts_only (bool): Flag indicating whether to allow only inner thoughts in the GBNF grammar.
+        add_request_heartbeat (bool): Flag indicating whether to add a request heartbeat field to the GBNF grammar.
+        inner_thoughts_field_name (str): Field name for inner thoughts in the GBNF grammar.
+        request_heartbeat_field_name (str): Field name for request heartbeat in the GBNF grammar.
+
     """
 
     def __init__(
@@ -101,11 +105,32 @@ class LlamaCppFunctionToolRegistry:
         add_inner_thoughts=True,
         allow_inner_thoughts_only=True,
         add_request_heartbeat=True,
+        tool_root="function",
+        tool_rule_content="parameters",
+        model_prefix="function",
+        fields_prefix="parameters",
+        inner_thoughts_field_name="thoughts_and_reasoning",
+        request_heartbeat_field_name="request_heartbeat"
     ):
-        self.tool_root = "function"
-        self.tool_rule_content = "arguments"
-        self.model_prefix = "function"
-        self.fields_prefix = "parameters"
+        """
+        Initialize the LlamaCppFunctionToolRegistry.
+
+        Args:
+            allow_parallel_function_calling (bool): Flag indicating whether to allow parallel function calling.
+            add_inner_thoughts (bool): Flag indicating whether to add inner thoughts to the GBNF grammar.
+            allow_inner_thoughts_only (bool): Flag indicating whether to allow only inner thoughts in the GBNF grammar.
+            add_request_heartbeat (bool): Flag indicating whether to add a request heartbeat field to the GBNF grammar.
+            tool_root (str): Root element for the GBNF grammar.
+            tool_rule_content (str): Content rule for the GBNF grammar.
+            model_prefix (str): Prefix for documentation of function models.
+            fields_prefix (str): Prefix for documentation of function parameter fields.
+            inner_thoughts_field_name (str): Field name for inner thoughts in the GBNF grammar.
+            request_heartbeat_field_name (str): Field name for request heartbeat in the GBNF grammar.
+        """
+        self.tool_root = tool_root
+        self.tool_rule_content = tool_rule_content
+        self.model_prefix = model_prefix
+        self.fields_prefix = fields_prefix
         self.function_tools = {}
         self.function_tools_containing_field_string = {}
         self.grammar = None
@@ -115,6 +140,8 @@ class LlamaCppFunctionToolRegistry:
         self.add_inner_thoughts = add_inner_thoughts
         self.allow_inner_thoughts_only = allow_inner_thoughts_only
         self.add_request_heartbeat = add_request_heartbeat
+        self.inner_thoughts_field_name = inner_thoughts_field_name
+        self.request_heartbeat_field_name = request_heartbeat_field_name
 
     def register_function_tool(self, function_tool: LlamaCppFunctionTool):
         """
@@ -166,7 +193,8 @@ class LlamaCppFunctionToolRegistry:
             self.model_prefix,
             self.fields_prefix,
             self.allow_parallel_function_calling,
-            inner_thoughts_field_name="thoughts_and_reasoning",
+            inner_thoughts_field_name=self.inner_thoughts_field_name,
+            request_heartbeat_field_name=self.request_heartbeat_field_name,
             add_inner_thoughts=self.add_inner_thoughts,
             allow_only_inner_thoughts=self.allow_inner_thoughts_only,
             add_request_heartbeat=self.add_request_heartbeat,

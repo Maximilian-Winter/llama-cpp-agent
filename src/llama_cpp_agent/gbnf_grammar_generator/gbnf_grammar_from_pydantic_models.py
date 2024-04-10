@@ -1161,7 +1161,7 @@ def generate_field_text(
             if element_type.__name__ == "NoneType":
                 types.append("null")
             else:
-                if issubclass(element_type, Enum):
+                if isclass(element_type) and issubclass(element_type, Enum):
                     enum_values = [f"'{str(member.value)}'" for member in element_type]
                     for enum_value in enum_values:
                         types.append(enum_value)

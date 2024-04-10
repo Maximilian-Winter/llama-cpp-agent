@@ -75,16 +75,18 @@ while True:
 
 ```python
 # Example that uses the FunctionCallingAgent class to create a function calling agent.
+# Example that uses the FunctionCallingAgent class to create a function calling agent.
 import datetime
-import json
 from enum import Enum
-from typing import Union, Any, Optional
+from typing import Union, Optional
 
+from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.llm_settings import LlamaLLMSettings, LlamaLLMGenerationSettings
-
+from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
+from llama_cpp_agent.llm_settings import LlamaLLMGenerationSettings
+from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings, LlamaCppGenerationSettings
 
 
@@ -110,7 +112,7 @@ class MathOperation(Enum):
 
 # llama-cpp-agent also supports "Instructor" library like function definitions as Pydantic models for function calling.
 # Simple pydantic calculator tool for the agent that can add, subtract, multiply, and divide. Docstring and description of fields will be used in system prompt.
-class Calculator(BaseModel):
+class calculator(BaseModel):
     """
     Perform a math operation on two numbers.
     """
@@ -136,38 +138,34 @@ class Calculator(BaseModel):
 def get_current_weather(location, unit):
     """Get the current weather in a given location"""
     if "London" in location:
-        return json.dumps({"location": "London", "temperature": "42", "unit": unit.value})
+        return f"Weather in {location}: {22}° {unit.value}"
     elif "New York" in location:
-        return json.dumps({"location": "New York", "temperature": "24", "unit": unit.value})
+        return f"Weather in {location}: {24}° {unit.value}"
     elif "North Pole" in location:
-        return json.dumps({"location": "North Pole", "temperature": "-42", "unit": unit.value})
+        return f"Weather in {location}: {-42}° {unit.value}"
     else:
-        return json.dumps({"location": location, "temperature": "unknown"})
+        return f"Weather in {location}: unknown"
 
 
 # Here is a function definition in OpenAI style
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "get_current_weather",
-            "description": "Get the current weather in a given location",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "The city and state, e.g. San Francisco, CA",
-                    },
-                    "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+open_ai_tool_spec = {
+    "type": "function",
+    "function": {
+        "name": "get_current_weather",
+        "description": "Get the current weather in a given location",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "type": "string",
+                    "description": "The city and state, e.g. San Francisco, CA",
                 },
-                "required": ["location"],
+                "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
             },
+            "required": ["location"],
         },
-    }
-]
-# To make the OpenAI function callable for the function calling agent we need a list with actual function in it:
-tool_functions = [get_current_weather]
+    },
+}
 
 
 # Callback for receiving messages for the user.
@@ -175,40 +173,68 @@ def send_message_to_user_callback(message: str):
     print(message)
 
 
-generation_settings = LlamaCppGenerationSettings(temperature=0.65, stream=True)
+path_to_model = "../../../gguf-models/mistral-7b-instruct-v0.2.Q6_K.gguf"
 
+model = Llama(
+    path_to_model,
+    n_gpu_layers=49,
+    f16_kv=True,
+    offload_kqv=True,
+    use_mlock=False,
+    embedding=False,
+    n_threads=8,
+    n_batch=1024,
+    n_ctx=4096,
+    last_n_tokens_size=1024,
+    verbose=True,
+    seed=-1,
+)
+generation_settings = LlamaLLMGenerationSettings(
+    temperature=0.4, top_k=0, top_p=1.0, repeat_penalty=1.1,
+    min_p=0.1, tfs_z=0.95, stream=True)
 # Can be saved and loaded like that:
 # generation_settings.save("generation_settings.json")
 # generation_settings = LlamaLLMGenerationSettings.load_from_file("generation_settings.json")
-main_model = LlamaCppEndpointSettings(
-    "http://localhost:8080/completion"
-)
+
+# To make the function tools available to our agent, we have to create a list of LlamaCppFunctionTool instances.
+
+# First we create the calculator tool.
+calculator_function_tool = LlamaCppFunctionTool(calculator)
+
+# Next we create the current datetime tool.
+current_datetime_function_tool = LlamaCppFunctionTool(get_current_datetime)
+
+# For OpenAI tool specifications, we pass the specification with actual function in a tuple to the LlamaCppFunctionTool constructor.
+get_weather_function_tool = LlamaCppFunctionTool((open_ai_tool_spec, get_current_weather))
+
+
 function_call_agent = FunctionCallingAgent(
     # Can be lama-cpp-python Llama class, llama_cpp_agent.llm_settings.LlamaLLMSettings class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerLLMSettings.
-    main_model,
+    model,
     # llama_cpp_agent.llm_settings.LlamaLLMGenerationSettings  class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerGenerationSettings.
     llama_generation_settings=generation_settings,
-    # A tuple of the OpenAI style function definitions and the actual functions
-    open_ai_functions=(tools, tool_functions),
-    # Just a list of type hinted functions for normal Python functions
-    python_functions=[get_current_datetime],
-    # Just a list of pydantic types
-    pydantic_functions=[Calculator],
+    llama_cpp_function_tools=[calculator_function_tool, current_datetime_function_tool, get_weather_function_tool],
     # Callback for receiving messages for the user.
     send_message_to_user_callback=send_message_to_user_callback,
     # Set to true to allow parallel function calling
     allow_parallel_function_calling=True,
+    messages_formatter_type=MessagesFormatterType.CHATML,
     debug_output=True)
-user_input = '''Format the answer clearly: Get the date and time, get the current weather in celsius in London and solve the following calculation: 42 * 42'''
+
+user_input = '''Get the date and time in '%d-%m-%Y %H:%M' format. Get the current weather in celsius in London, New York and at the North Pole. Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.'''
 function_call_agent.generate_response(user_input)
-function_call_agent.save("function_calling_agent.json")
+
 
 ```
 Example Output:
 ```text
-The current date and time is 2024-01-13 19:06:43.
-The result of the calculation 42 * 42 is 1764.
-The current weather in London is 42 degrees Celsius.
+The current date and time is 10-04-2024 07:58. The weather in London is 22 degrees Celsius, in New York it's 24 degrees Celsius, and at the North Pole it's -42 degrees Celsius. The calculations are as follows:
+
+- 42 * 42 = 1764
+- 74 + 26 = 100
+- 7 * 26 = 182
+- 4 + 6 = 10
+- 96 / 8 = 12
 ```
 
 ### Structured Output

@@ -1161,7 +1161,12 @@ def generate_field_text(
             if element_type.__name__ == "NoneType":
                 types.append("null")
             else:
-                types.append(element_type.__name__)
+                if issubclass(element_type, Enum):
+                    enum_values = [f"'{str(member.value)}'" for member in element_type]
+                    for enum_value in enum_values:
+                        types.append(enum_value)
+                else:
+                    types.append(element_type.__name__)
         field_text = f"{indent}{field_name} ({' or '.join(types)})"
         if field_description != "":
             field_text += ": "
@@ -1581,7 +1586,7 @@ def create_dynamic_models_from_dictionaries(dictionaries: list[dict[str, Any]]):
         dictionaries (list[dict]): List of dictionaries representing model structures.
 
     Returns:
-        list[type[BaseModel]]: List of generated dynamic Pydantic model classes.
+        list[Type[BaseModel]]: List of generated dynamic Pydantic model classes.
     """
     dynamic_models = []
     for func in dictionaries:

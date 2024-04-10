@@ -6,6 +6,7 @@ from typing import Union, Optional
 from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
+from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
 from llama_cpp_agent.llm_settings import LlamaLLMGenerationSettings
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
@@ -70,35 +71,29 @@ def get_current_weather(location, unit):
 
 
 # Here is a function definition in OpenAI style
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "get_current_weather",
-            "description": "Get the current weather in a given location",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "The city and state, e.g. San Francisco, CA",
-                    },
-                    "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+open_ai_tool_spec = {
+    "type": "function",
+    "function": {
+        "name": "get_current_weather",
+        "description": "Get the current weather in a given location",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "type": "string",
+                    "description": "The city and state, e.g. San Francisco, CA",
                 },
-                "required": ["location"],
+                "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
             },
+            "required": ["location"],
         },
-    }
-]
-# To make the OpenAI function callable for the function calling agent we need a list with actual function in it:
-tool_functions = [get_current_weather]
+    },
+}
 
 
 # Callback for receiving messages for the user.
 def send_message_to_user_callback(message: str):
     print(message)
-
-
 
 
 path_to_model = "../../../gguf-models/mistral-7b-instruct-v0.2.Q6_K.gguf"
@@ -124,17 +119,24 @@ generation_settings = LlamaLLMGenerationSettings(
 # generation_settings.save("generation_settings.json")
 # generation_settings = LlamaLLMGenerationSettings.load_from_file("generation_settings.json")
 
+# To make the function tools available to our agent, we have to create a list of LlamaCppFunctionTool instances.
+
+# First we create the calculator tool.
+calculator_function_tool = LlamaCppFunctionTool(calculator)
+
+# Next we create the current datetime tool.
+current_datetime_function_tool = LlamaCppFunctionTool(get_current_datetime)
+
+# For OpenAI tool specifications, we pass the specification with actual function in a tuple to the LlamaCppFunctionTool constructor.
+get_weather_function_tool = LlamaCppFunctionTool((open_ai_tool_spec, get_current_weather))
+
+
 function_call_agent = FunctionCallingAgent(
     # Can be lama-cpp-python Llama class, llama_cpp_agent.llm_settings.LlamaLLMSettings class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerLLMSettings.
     model,
     # llama_cpp_agent.llm_settings.LlamaLLMGenerationSettings  class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerGenerationSettings.
     llama_generation_settings=generation_settings,
-    # A tuple of the OpenAI style function definitions and the actual functions
-    open_ai_functions=(tools, tool_functions),
-    # Just a list of type hinted functions for normal Python functions
-    python_functions=[get_current_datetime],
-    # Just a list of pydantic types
-    pydantic_functions=[calculator],
+    llama_cpp_function_tools=[calculator_function_tool, current_datetime_function_tool, get_weather_function_tool],
     # Callback for receiving messages for the user.
     send_message_to_user_callback=send_message_to_user_callback,
     # Set to true to allow parallel function calling

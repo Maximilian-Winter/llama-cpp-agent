@@ -110,7 +110,7 @@ class LlamaCppFunctionToolRegistry:
         model_prefix="function",
         fields_prefix="parameters",
         inner_thoughts_field_name="thoughts_and_reasoning",
-        request_heartbeat_field_name="request_heartbeat"
+        request_heartbeat_field_name="request_heartbeat",
     ):
         """
         Initialize the LlamaCppFunctionToolRegistry.

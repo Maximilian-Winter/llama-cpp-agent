@@ -102,7 +102,7 @@ class LlamaCppAgent:
         model_prefix="function",
         fields_prefix="parameters",
         inner_thoughts_field_name="thoughts_and_reasoning",
-        request_heartbeat_field_name="request_heartbeat"
+        request_heartbeat_field_name="request_heartbeat",
     ):
         """
         Creates and returns a function tool registry from a list of LlamaCppFunctionTool instances.
@@ -132,7 +132,7 @@ class LlamaCppAgent:
             model_prefix,
             fields_prefix,
             inner_thoughts_field_name,
-            request_heartbeat_field_name
+            request_heartbeat_field_name,
         )
 
         for function_tool in function_tool_list:
@@ -381,7 +381,6 @@ class LlamaCppAgent:
         stream: bool = True,
         print_output: bool = True,
         k_last_messages: int = 0,
-
         # Llama Cpp Server and Open AI endpoint settings
         n_predict: int = -1,
         n_keep: int = 0,
@@ -902,7 +901,9 @@ class LlamaCppAgent:
         else:
             messages.extend(self.messages)
 
-        prompt, response_role = self.messages_formatter.format_messages(messages, response_role)
+        prompt, response_role = self.messages_formatter.format_messages(
+            messages, response_role
+        )
 
         if prompt_suffix:
             prompt += prompt_suffix
@@ -1096,11 +1097,9 @@ class LlamaCppAgent:
                 response = a.get_chat_response(
                     add_response_to_chat_history=False,
                     add_message_to_chat_history=False,
-                    prompt_suffix=f"\n{a.name}:"
+                    prompt_suffix=f"\n{a.name}:",
                 )
-                response = (
-                    f"{a.name}:{response[0]}"
-                )
+                response = f"{a.name}:{response[0]}"
                 responses.append(
                     {
                         "role": "user",

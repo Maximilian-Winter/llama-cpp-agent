@@ -350,7 +350,7 @@ def generate_gbnf_rule_for_type(
             created_rules,
         )
         rules.extend(additional_rules)
-        array_rule = fr"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* "\n" "]" """
+        array_rule = rf"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* "\n" "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 
@@ -365,7 +365,7 @@ def generate_gbnf_rule_for_type(
             created_rules,
         )
         rules.extend(additional_rules)
-        array_rule = fr"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* "\n" "]" """
+        array_rule = rf"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* "\n" "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 
@@ -390,7 +390,11 @@ def generate_gbnf_rule_for_type(
             processed_models,
             created_rules,
         )
-        rules.extend([rf'{gbnf_type} ::= "{{"  ( {additional_key_type} ": "  {additional_value_type} ("," "\n" ws {additional_key_type} ":"  {additional_value_type})*  )? "}}" '])
+        rules.extend(
+            [
+                rf'{gbnf_type} ::= "{{"  ( {additional_key_type} ": "  {additional_value_type} ("," "\n" ws {additional_key_type} ":"  {additional_value_type})*  )? "}}" '
+            ]
+        )
         rules.extend(additional_key_rules)
         rules.extend(additional_value_rules)
     elif gbnf_type.startswith("union-"):
@@ -715,9 +719,7 @@ def generate_gbnf_grammar_from_pydantic_models(
                 + "\n"
             )
         else:
-            root_rule = (
-                f"root ::= {format_model_and_field_name(outer_object_name)}\n"
-            )
+            root_rule = f"root ::= {format_model_and_field_name(outer_object_name)}\n"
 
         if add_inner_thoughts:
             if allow_only_inner_thoughts:

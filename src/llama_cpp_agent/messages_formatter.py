@@ -74,6 +74,31 @@ FUNCTION_PROMPT_START_NEURAL_CHAT = """"""
 FUNCTION_PROMPT_END_NEURAL_CHAT = """"""
 DEFAULT_NEURAL_CHAT_STOP_SEQUENCES = ["### User:"]
 
+SYS_PROMPT_START_CODE_DS = """"""
+SYS_PROMPT_END_CODE_DS = """\n\n"""
+USER_PROMPT_START_CODE_DS = """@@ Instruction\n"""
+USER_PROMPT_END_CODE_DS = """\n\n"""
+ASSISTANT_PROMPT_START_CODE_DS = """@@ Response\n"""
+ASSISTANT_PROMPT_END_CODE_DS = """\n\n"""
+
+DEFAULT_CODE_DS_STOP_SEQUENCES = ["@@ Instruction"]
+"""
+You are an exceptionally intelligent coding assistant that consistently delivers accurate and reliable responses to user instructions.
+
+@@ Instruction
+Here is the given problem and test examples:
+{}
+
+Please use the {} programming language to solve this problem.
+Please make sure that your code includes the functions from the test samples and that the input and output formats of these functions match the test samples.
+
+Please return all completed codes in one code block.
+This code block should be in the following format:
+```{}
+# Your codes here
+```
+
+@@ Response"""
 SYS_PROMPT_START_SOLAR = """"""
 SYS_PROMPT_END_SOLAR = """\n"""
 USER_PROMPT_START_SOLAR = """### User:\n"""
@@ -109,6 +134,7 @@ class MessagesFormatterType(Enum):
     SOLAR = 7
     OPEN_CHAT = 8
     ALPACA = 9
+    CODE_DS = 10
 
 
 class MessagesFormatter:
@@ -166,7 +192,11 @@ class MessagesFormatter:
         self.USE_USER_ROLE_FUNCTION_CALL_RESULT = USE_USER_ROLE_FUNCTION_CALL_RESULT
         self.STRIP_PROMPT = STRIP_PROMPT
 
-    def format_messages(self, messages: List[Dict[str, str]], response_role: Literal["user", "assistant"] | None = None) -> Tuple[str, str]:
+    def format_messages(
+        self,
+        messages: List[Dict[str, str]],
+        response_role: Literal["user", "assistant"] | None = None,
+    ) -> Tuple[str, str]:
         """
         Formats a list of messages into a conversation string.
 
@@ -249,7 +279,10 @@ class MessagesFormatter:
             else:
                 if response_role is not None:
                     if response_role == "assistant":
-                        return formatted_messages + self.ASSISTANT_PROMPT_START, "assistant"
+                        return (
+                            formatted_messages + self.ASSISTANT_PROMPT_START,
+                            "assistant",
+                        )
                     if response_role == "user":
                         return formatted_messages + self.USER_PROMPT_START, "user"
                 else:
@@ -257,7 +290,10 @@ class MessagesFormatter:
         if self.STRIP_PROMPT:
             if response_role is not None:
                 if response_role == "assistant":
-                    return formatted_messages + self.ASSISTANT_PROMPT_START.strip(), "assistant"
+                    return (
+                        formatted_messages + self.ASSISTANT_PROMPT_START.strip(),
+                        "assistant",
+                    )
                 if response_role == "user":
                     return formatted_messages + self.USER_PROMPT_START.strip(), "user"
             else:
@@ -392,6 +428,17 @@ neural_chat_formatter = MessagesFormatter(
     DEFAULT_NEURAL_CHAT_STOP_SEQUENCES,
     STRIP_PROMPT=False,
 )
+code_ds_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_CODE_DS,
+    SYS_PROMPT_END_CODE_DS,
+    USER_PROMPT_START_CODE_DS,
+    USER_PROMPT_END_CODE_DS,
+    ASSISTANT_PROMPT_START_CODE_DS,
+    ASSISTANT_PROMPT_END_CODE_DS,
+    True,
+    DEFAULT_CODE_DS_STOP_SEQUENCES,
+)
 
 solar_formatter = MessagesFormatter(
     "",
@@ -446,6 +493,7 @@ predefined_formatter = {
     MessagesFormatterType.SOLAR: solar_formatter,
     MessagesFormatterType.OPEN_CHAT: open_chat_formatter,
     MessagesFormatterType.ALPACA: alpaca_formatter,
+    MessagesFormatterType.CODE_DS: code_ds_formatter,
 }
 
 

@@ -223,10 +223,8 @@ class FunctionCallingAgent:
                 "Wrong generation settings for llama.cpp server endpoint, use LlamaCppServerGenerationSettings under llama_cpp_agent.providers.llama_cpp_server_provider!"
             )
         if (
-            isinstance(llama_llm, Llama)
-            or isinstance(llama_llm, LlamaLLMSettings)
-            and isinstance(llama_generation_settings, LlamaCppGenerationSettings)
-        ):
+            isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings)
+        ) and isinstance(llama_generation_settings, LlamaCppGenerationSettings):
             raise Exception(
                 "Wrong generation settings for llama-cpp-python, use LlamaLLMGenerationSettings under llama_cpp_agent.llm_settings!"
             )

@@ -3,9 +3,11 @@ import datetime
 from enum import Enum
 from typing import Union, Optional
 
+from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
+from llama_cpp_agent.llm_settings import LlamaLLMGenerationSettings
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings, LlamaCppGenerationSettings
 
@@ -97,20 +99,34 @@ def send_message_to_user_callback(message: str):
     print(message)
 
 
-generation_settings = LlamaCppGenerationSettings(n_predict=4096,
-                                                 temperature=0.4, top_k=0, top_p=1.0, repeat_penalty=1.1,
-                                                 repeat_last_n=512,
-                                                 min_p=0.1, tfs_z=0.95, penalize_nl=False, stream=True)
 
+
+path_to_model = "../../../gguf-models/mistral-7b-instruct-v0.2.Q6_K.gguf"
+
+model = Llama(
+    path_to_model,
+    n_gpu_layers=49,
+    f16_kv=True,
+    offload_kqv=True,
+    use_mlock=False,
+    embedding=False,
+    n_threads=8,
+    n_batch=1024,
+    n_ctx=4096,
+    last_n_tokens_size=1024,
+    verbose=True,
+    seed=-1,
+)
+generation_settings = LlamaLLMGenerationSettings(
+    temperature=0.4, top_k=0, top_p=1.0, repeat_penalty=1.1,
+    min_p=0.1, tfs_z=0.95, stream=True)
 # Can be saved and loaded like that:
 # generation_settings.save("generation_settings.json")
 # generation_settings = LlamaLLMGenerationSettings.load_from_file("generation_settings.json")
-main_model = LlamaCppEndpointSettings(
-    "http://localhost:8080/completion"
-)
+
 function_call_agent = FunctionCallingAgent(
     # Can be lama-cpp-python Llama class, llama_cpp_agent.llm_settings.LlamaLLMSettings class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerLLMSettings.
-    main_model,
+    model,
     # llama_cpp_agent.llm_settings.LlamaLLMGenerationSettings  class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerGenerationSettings.
     llama_generation_settings=generation_settings,
     # A tuple of the OpenAI style function definitions and the actual functions

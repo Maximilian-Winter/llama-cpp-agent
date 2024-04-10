@@ -136,6 +136,7 @@ function_call_agent = FunctionCallingAgent(
     model,
     # llama_cpp_agent.llm_settings.LlamaLLMGenerationSettings  class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerGenerationSettings.
     llama_generation_settings=generation_settings,
+    # Pass the LlamaCppFunctionTool instances as a list to the agent.
     llama_cpp_function_tools=[calculator_function_tool, current_datetime_function_tool, get_weather_function_tool],
     # Callback for receiving messages for the user.
     send_message_to_user_callback=send_message_to_user_callback,

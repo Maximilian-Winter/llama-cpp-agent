@@ -350,7 +350,7 @@ def generate_gbnf_rule_for_type(
             created_rules,
         )
         rules.extend(additional_rules)
-        array_rule = f"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})*  "]" """
+        array_rule = rf"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* ws "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 
@@ -365,7 +365,7 @@ def generate_gbnf_rule_for_type(
             created_rules,
         )
         rules.extend(additional_rules)
-        array_rule = f"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})*  "]" """
+        array_rule = rf"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* ws "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 
@@ -390,7 +390,11 @@ def generate_gbnf_rule_for_type(
             processed_models,
             created_rules,
         )
-        rules.extend([rf'{gbnf_type} ::= "{{"  ( {additional_key_type} ": "  {additional_value_type} ("," "\n" ws {additional_key_type} ":"  {additional_value_type})*  )? "}}" '])
+        rules.extend(
+            [
+                rf'{gbnf_type} ::= "{{"  ( {additional_key_type} ": "  {additional_value_type} ("," "\n" ws {additional_key_type} ":"  {additional_value_type})*  )? "}}" '
+            ]
+        )
         rules.extend(additional_key_rules)
         rules.extend(additional_value_rules)
     elif gbnf_type.startswith("union-"):
@@ -621,16 +625,16 @@ def generate_gbnf_grammar(
             if rule_name not in created_rules:
                 created_rules[rule_name] = additional_rules
             model_rule_parts.append(
-                f' ws "\\"{field_name}\\"" ":" ws {rule_name}'
+                f' ws "\\"{field_name}\\"" ": " {rule_name}'
             )  # Adding escaped quotes
             nested_rules.extend(additional_rules)
         else:
             has_triple_quoted_string = look_for_triple_quoted_string
             has_markdown_code_block = look_for_markdown_code_block
 
-    fields_joined = r' "," "\n" '.join(model_rule_parts)
+    fields_joined = r' "," '.join(model_rule_parts)
     if fields_joined != "":
-        model_rule = rf'{model_name} ::= "{{" "\n" {fields_joined} ws "}}"'
+        model_rule = rf'{model_name} ::= "{{" {fields_joined} ws "}}"'
     else:
         model_rule = rf'{model_name} ::= "{{" "}}"'
 
@@ -698,7 +702,7 @@ def generate_gbnf_grammar_from_pydantic_models(
 
         if list_of_outputs:
             root_rule = (
-                r'root ::= (" "| "\n") "[" ws grammar-models ("," ws grammar-models)* ws "]"'
+                r'root ::= (" "| "\n") "[" ws grammar-models ("," ws grammar-models)* "\n" "]"'
                 + "\n"
             )
         else:
@@ -715,17 +719,15 @@ def generate_gbnf_grammar_from_pydantic_models(
                 + "\n"
             )
         else:
-            root_rule = (
-                f"root ::= ws {format_model_and_field_name(outer_object_name)}\n"
-            )
+            root_rule = f"root ::= {format_model_and_field_name(outer_object_name)}\n"
 
         if add_inner_thoughts:
             if allow_only_inner_thoughts:
-                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string (("," ws "\"{outer_object_name}\""  ":" grammar-models)? | ws "}}")'
+                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string (("," ws "\"{outer_object_name}\""  ":" ws grammar-models)? | ws "}}")'
             else:
-                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string "," ws "\"{outer_object_name}\""  ":" grammar-models '
+                model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{inner_thought_field_name}\""  ":" ws string "," ws "\"{outer_object_name}\""  ":" ws grammar-models '
         else:
-            model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{outer_object_name}\""  ":" ws grammar-models'
+            model_rule = rf'{format_model_and_field_name(outer_object_name)} ::= (" "| "\n") "{{" ws "\"{outer_object_name}\""  ": " ws grammar-models'
 
         fields_joined = " | ".join(
             [
@@ -741,7 +743,7 @@ def generate_gbnf_grammar_from_pydantic_models(
                 rf"{format_model_and_field_name(model.__name__)}-grammar-model ::= "
             )
             mod_rule += (
-                rf'"\"{model.__name__}\"" "," ws "\"{outer_object_content}\"" ":" {format_model_and_field_name(model.__name__)}'
+                rf'"\"{model.__name__}\"" "," ws "\"{outer_object_content}\"" ": " {format_model_and_field_name(model.__name__)}'
                 + "\n"
             )
             mod_rules.append(mod_rule)
@@ -792,7 +794,7 @@ string ::= "\"" (
         "\\" (["\\/bfnrt] | "u" [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F] [0-9a-fA-F])
       )* "\""
 ws ::= ([ \t\n]+)
-number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)?"""
+number ::= "-"? ([0-9]+ | [0-9]+ "." [0-9]+) ([eE] [-+]? [0-9]+)?"""
 
     any_block = ""
     if "custom-class-any" in grammar:
@@ -1159,7 +1161,12 @@ def generate_field_text(
             if element_type.__name__ == "NoneType":
                 types.append("null")
             else:
-                types.append(element_type.__name__)
+                if isclass(element_type) and issubclass(element_type, Enum):
+                    enum_values = [f"'{str(member.value)}'" for member in element_type]
+                    for enum_value in enum_values:
+                        types.append(enum_value)
+                else:
+                    types.append(element_type.__name__)
         field_text = f"{indent}{field_name} ({' or '.join(types)})"
         if field_description != "":
             field_text += ": "
@@ -1579,7 +1586,7 @@ def create_dynamic_models_from_dictionaries(dictionaries: list[dict[str, Any]]):
         dictionaries (list[dict]): List of dictionaries representing model structures.
 
     Returns:
-        list[type[BaseModel]]: List of generated dynamic Pydantic model classes.
+        list[Type[BaseModel]]: List of generated dynamic Pydantic model classes.
     """
     dynamic_models = []
     for func in dictionaries:

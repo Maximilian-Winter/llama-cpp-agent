@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llama-cpp-agent"
-version = "0.0.22"
+version = "0.0.24"
 description = "A framework for building LLM based AI agents with llama-cpp-python."
 
 readme = "ReadMe.md"
 dependencies = [
-    "llama-cpp-python>=0.2.26",
+    "llama-cpp-python>=0.2.60",
     "pydantic>=2.5.3",
     "requests==2.31.0",
     "docstring_parser"

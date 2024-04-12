@@ -1,5 +1,5 @@
 import json
-from typing import Type, List
+from typing import Type, List, Callable, Any, Union, Tuple, Dict
 
 from llama_cpp import LlamaGrammar
 from pydantic import BaseModel
@@ -10,7 +10,8 @@ from .output_parser import (
 )
 from .gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import (
     format_model_and_field_name,
-    generate_gbnf_grammar_and_documentation,
+    generate_gbnf_grammar_and_documentation, create_dynamic_model_from_function,
+    create_dynamic_models_from_dictionaries, add_run_method_to_dynamic_model,
 )
 
 
@@ -19,7 +20,7 @@ class LlamaCppFunctionTool:
     Callable class representing a tool for handling function calls in the LlamaCpp environment.
 
     Args:
-        pydantic_model (Type[BaseModel]): The Pydantic model representing the function.
+        function_tool (Union[Type[BaseModel], Callable, Tuple[Dict[str, Any], Callable]]): The function tool, can be either a pydantic model with run method, a python function or a tuple of a OpenAI tool specification and a function as callback.
         has_markdown_code_block (bool): Flag indicating whether the response contains an extra markdown code block field.
         has_triple_quoted_string (bool): Flag indicating whether the response contains an extra triple-quoted string field.
         **additional_parameters: Additional parameters to pass to the Pydantic model during function call.
@@ -37,7 +38,7 @@ class LlamaCppFunctionTool:
 
     def __init__(
         self,
-        pydantic_model: Type[BaseModel],
+        function_tool: Union[Type[BaseModel], Callable, Tuple[Dict[str, Any], Callable]],
         add_params_to_result=False,
         has_markdown_code_block=False,
         has_triple_quoted_string=False,
@@ -46,7 +47,19 @@ class LlamaCppFunctionTool:
         add_outer_request_heartbeat_field=True,
         **additional_parameters,
     ):
-        self.model = pydantic_model
+        # Determine the type of function_tool and set up the appropriate handling
+        if isinstance(function_tool, type) and issubclass(function_tool, BaseModel):
+            # Handle BaseModel subclass
+            self.model = function_tool  # instantiate the model if needed
+        elif isinstance(function_tool, tuple) and len(function_tool) == 2 and isinstance(function_tool[0], dict) and callable(function_tool[1]):
+            # Handle OpenAI functions
+            models = create_dynamic_models_from_dictionaries([function_tool[0]])
+            self.model = add_run_method_to_dynamic_model(models[0], function_tool[1])
+        elif callable(function_tool):
+            # Handle simple callable
+            self.model = create_dynamic_model_from_function(function_tool)
+        else:
+            raise ValueError("Invalid function_tool type provided")
         self.add_params_to_result = add_params_to_result
         self.look_for_field_string = has_markdown_code_block or has_triple_quoted_string
         self.has_markdown_code_block = has_markdown_code_block
@@ -110,7 +123,7 @@ class LlamaCppFunctionToolRegistry:
         model_prefix="function",
         fields_prefix="parameters",
         inner_thoughts_field_name="thoughts_and_reasoning",
-        request_heartbeat_field_name="request_heartbeat"
+        request_heartbeat_field_name="request_heartbeat",
     ):
         """
         Initialize the LlamaCppFunctionToolRegistry.

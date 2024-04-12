@@ -88,22 +88,20 @@ class FunctionCallingAgent:
     An agent that uses function calling to interact with its environment and the user.
 
     Args:
-        llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings]): An instance of Llama, LlamaLLMSettings, LlamaCppServerLLMSettings as LLM.
-        llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppGenerationSettings, OpenAIGenerationSettings]): Generation settings for Llama.
+        llama_llm (Llama | LlamaLLMSettings | OpenAIEndpointSettings): An instance of Llama, LlamaLLMSettings or LlamaCppServerLLMSettings as LLM.
+        llama_generation_settings (LlamaLLMGenerationSettings | LlamaCppGenerationSettings | OpenAIGenerationSettings): Generation settings for Llama.
         messages_formatter_type (MessagesFormatterType): Type of messages formatter.
-        custom_messages_formatter (MessagesFormatter): Custom messages formatter.
+        custom_messages_formatter (MessagesFormatter): Optional Custom messages formatter.
         streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
         k_last_messages_from_chat_history (int): Number of last messages to consider from chat history.
         system_prompt (str): System prompt for interaction.
-        open_ai_functions (Tuple[List[dict], List[Callable]]): OpenAI function definitions and a list of the actual functions as tuple.
-        python_functions (List[Callable]): Python functions for interaction.
-        pydantic_functions (List[Type[BaseModel]]): Pydantic models representing functions.
+        llama_cpp_function_tools(List[LlamaCppFunctionTool]): List of LlamaCppFunctionTool instances.
+        allow_parallel_function_calling (bool): Allow parallel function calling (Default=False)
         add_send_message_to_user_function (bool): Flag to add send_message_to_user function.
         send_message_to_user_callback (Callable[[str], None]): Callback for sending a message to the user.
         debug_output (bool): Enable debug output.
 
     Attributes:
-        pydantic_functions (List[Type[BaseModel]]): List of Pydantic models representing functions.
         send_message_to_user_callback (Callable[[str], None]): Callback for sending a message to the user.
         llama_cpp_tools (List[LlamaCppFunctionTool]): List of LlamaCppFunctionTool instances.
         tool_registry (LlamaCppFunctionToolRegistry): Function tool registry.
@@ -139,9 +137,7 @@ class FunctionCallingAgent:
         streaming_callback: Callable[[StreamingResponse], None] = None,
         k_last_messages_from_chat_history: int = 0,
         system_prompt: str = None,
-        open_ai_functions: (List[dict], List[Callable]) = None,
-        python_functions: List[Callable] = None,
-        pydantic_functions: List[Type[BaseModel]] = None,
+        llama_cpp_function_tools: [LlamaCppFunctionTool] = None,
         basic_file_tools: bool = False,
         allow_parallel_function_calling=False,
         add_send_message_to_user_function: bool = True,
@@ -152,56 +148,32 @@ class FunctionCallingAgent:
         Initialize the FunctionCallingAgent.
 
         Args:
-            llama_llm (Union[Llama, LlamaLLMSettings, OpenAIEndpointSettings]): An instance of Llama, LlamaLLMSettings or LlamaCppServerLLMSettings as LLM.
-            llama_generation_settings (Union[LlamaLLMGenerationSettings, LlamaCppGenerationSettings, OpenAIGenerationSettings]): Generation settings for Llama.
+            llama_llm (Llama | LlamaLLMSettings | OpenAIEndpointSettings): An instance of Llama, LlamaLLMSettings or LlamaCppServerLLMSettings as LLM.
+            llama_generation_settings (LlamaLLMGenerationSettings | LlamaCppGenerationSettings | OpenAIGenerationSettings): Generation settings for Llama.
             messages_formatter_type (MessagesFormatterType): Type of messages formatter.
             custom_messages_formatter (MessagesFormatter): Optional Custom messages formatter.
             streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
             k_last_messages_from_chat_history (int): Number of last messages to consider from chat history.
             system_prompt (str): System prompt for interaction.
-            open_ai_functions (Tuple[List[dict], List[Callable]]): OpenAI function definitions and a list of the actual functions as tuple.
-            python_functions (List[Callable]): Python functions for interaction.
-            pydantic_functions (List[Type[BaseModel]]): Pydantic models representing functions.
+            llama_cpp_function_tools(List[LlamaCppFunctionTool]): List of LlamaCppFunctionTool instances.
             allow_parallel_function_calling (bool): Allow parallel function calling (Default=False)
             add_send_message_to_user_function (bool): Flag to add send_message_to_user function.
             send_message_to_user_callback (Callable[[str], None]): Callback for sending a message to the user.
             debug_output (bool): Enable debug output.
         """
-        if pydantic_functions is None:
-            self.pydantic_functions = []
-        else:
-            self.pydantic_functions = pydantic_functions
-
-        if python_functions is not None:
-            for tool in python_functions:
-                self.pydantic_functions.append(create_dynamic_model_from_function(tool))
-
-        if open_ai_functions is not None:
-            open_ai_models = create_dynamic_models_from_dictionaries(
-                open_ai_functions[0]
-            )
-            count = 0
-            for func in open_ai_functions[1]:
-                model = open_ai_models[count]
-                self.pydantic_functions.append(
-                    add_run_method_to_dynamic_model(model, func)
-                )
-                count += 1
+        self.llama_cpp_tools = []
+        if llama_cpp_function_tools:
+            self.llama_cpp_tools = llama_cpp_function_tools
 
         self.send_message_to_user_callback = send_message_to_user_callback
         if add_send_message_to_user_function:
-            self.llama_cpp_tools = [
-                LlamaCppFunctionTool(activate_message_mode, agent=self)
-            ]
-        else:
-            self.llama_cpp_tools = []
+            self.llama_cpp_tools.append(LlamaCppFunctionTool(activate_message_mode, agent=self))
+
         if basic_file_tools:
             self.llama_cpp_tools.append(LlamaCppFunctionTool(read_text_file))
             self.llama_cpp_tools.append(
                 LlamaCppFunctionTool(write_text_file, agent=self)
             )
-        for tool in self.pydantic_functions:
-            self.llama_cpp_tools.append(LlamaCppFunctionTool(tool))
 
         self.tool_registry = LlamaCppAgent.get_function_tool_registry(
             self.llama_cpp_tools,
@@ -223,10 +195,8 @@ class FunctionCallingAgent:
                 "Wrong generation settings for llama.cpp server endpoint, use LlamaCppServerGenerationSettings under llama_cpp_agent.providers.llama_cpp_server_provider!"
             )
         if (
-            isinstance(llama_llm, Llama)
-            or isinstance(llama_llm, LlamaLLMSettings)
-            and isinstance(llama_generation_settings, LlamaCppGenerationSettings)
-        ):
+            isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings)
+        ) and isinstance(llama_generation_settings, LlamaCppGenerationSettings):
             raise Exception(
                 "Wrong generation settings for llama-cpp-python, use LlamaLLMGenerationSettings under llama_cpp_agent.llm_settings!"
             )
@@ -253,8 +223,7 @@ class FunctionCallingAgent:
 To call functions, you respond with a JSON object containing three fields:
 "thoughts "and reasoning": Your thoughts and reasoning behind the function call.
 "function": The name of the function you want to call.
-"arguments": The arguments required for the function.
-"next_step": The next step you want to take.
+"parameters": The arguments required for the function.
 
 After performing a function call, you will receive a response containing the return values of the function calls.
 
@@ -291,7 +260,6 @@ Choose the appropriate function based on the task you want to perform. Provide y
             del dic["streaming_callback"]
             del dic["tool_registry"]
             del dic["llama_cpp_tools"]
-            del dic["pydantic_functions"]
             del dic["send_message_to_user_callback"]
             del dic["without_grammar_mode_function"]
             dic["debug_output"] = self.llama_cpp_agent.debug_output

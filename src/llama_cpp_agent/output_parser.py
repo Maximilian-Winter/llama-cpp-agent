@@ -1,24 +1,32 @@
 import json
+import re
+
+
+def preprocess_json_string(json_string):
+    # Regular expression to find string values in JSON (this is a simplification and might not cover all edge cases)
+    string_regex = r'"([^"]*)"'
+
+    # Function to escape newlines within string values
+    def escape_newlines(match):
+        escaped_string = match.group(0).replace("\n", "\\n")
+        return escaped_string
+
+    # Replace unescaped newlines in string values
+    processed_string = re.sub(string_regex, escape_newlines, json_string)
+    return processed_string
 
 
 def sanitize_and_load_json(input_json):
+    fixed_json = preprocess_json_string(input_json)
+    fixed_json = fixed_json.replace("\r", "\\r")
+
     try:
-        # Directly load the JSON if it's already in a correct format
-        return json.loads(input_json)
-    except json.JSONDecodeError:
-        # If there's a decode error, attempt to fix and re-parse
+        return json.loads(fixed_json)
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON: {e}")
+        return None
 
-        # Replace problematic parts of the JSON string here
-        # Note: This is a simplified approach and may need adjustments based on actual LLM output
-        fixed_json = input_json.replace("\n", "").replace("\r", "\\r")
 
-        # Try loading the JSON again after making replacements
-        try:
-            return json.loads(fixed_json)
-        except json.JSONDecodeError as e:
-            # If there's still an error, print or log the error message
-            print(f"Error parsing JSON: {e}")
-            return None
 
 
 def is_empty_or_whitespace(s):
@@ -54,7 +62,7 @@ def parse_json_response(response: str):
 
 
 def parse_json_response_with_markdown_code_block_or_triple_quoted_string(
-    json_response, marker
+        json_response, marker
 ):
     """
     Parses a JSON response string followed by a Markdown code block or triple-quoted string.

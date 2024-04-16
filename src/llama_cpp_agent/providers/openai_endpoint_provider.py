@@ -8,8 +8,6 @@ import requests
 
 @dataclass
 class OpenAIGenerationSettings:
-    prompt: Union[str, List[str]] = ""
-    suffix: Optional[str] = None
     max_tokens: Optional[int] = 0
     temperature: float = 0.8
     top_p: float = 0.95

@@ -74,6 +74,16 @@ FUNCTION_PROMPT_START_NEURAL_CHAT = """"""
 FUNCTION_PROMPT_END_NEURAL_CHAT = """"""
 DEFAULT_NEURAL_CHAT_STOP_SEQUENCES = ["### User:"]
 
+SYS_PROMPT_START_22B = """### System: """
+SYS_PROMPT_END_22B = """\n"""
+USER_PROMPT_START_22B = """### User: """
+USER_PROMPT_END_22B = """ \n"""
+ASSISTANT_PROMPT_START_22B = """### Assistant:"""
+ASSISTANT_PROMPT_END_22B = """\n"""
+FUNCTION_PROMPT_START_22B = """"""
+FUNCTION_PROMPT_END_22B = """"""
+DEFAULT_22B_STOP_SEQUENCES = ["### User:"]
+
 SYS_PROMPT_START_CODE_DS = """"""
 SYS_PROMPT_END_CODE_DS = """\n\n"""
 USER_PROMPT_START_CODE_DS = """@@ Instruction\n"""
@@ -135,7 +145,7 @@ class MessagesFormatterType(Enum):
     OPEN_CHAT = 8
     ALPACA = 9
     CODE_DS = 10
-
+    B22 = 11
 
 class MessagesFormatter:
     """
@@ -482,7 +492,18 @@ alpaca_formatter = MessagesFormatter(
     FUNCTION_PROMPT_END_CHATML,
 )
 
-
+b22_chat_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_22B,
+    SYS_PROMPT_END_22B,
+    USER_PROMPT_START_22B,
+    USER_PROMPT_END_22B,
+    ASSISTANT_PROMPT_START_22B,
+    ASSISTANT_PROMPT_END_22B,
+    False,
+    DEFAULT_22B_STOP_SEQUENCES,
+    STRIP_PROMPT=False,
+)
 predefined_formatter = {
     MessagesFormatterType.MIXTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
@@ -494,6 +515,7 @@ predefined_formatter = {
     MessagesFormatterType.OPEN_CHAT: open_chat_formatter,
     MessagesFormatterType.ALPACA: alpaca_formatter,
     MessagesFormatterType.CODE_DS: code_ds_formatter,
+    MessagesFormatterType.B22: b22_chat_formatter,
 }
 
 

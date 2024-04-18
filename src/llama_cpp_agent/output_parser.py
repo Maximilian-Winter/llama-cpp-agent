@@ -27,8 +27,6 @@ def sanitize_and_load_json(input_json):
         return None
 
 
-
-
 def is_empty_or_whitespace(s):
     """
     Checks if a string is empty or contains only whitespace.
@@ -62,7 +60,7 @@ def parse_json_response(response: str):
 
 
 def parse_json_response_with_markdown_code_block_or_triple_quoted_string(
-        json_response, marker
+    json_response, marker
 ):
     """
     Parses a JSON response string followed by a Markdown code block or triple-quoted string.

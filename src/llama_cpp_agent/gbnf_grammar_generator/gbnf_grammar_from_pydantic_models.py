@@ -1536,6 +1536,7 @@ def create_dynamic_model_from_function(
             param.annotation if param.annotation != inspect.Parameter.empty else str,
             default_value,
         )
+
     # Creating the dynamic model
     dynamic_model = create_model(f"{func.__name__}", **dynamic_fields)  # type: ignore[call-overload]
     if add_inner_thoughts:
@@ -1624,7 +1625,9 @@ def list_to_enum(enum_name, values):
 
 
 def convert_dictionary_to_pydantic_model(
-    dictionary: dict[str, Any], model_name: str = "CustomModel"
+    dictionary: dict[str, Any],
+    model_name: str = "CustomModel",
+    docs: dict[str, str] = None,
 ) -> type[Any]:
     """
     Convert a dictionary to a Pydantic model class.
@@ -1637,17 +1640,20 @@ def convert_dictionary_to_pydantic_model(
         type[BaseModel]: Generated Pydantic model class.
     """
     fields: dict[str, Any] = {}
-
+    if docs is None:
+        docs = {}
     if "properties" in dictionary:
         for field_name, field_data in dictionary.get("properties", {}).items():
             if field_data == "object":
                 submodel = convert_dictionary_to_pydantic_model(
-                    dictionary, f"{model_name}_{field_name}"
+                    dictionary, f"{model_name}_{field_name}", docs
                 )
                 fields[field_name] = (submodel, ...)
-            else:
-                field_type = field_data.get("type", "str")
 
+            else:
+                field_type = field_data.get("type", "string")
+                if field_data.get("description", None):
+                    docs[field_name] = field_data["description"]
                 if field_data.get("enum", []):
                     fields[field_name] = (
                         list_to_enum(field_name, field_data.get("enum", [])),
@@ -1658,18 +1664,18 @@ def convert_dictionary_to_pydantic_model(
                     if items != {}:
                         array = {"properties": items}
                         array_type = convert_dictionary_to_pydantic_model(
-                            array, f"{model_name}_{field_name}_items"
+                            array, f"{model_name}_{field_name}_items", docs
                         )
                         fields[field_name] = (List[array_type], ...)  # type: ignore[valid-type]
                     else:
                         fields[field_name] = (list, ...)
                 elif field_type == "object":
                     submodel = convert_dictionary_to_pydantic_model(
-                        field_data, f"{model_name}_{field_name}"
+                        field_data, f"{model_name}_{field_name}", docs
                     )
                     fields[field_name] = (submodel, ...)
                 elif field_type == "required":
-                    required = field_data.get("enum", [])
+                    required = field_data
                     for key, field in fields.items():
                         if key not in required:
                             fields[key] = (Optional[fields[key][0]], ...)
@@ -1683,15 +1689,20 @@ def convert_dictionary_to_pydantic_model(
             elif field_name == "description":
                 fields["__doc__"] = field_data
             elif field_name == "parameters":
-                return convert_dictionary_to_pydantic_model(field_data, f"{model_name}")
+                return convert_dictionary_to_pydantic_model(
+                    field_data, f"{model_name}", docs
+                )
 
     if "parameters" in dictionary:
         field_data = {"function": dictionary}
-        return convert_dictionary_to_pydantic_model(field_data, f"{model_name}")
+        return convert_dictionary_to_pydantic_model(field_data, f"{model_name}", docs)
     if "required" in dictionary:
         required = dictionary.get("required", [])
         for key, field in fields.items():
             if key not in required:
                 fields[key] = (Optional[fields[key][0]], ...)
     custom_model = create_model(model_name, **fields)
+    for field_name, doc in docs.items():
+        custom_model.model_fields[field_name].description = doc
+
     return custom_model

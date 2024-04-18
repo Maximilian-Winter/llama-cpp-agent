@@ -208,7 +208,7 @@ class LlamaCppEndpointSettings:
         return self.__dict__
 
     def create_completion(
-            self, prompt, grammar, generation_settings: LlamaCppGenerationSettings
+        self, prompt, grammar, generation_settings: LlamaCppGenerationSettings
     ):
         """
         Create a completion using the Llama.cpp server.
@@ -297,7 +297,7 @@ class LlamaCppEndpointSettings:
         return generate_text_chunks()
 
     async def async_create_completion(
-            self, prompt, grammar, generation_settings: LlamaCppGenerationSettings
+        self, prompt, grammar, generation_settings: LlamaCppGenerationSettings
     ):
         """
         Create a completion using the Llama.cpp server asynchronously.
@@ -311,7 +311,9 @@ class LlamaCppEndpointSettings:
             dict or async generator: The completion response.
         """
         if generation_settings.stream:
-            return await self.async_get_response_stream(prompt, grammar, generation_settings)
+            return await self.async_get_response_stream(
+                prompt, grammar, generation_settings
+            )
 
         headers = {"Content-Type": "application/json"}
 
@@ -324,7 +326,9 @@ class LlamaCppEndpointSettings:
         del data["stop_sequences"]
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(self.completions_endpoint_url, headers=headers, json=data) as response:
+            async with session.post(
+                self.completions_endpoint_url, headers=headers, json=data
+            ) as response:
                 response_data = await response.json()
 
         returned_data = {"choices": [{"text": response_data["content"]}]}
@@ -342,7 +346,9 @@ class LlamaCppEndpointSettings:
         del data["stop_sequences"]
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(self.completions_endpoint_url, headers=headers, json=data) as response:
+            async with session.post(
+                self.completions_endpoint_url, headers=headers, json=data
+            ) as response:
                 response.raise_for_status()
 
                 async def generate_text_chunks():
@@ -353,7 +359,9 @@ class LlamaCppEndpointSettings:
                                 decoded_chunk = chunk.decode("utf-8")
                                 # Assuming JSON lines format; customize based on actual response format
                                 new_data = json.loads(decoded_chunk)
-                                returned_data = {"choices": [{"text": new_data["content"]}]}
+                                returned_data = {
+                                    "choices": [{"text": new_data["content"]}]
+                                }
                                 yield returned_data
 
                     except aiohttp.ClientError as e:

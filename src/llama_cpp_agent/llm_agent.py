@@ -5,7 +5,7 @@ from typing import List, Dict, Literal, Callable, Union
 
 from llama_cpp import Llama, LlamaGrammar
 
-from .llm_settings import LlamaLLMSettings
+from .llm_settings import LlamaLLMSettings, LlamaLLMGenerationSettings
 from .messages_formatter import (
     MessagesFormatterType,
     get_predefined_messages_formatter,
@@ -50,16 +50,16 @@ class LlamaCppAgent:
     """
 
     def __init__(
-        self,
-        model: Union[
-            Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings
-        ],
-        name: str = "llamacpp_agent",
-        system_prompt: str = "You are helpful assistant.",
-        predefined_messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
-        custom_messages_formatter: MessagesFormatter = None,
-        debug_output: bool = False,
-        function_tool_registry: LlamaCppFunctionToolRegistry = None,
+            self,
+            model: Union[
+                Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings
+            ],
+            name: str = "llamacpp_agent",
+            system_prompt: str = "You are helpful assistant.",
+            predefined_messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
+            custom_messages_formatter: MessagesFormatter = None,
+            debug_output: bool = False,
+            function_tool_registry: LlamaCppFunctionToolRegistry = None,
     ):
         """
         Initializes a new LlamaCppAgent object.
@@ -92,17 +92,18 @@ class LlamaCppAgent:
 
     @staticmethod
     def get_function_tool_registry(
-        function_tool_list: List[LlamaCppFunctionTool],
-        allow_parallel_function_calling=False,
-        add_inner_thoughts=False,
-        allow_inner_thoughts_only=False,
-        add_request_heartbeat=False,
-        tool_root="function",
-        tool_rule_content="parameters",
-        model_prefix="function",
-        fields_prefix="parameters",
-        inner_thoughts_field_name="thoughts_and_reasoning",
-        request_heartbeat_field_name="request_heartbeat",
+            function_tool_list: List[LlamaCppFunctionTool],
+            allow_parallel_function_calling=False,
+            add_inner_thoughts=False,
+            allow_inner_thoughts_only=False,
+            add_request_heartbeat=False,
+            tool_root="function",
+            tool_rule_content="parameters",
+            model_prefix="function",
+            fields_prefix="parameters",
+            inner_thoughts_field_name="thoughts_and_reasoning",
+            request_heartbeat_field_name="request_heartbeat",
+            mixtral_8x22b_tools=False,
     ):
         """
         Creates and returns a function tool registry from a list of LlamaCppFunctionTool instances.
@@ -133,6 +134,7 @@ class LlamaCppAgent:
             fields_prefix,
             inner_thoughts_field_name,
             request_heartbeat_field_name,
+            mixtral_8x22b_tools,
         )
 
         for function_tool in function_tool_list:
@@ -141,12 +143,12 @@ class LlamaCppAgent:
         return function_tool_registry
 
     def add_message(
-        self,
-        message: str,
-        role: Literal["system"]
-        | Literal["user"]
-        | Literal["assistant"]
-        | Literal["function"] = "user",
+            self,
+            message: str,
+            role: Literal["system"]
+                  | Literal["user"]
+                  | Literal["assistant"]
+                  | Literal["function"] = "user",
     ):
         """
         Adds a message to the chat history.
@@ -163,42 +165,42 @@ class LlamaCppAgent:
         )
 
     def get_text_response(
-        self,
-        prompt: str = None,
-        grammar: str = None,
-        function_tool_registry: LlamaCppFunctionToolRegistry = None,
-        do_not_use_grammar: bool = False,
-        streaming_callback: Callable[[StreamingResponse], None] = None,
-        max_tokens: int = 0,
-        temperature: float = 0.4,
-        top_k: int = 0,
-        top_p: float = 1.0,
-        min_p: float = 0.05,
-        typical_p: float = 1.0,
-        repeat_penalty: float = 1.0,
-        mirostat_mode: int = 0,
-        mirostat_tau: float = 5.0,
-        mirostat_eta: float = 0.1,
-        tfs_z: float = 1.0,
-        stop_sequences: List[str] = None,
-        additional_stop_sequences: List[str] = None,
-        stream: bool = True,
-        print_output: bool = True,
-        # Llama Cpp Server and Open AI endpoint settings
-        n_predict: int = -1,
-        n_keep: int = 0,
-        repeat_last_n: int = 64,
-        penalize_nl: bool = True,
-        presence_penalty: float = 0.0,
-        frequency_penalty: float = 0.0,
-        penalty_prompt: Union[None, str, List[int]] = None,
-        seed: int = -1,
-        ignore_eos: bool = False,
-        echo: bool = False,
-        logprobs: int = None,
-        logit_bias: Dict[str, float] = None,
-        logit_bias_type: Literal["input_ids", "tokens"] = None,
-        samplers: List[str] = None,
+            self,
+            prompt: str | list[int] = None,
+            grammar: str = None,
+            function_tool_registry: LlamaCppFunctionToolRegistry = None,
+            do_not_use_grammar: bool = False,
+            streaming_callback: Callable[[StreamingResponse], None] = None,
+            max_tokens: int = 0,
+            temperature: float = 0.4,
+            top_k: int = 0,
+            top_p: float = 1.0,
+            min_p: float = 0.05,
+            typical_p: float = 1.0,
+            repeat_penalty: float = 1.0,
+            mirostat_mode: int = 0,
+            mirostat_tau: float = 5.0,
+            mirostat_eta: float = 0.1,
+            tfs_z: float = 1.0,
+            stop_sequences: List[str] = None,
+            additional_stop_sequences: List[str] = None,
+            stream: bool = True,
+            print_output: bool = True,
+            # Llama Cpp Server and Open AI endpoint settings
+            n_predict: int = -1,
+            n_keep: int = 0,
+            repeat_last_n: int = 64,
+            penalize_nl: bool = True,
+            presence_penalty: float = 0.0,
+            frequency_penalty: float = 0.0,
+            penalty_prompt: Union[None, str, List[int]] = None,
+            seed: int = -1,
+            ignore_eos: bool = False,
+            echo: bool = False,
+            logprobs: int = None,
+            logit_bias: Dict[str, float] = None,
+            logit_bias_type: Literal["input_ids", "tokens"] = None,
+            samplers: List[str] = None,
     ):
         """ """
         if function_tool_registry is None and do_not_use_grammar is False:
@@ -209,7 +211,8 @@ class LlamaCppAgent:
             grammar = function_tool_registry.gbnf_grammar
 
         if self.debug_output:
-            print(prompt, end="")
+            if type(prompt) is str:
+                print(prompt, end="")
         if stop_sequences is None:
             stop_sequences = self.messages_formatter.DEFAULT_STOP_SEQUENCES
 
@@ -353,50 +356,50 @@ class LlamaCppAgent:
         return "Error: No model loaded!"
 
     def get_chat_response(
-        self,
-        message: str = None,
-        role: Literal["system", "user", "assistant", "function"] = "user",
-        response_role: Literal["user", "assistant"] | None = None,
-        system_prompt: str = None,
-        prompt_suffix: str = None,
-        add_message_to_chat_history: bool = True,
-        add_response_to_chat_history: bool = True,
-        grammar: str = None,
-        function_tool_registry: LlamaCppFunctionToolRegistry = None,
-        do_not_use_grammar: bool = False,
-        streaming_callback: Callable[[StreamingResponse], None] = None,
-        max_tokens: int = 0,
-        temperature: float = 0.4,
-        top_k: int = 0,
-        top_p: float = 1.0,
-        min_p: float = 0.05,
-        typical_p: float = 1.0,
-        repeat_penalty: float = 1.0,
-        mirostat_mode: int = 0,
-        mirostat_tau: float = 5.0,
-        mirostat_eta: float = 0.1,
-        tfs_z: float = 1.0,
-        stop_sequences: List[str] = None,
-        additional_stop_sequences: List[str] = None,
-        stream: bool = True,
-        print_output: bool = True,
-        k_last_messages: int = 0,
-        # Llama Cpp Server and Open AI endpoint settings
-        n_predict: int = -1,
-        n_keep: int = 0,
-        repeat_last_n: int = 64,
-        penalize_nl: bool = True,
-        presence_penalty: float = 0.0,
-        frequency_penalty: float = 0.0,
-        penalty_prompt: Union[None, str, List[int]] = None,
-        seed: int = -1,
-        ignore_eos: bool = False,
-        echo: bool = False,
-        logprobs: int = None,
-        logit_bias: Dict[str, float] = None,
-        logit_bias_type: Literal["input_ids", "tokens"] = None,
-        cache_prompt: bool = False,
-        samplers: List[str] = None,
+            self,
+            message: str = None,
+            role: Literal["system", "user", "assistant", "function"] = "user",
+            response_role: Literal["user", "assistant"] | None = None,
+            system_prompt: str = None,
+            prompt_suffix: str = None,
+            add_message_to_chat_history: bool = True,
+            add_response_to_chat_history: bool = True,
+            grammar: str = None,
+            function_tool_registry: LlamaCppFunctionToolRegistry = None,
+            do_not_use_grammar: bool = False,
+            streaming_callback: Callable[[StreamingResponse], None] = None,
+            max_tokens: int = 0,
+            temperature: float = 0.4,
+            top_k: int = 0,
+            top_p: float = 1.0,
+            min_p: float = 0.05,
+            typical_p: float = 1.0,
+            repeat_penalty: float = 1.0,
+            mirostat_mode: int = 0,
+            mirostat_tau: float = 5.0,
+            mirostat_eta: float = 0.1,
+            tfs_z: float = 1.0,
+            stop_sequences: List[str] = None,
+            additional_stop_sequences: List[str] = None,
+            stream: bool = True,
+            print_output: bool = True,
+            k_last_messages: int = 0,
+            # Llama Cpp Server and Open AI endpoint settings
+            n_predict: int = -1,
+            n_keep: int = 0,
+            repeat_last_n: int = 64,
+            penalize_nl: bool = True,
+            presence_penalty: float = 0.0,
+            frequency_penalty: float = 0.0,
+            penalty_prompt: Union[None, str, List[int]] = None,
+            seed: int = -1,
+            ignore_eos: bool = False,
+            echo: bool = False,
+            logprobs: int = None,
+            logit_bias: Dict[str, float] = None,
+            logit_bias_type: Literal["input_ids", "tokens"] = None,
+            cache_prompt: bool = False,
+            samplers: List[str] = None,
     ):
         """
         Gets a chat response based on the input message and context.
@@ -815,52 +818,53 @@ class LlamaCppAgent:
                 return text if text else None
             return text if text else None
         return "Error: No model loaded!"
+
     def get_chat_response_generator(
-        self,
-        message: str = None,
-        role: Literal["system", "user", "assistant", "function"] = "user",
-        response_role: Literal["user", "assistant"] | None = None,
-        system_prompt: str = None,
-        prompt_suffix: str = None,
-        add_message_to_chat_history: bool = True,
-        add_response_to_chat_history: bool = True,
-        grammar: str = None,
-        function_tool_registry: LlamaCppFunctionToolRegistry = None,
-        do_not_use_grammar: bool = False,
-        streaming_callback: Callable[[StreamingResponse], None] = None,
-        yield_streaming_responses: bool = False,
-        max_tokens: int = 0,
-        temperature: float = 0.4,
-        top_k: int = 0,
-        top_p: float = 1.0,
-        min_p: float = 0.05,
-        typical_p: float = 1.0,
-        repeat_penalty: float = 1.0,
-        mirostat_mode: int = 0,
-        mirostat_tau: float = 5.0,
-        mirostat_eta: float = 0.1,
-        tfs_z: float = 1.0,
-        stop_sequences: List[str] = None,
-        additional_stop_sequences: List[str] = None,
-        stream: bool = True,
-        print_output: bool = True,
-        k_last_messages: int = 0,
-        # Llama Cpp Server and Open AI endpoint settings
-        n_predict: int = -1,
-        n_keep: int = 0,
-        repeat_last_n: int = 64,
-        penalize_nl: bool = True,
-        presence_penalty: float = 0.0,
-        frequency_penalty: float = 0.0,
-        penalty_prompt: Union[None, str, List[int]] = None,
-        seed: int = -1,
-        ignore_eos: bool = False,
-        echo: bool = False,
-        logprobs: int = None,
-        logit_bias: Dict[str, float] = None,
-        logit_bias_type: Literal["input_ids", "tokens"] = None,
-        cache_prompt: bool = False,
-        samplers: List[str] = None,
+            self,
+            message: str = None,
+            role: Literal["system", "user", "assistant", "function"] = "user",
+            response_role: Literal["user", "assistant"] | None = None,
+            system_prompt: str = None,
+            prompt_suffix: str = None,
+            add_message_to_chat_history: bool = True,
+            add_response_to_chat_history: bool = True,
+            grammar: str = None,
+            function_tool_registry: LlamaCppFunctionToolRegistry = None,
+            do_not_use_grammar: bool = False,
+            streaming_callback: Callable[[StreamingResponse], None] = None,
+            yield_streaming_responses: bool = False,
+            max_tokens: int = 0,
+            temperature: float = 0.4,
+            top_k: int = 0,
+            top_p: float = 1.0,
+            min_p: float = 0.05,
+            typical_p: float = 1.0,
+            repeat_penalty: float = 1.0,
+            mirostat_mode: int = 0,
+            mirostat_tau: float = 5.0,
+            mirostat_eta: float = 0.1,
+            tfs_z: float = 1.0,
+            stop_sequences: List[str] = None,
+            additional_stop_sequences: List[str] = None,
+            stream: bool = True,
+            print_output: bool = True,
+            k_last_messages: int = 0,
+            # Llama Cpp Server and Open AI endpoint settings
+            n_predict: int = -1,
+            n_keep: int = 0,
+            repeat_last_n: int = 64,
+            penalize_nl: bool = True,
+            presence_penalty: float = 0.0,
+            frequency_penalty: float = 0.0,
+            penalty_prompt: Union[None, str, List[int]] = None,
+            seed: int = -1,
+            ignore_eos: bool = False,
+            echo: bool = False,
+            logprobs: int = None,
+            logit_bias: Dict[str, float] = None,
+            logit_bias_type: Literal["input_ids", "tokens"] = None,
+            cache_prompt: bool = False,
+            samplers: List[str] = None,
     ):
         """
         Gets a chat response based on the input message and context.
@@ -1230,46 +1234,47 @@ class LlamaCppAgent:
                 )
             return completion, response_role
         return "Error: No model loaded!"
+
     async def async_get_response_role_and_completion(
-        self,
-        function_tool_registry: LlamaCppFunctionToolRegistry = None,
-        system_prompt: str = None,
-        message: str = None,
-        add_message_to_chat_history: bool = True,
-        role: Literal["system", "user", "assistant", "function"] = "user",
-        response_role: Literal["user", "assistant"] | None = None,
-        grammar: str = None,
-        prompt_suffix: str = None,
-        max_tokens: int = 0,
-        temperature: float = 0.4,
-        top_k: int = 0,
-        top_p: float = 1.0,
-        min_p: float = 0.05,
-        typical_p: float = 1.0,
-        repeat_penalty: float = 1.0,
-        mirostat_mode: int = 0,
-        mirostat_tau: float = 5.0,
-        mirostat_eta: float = 0.1,
-        tfs_z: float = 1.0,
-        stop_sequences: List[str] = None,
-        additional_stop_sequences: List[str] = None,
-        stream: bool = True,
-        k_last_messages: int = 0,
-        n_predict: int = -1,
-        n_keep: int = 0,
-        repeat_last_n: int = 64,
-        penalize_nl: bool = True,
-        presence_penalty: float = 0.0,
-        frequency_penalty: float = 0.0,
-        penalty_prompt: Union[None, str, List[int]] = None,
-        seed: int = -1,
-        ignore_eos: bool = False,
-        echo: bool = False,
-        logprobs: int = None,
-        logit_bias: Dict[str, float] = None,
-        logit_bias_type: Literal["input_ids", "tokens"] = None,
-        cache_prompt: bool = False,
-        samplers: List[str] = None,
+            self,
+            function_tool_registry: LlamaCppFunctionToolRegistry = None,
+            system_prompt: str = None,
+            message: str = None,
+            add_message_to_chat_history: bool = True,
+            role: Literal["system", "user", "assistant", "function"] = "user",
+            response_role: Literal["user", "assistant"] | None = None,
+            grammar: str = None,
+            prompt_suffix: str = None,
+            max_tokens: int = 0,
+            temperature: float = 0.4,
+            top_k: int = 0,
+            top_p: float = 1.0,
+            min_p: float = 0.05,
+            typical_p: float = 1.0,
+            repeat_penalty: float = 1.0,
+            mirostat_mode: int = 0,
+            mirostat_tau: float = 5.0,
+            mirostat_eta: float = 0.1,
+            tfs_z: float = 1.0,
+            stop_sequences: List[str] = None,
+            additional_stop_sequences: List[str] = None,
+            stream: bool = True,
+            k_last_messages: int = 0,
+            n_predict: int = -1,
+            n_keep: int = 0,
+            repeat_last_n: int = 64,
+            penalize_nl: bool = True,
+            presence_penalty: float = 0.0,
+            frequency_penalty: float = 0.0,
+            penalty_prompt: Union[None, str, List[int]] = None,
+            seed: int = -1,
+            ignore_eos: bool = False,
+            echo: bool = False,
+            logprobs: int = None,
+            logit_bias: Dict[str, float] = None,
+            logit_bias_type: Literal["input_ids", "tokens"] = None,
+            cache_prompt: bool = False,
+            samplers: List[str] = None,
     ):
         if function_tool_registry is not None:
             grammar = function_tool_registry.gbnf_grammar
@@ -1449,10 +1454,10 @@ class LlamaCppAgent:
 
     @staticmethod
     def agent_conversation(
-        agent_1: "LlamaCppAgent",
-        agent_2: "LlamaCppAgent",
-        agent_1_initial_message: str,
-        number_of_exchanges: int = 15,
+            agent_1: "LlamaCppAgent",
+            agent_2: "LlamaCppAgent",
+            agent_1_initial_message: str,
+            number_of_exchanges: int = 15,
     ):
         current_message = agent_1_initial_message
         current_agent, next_agent = agent_2, agent_1
@@ -1478,9 +1483,9 @@ class LlamaCppAgent:
 
     @staticmethod
     def group_conversation(
-        agent_list: list["LlamaCppAgent"],
-        initial_message: str,
-        number_of_turns: int = 4,
+            agent_list: list["LlamaCppAgent"],
+            initial_message: str,
+            number_of_turns: int = 4,
     ):
         responses = [
             {

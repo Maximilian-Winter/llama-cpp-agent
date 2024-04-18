@@ -88,7 +88,7 @@ class FunctionCallingAgent:
     An agent that uses function calling to interact with its environment and the user.
 
     Args:
-        llama_llm (Llama | LlamaLLMSettings | OpenAIEndpointSettings): An instance of Llama, LlamaLLMSettings or LlamaCppServerLLMSettings as LLM.
+        llama_llm (Llama | LlamaLLMSettings | LlamaCppEndpointSettings | OpenAIEndpointSettings): An instance of Llama, LlamaLLMSettings, LlamaCppEndpointSettings or LlamaCppServerLLMSettings as LLM.
         llama_generation_settings (LlamaLLMGenerationSettings | LlamaCppGenerationSettings | OpenAIGenerationSettings): Generation settings for Llama.
         messages_formatter_type (MessagesFormatterType): Type of messages formatter.
         custom_messages_formatter (MessagesFormatter): Optional Custom messages formatter.
@@ -123,32 +123,32 @@ class FunctionCallingAgent:
     """
 
     def __init__(
-            self,
-            llama_llm: Union[
-                Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings
-            ],
-            llama_generation_settings: Union[
-                LlamaLLMGenerationSettings,
-                LlamaCppGenerationSettings,
-                OpenAIGenerationSettings,
-            ] = None,
-            messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
-            custom_messages_formatter: MessagesFormatter = None,
-            streaming_callback: Callable[[StreamingResponse], None] = None,
-            k_last_messages_from_chat_history: int = 0,
-            system_prompt: str = None,
-            llama_cpp_function_tools: [LlamaCppFunctionTool] = None,
-            basic_file_tools: bool = False,
-            allow_parallel_function_calling=False,
-            add_send_message_to_user_function: bool = True,
-            send_message_to_user_callback: Callable[[str], None] = None,
-            debug_output: bool = False,
+        self,
+        llama_llm: Union[
+            Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings
+        ],
+        llama_generation_settings: Union[
+            LlamaLLMGenerationSettings,
+            LlamaCppGenerationSettings,
+            OpenAIGenerationSettings,
+        ] = None,
+        messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
+        custom_messages_formatter: MessagesFormatter = None,
+        streaming_callback: Callable[[StreamingResponse], None] = None,
+        k_last_messages_from_chat_history: int = 0,
+        system_prompt: str = None,
+        llama_cpp_function_tools: [LlamaCppFunctionTool] = None,
+        basic_file_tools: bool = False,
+        allow_parallel_function_calling=False,
+        add_send_message_to_user_function: bool = True,
+        send_message_to_user_callback: Callable[[str], None] = None,
+        debug_output: bool = False,
     ):
         """
         Initialize the FunctionCallingAgent.
 
         Args:
-            llama_llm (Llama | LlamaLLMSettings | OpenAIEndpointSettings): An instance of Llama, LlamaLLMSettings or LlamaCppServerLLMSettings as LLM.
+            llama_llm (Llama | LlamaLLMSettings | LlamaCppEndpointSettings | OpenAIEndpointSettings): An instance of Llama, LlamaLLMSettings, LlamaCppEndpointSettings or LlamaCppServerLLMSettings as LLM.
             llama_generation_settings (LlamaLLMGenerationSettings | LlamaCppGenerationSettings | OpenAIGenerationSettings): Generation settings for Llama.
             messages_formatter_type (MessagesFormatterType): Type of messages formatter.
             custom_messages_formatter (MessagesFormatter): Optional Custom messages formatter.
@@ -167,7 +167,9 @@ class FunctionCallingAgent:
 
         self.send_message_to_user_callback = send_message_to_user_callback
         if add_send_message_to_user_function:
-            self.llama_cpp_tools.append(LlamaCppFunctionTool(activate_message_mode, agent=self))
+            self.llama_cpp_tools.append(
+                LlamaCppFunctionTool(activate_message_mode, agent=self)
+            )
 
         if basic_file_tools:
             self.llama_cpp_tools.append(LlamaCppFunctionTool(read_text_file))
@@ -191,20 +193,20 @@ class FunctionCallingAgent:
                 llama_generation_settings = LlamaCppGenerationSettings()
 
         if isinstance(
-                llama_generation_settings, LlamaLLMGenerationSettings
+            llama_generation_settings, LlamaLLMGenerationSettings
         ) and isinstance(llama_llm, LlamaCppEndpointSettings):
             raise Exception(
                 "Wrong generation settings for llama.cpp server endpoint, use LlamaCppServerGenerationSettings under llama_cpp_agent.providers.llama_cpp_server_provider!"
             )
         if (
-                isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings)
+            isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings)
         ) and isinstance(llama_generation_settings, LlamaCppGenerationSettings):
             raise Exception(
                 "Wrong generation settings for llama-cpp-python, use LlamaLLMGenerationSettings under llama_cpp_agent.llm_settings!"
             )
 
         if isinstance(llama_llm, OpenAIEndpointSettings) and not isinstance(
-                llama_generation_settings, OpenAIGenerationSettings
+            llama_generation_settings, OpenAIGenerationSettings
         ):
             raise Exception(
                 "Wrong generation settings for OpenAI endpoint, use OpenAIGenerationSettings under llama_cpp_agent.providers.openai_endpoint_provider!"
@@ -220,7 +222,7 @@ class FunctionCallingAgent:
         else:
             # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
             self.system_prompt = (
-                    """You are Funky, an AI assistant that calls functions to perform tasks. You are thoughtful, give nuanced answers, and are brilliant at reasoning.
+                """You are Funky, an AI assistant that calls functions to perform tasks. You are thoughtful, give nuanced answers, and are brilliant at reasoning.
 
 To call functions, you respond with a JSON object containing three fields:
 "thoughts "and reasoning": Your thoughts and reasoning behind the function call.
@@ -236,7 +238,7 @@ Below is a list of functions you can use to interact with the system. Each funct
 Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
 
 """
-                    + self.tool_registry.get_documentation().strip()
+                + self.tool_registry.get_documentation().strip()
             )
         self.llama_cpp_agent = LlamaCppAgent(
             llama_llm,
@@ -274,13 +276,13 @@ Choose the appropriate function based on the task you want to perform. Provide y
 
     @staticmethod
     def load_from_file(
-            file_path: str,
-            llama_llm: Union[Llama, LlamaLLMSettings],
-            open_ai_functions: (List[dict], List[Callable]) = None,
-            python_functions: List[Callable] = None,
-            pydantic_functions: List[Type[BaseModel]] = None,
-            send_message_to_user_callback: Callable[[str], None] = None,
-            streaming_callback: Callable[[StreamingResponse], None] = None,
+        file_path: str,
+        llama_llm: Union[Llama, LlamaLLMSettings],
+        open_ai_functions: (List[dict], List[Callable]) = None,
+        python_functions: List[Callable] = None,
+        pydantic_functions: List[Type[BaseModel]] = None,
+        send_message_to_user_callback: Callable[[str], None] = None,
+        streaming_callback: Callable[[StreamingResponse], None] = None,
     ) -> "FunctionCallingAgent":
         """
         Load the agent's state from a file.
@@ -348,7 +350,7 @@ Choose the appropriate function based on the task you want to perform. Provide y
         return self.__dict__
 
     def generate_response(
-            self, message: str, additional_stop_sequences: List[str] = None
+        self, message: str, additional_stop_sequences: List[str] = None
     ):
         self.llama_cpp_agent.add_message(role="user", message=message)
 

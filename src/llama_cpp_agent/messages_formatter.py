@@ -147,6 +147,7 @@ class MessagesFormatterType(Enum):
     CODE_DS = 10
     B22 = 11
 
+
 class MessagesFormatter:
     """
     Class representing a messages formatter for LLMs.
@@ -398,7 +399,7 @@ vicuna_formatter = MessagesFormatter(
     USER_PROMPT_END_VICUNA,
     ASSISTANT_PROMPT_START_VICUNA,
     ASSISTANT_PROMPT_END_VICUNA,
-    True,
+    False,
     DEFAULT_VICUNA_STOP_SEQUENCES,
 )
 

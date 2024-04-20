@@ -92,23 +92,18 @@ ASSISTANT_PROMPT_START_CODE_DS = """@@ Response\n"""
 ASSISTANT_PROMPT_END_CODE_DS = """\n\n"""
 
 DEFAULT_CODE_DS_STOP_SEQUENCES = ["@@ Instruction"]
-"""
-You are an exceptionally intelligent coding assistant that consistently delivers accurate and reliable responses to user instructions.
 
-@@ Instruction
-Here is the given problem and test examples:
-{}
+SYS_PROMPT_START_LLAMA3 = """<|start_header_id|>system<|end_header_id|>\n"""
+SYS_PROMPT_END_LLAMA3 = """<|eot_id|>"""
+USER_PROMPT_START_LLAMA3 = """<|start_header_id|>user<|end_header_id|>\n"""
+USER_PROMPT_END_LLAMA3 = """<|eot_id|>"""
+ASSISTANT_PROMPT_START_LLAMA3 = """<|start_header_id|>assistant<|end_header_id|>\n"""
+ASSISTANT_PROMPT_END_LLAMA3 = """<|eot_id|>"""
+FUNCTION_PROMPT_START_LLAMA3 = """<|start_header_id|>function_calling_results<|end_header_id|>\n"""
+FUNCTION_PROMPT_END_LLAMA3 = """<|eot_id|>"""
+DEFAULT_LLAMA3_STOP_SEQUENCES = ["assistant", "<|eot_id|>"]
 
-Please use the {} programming language to solve this problem.
-Please make sure that your code includes the functions from the test samples and that the input and output formats of these functions match the test samples.
 
-Please return all completed codes in one code block.
-This code block should be in the following format:
-```{}
-# Your codes here
-```
-
-@@ Response"""
 SYS_PROMPT_START_SOLAR = """"""
 SYS_PROMPT_END_SOLAR = """\n"""
 USER_PROMPT_START_SOLAR = """### User:\n"""
@@ -146,6 +141,7 @@ class MessagesFormatterType(Enum):
     ALPACA = 9
     CODE_DS = 10
     B22 = 11
+    LLAMA_3 = 12
 
 
 class MessagesFormatter:
@@ -415,6 +411,22 @@ llama_2_formatter = MessagesFormatter(
     DEFAULT_LLAMA_2_STOP_SEQUENCES,
 )
 
+llama_3_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_LLAMA3,
+    SYS_PROMPT_END_LLAMA3,
+    USER_PROMPT_START_LLAMA3,
+    USER_PROMPT_END_LLAMA3,
+    ASSISTANT_PROMPT_START_LLAMA3,
+    ASSISTANT_PROMPT_END_LLAMA3,
+    False,
+    DEFAULT_LLAMA3_STOP_SEQUENCES,
+    USE_USER_ROLE_FUNCTION_CALL_RESULT=False,
+    FUNCTION_PROMPT_START=FUNCTION_PROMPT_START_LLAMA3,
+    FUNCTION_PROMPT_END=FUNCTION_PROMPT_END_LLAMA3,
+    STRIP_PROMPT=True
+)
+
 synthia_formatter = MessagesFormatter(
     "",
     SYS_PROMPT_START_SYNTHIA,
@@ -517,6 +529,7 @@ predefined_formatter = {
     MessagesFormatterType.ALPACA: alpaca_formatter,
     MessagesFormatterType.CODE_DS: code_ds_formatter,
     MessagesFormatterType.B22: b22_chat_formatter,
+    MessagesFormatterType.LLAMA_3: llama_3_formatter
 }
 
 

@@ -225,13 +225,13 @@ class FunctionCallingAgent:
                 """You are Funky, an AI assistant that calls functions to perform tasks. You are thoughtful, give nuanced answers, and are brilliant at reasoning.
 
 To call functions, you respond with a JSON object containing three fields:
-"thoughts "and reasoning": Your thoughts and reasoning behind the function call.
+"thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
 "function": The name of the function you want to call.
 "parameters": The arguments required for the function.
 
 After performing a function call, you will receive a response containing the return values of the function calls.
 
-For direct communication with the user, employ the 'activate_message_mode' function. After you have finished your call to 'activate_message_mode', you can freely write a response to the user without any JSON constraints. This enables you to converse naturally. Ensure to end your message with '(End of message)' to signify its conclusion.
+For direct communication with the user, employ the 'activate_message_mode' function. After you have finished your call to 'activate_message_mode', you can freely write a response to the user without any JSON constraints. This enables you to converse naturally.
 
 ### Functions:
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
@@ -367,13 +367,16 @@ Choose the appropriate function based on the task you want to perform. Provide y
                             func(result.strip())
                             func_list.append(func.__name__)
                 break
-            function_message = f"""Function Call Results:\n\n"""
+            function_message = f"""Function Calling Results:\n\n"""
             count = 0
             if result is not None:
                 for res in result:
                     count += 1
                     if not isinstance(res, str):
-                        function_message += f"""{count}. Function: "{res["function"]}"\nReturn Value: {res["return_value"]}\n\n"""
+                        if "params" in res:
+                            function_message += f"""{count}. Function: "{res["function"]}"\nArguments: "{res["params"]}"\nReturn Value: {res["return_value"]}\n\n"""
+                        else:
+                            function_message += f"""{count}. Function: "{res["function"]}"\nReturn Value: {res["return_value"]}\n\n"""
                     else:
                         function_message += f"{count}. " + res + "\n\n"
                 self.llama_cpp_agent.add_message(

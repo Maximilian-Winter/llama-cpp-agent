@@ -64,7 +64,7 @@ def get_openai_type(py_type):
             # Filter out NoneType to handle optional fields
             non_none_types = [t for t in py_type.__args__ if t is not type(None)]
             return get_openai_type(non_none_types[0])
-        elif py_type.__origin__ is List:
+        elif py_type.__origin__ is List or py_type.__origin__ is list:
             # Handle lists by identifying the type of list items
             return {"type": "array", "items": get_openai_type(py_type.__args__[0])}
     else:
@@ -96,6 +96,7 @@ def pydantic_model_to_openai_function_definition(pydantic_model: Type[BaseModel]
     type_hints = typing.get_type_hints(pydantic_model)
     for prop_name, prop_meta in properties.items():
         prop_type = type_hints[prop_name]
+
         openai_type = get_openai_type(prop_type)
         field_info = pydantic_model.model_fields.get(prop_name)
         field_description = (

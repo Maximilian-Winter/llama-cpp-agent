@@ -1090,6 +1090,10 @@ def generate_text_documentation(
                             element_type, BaseModel
                         ):
                             pyd_models.append((element_type, False))
+                        if get_origin(element_type) == list:
+                            element_type = get_args(element_type)[0]
+                            if isclass(element_type) and issubclass(element_type, BaseModel):
+                                pyd_models.append((element_type, False))
                 if isclass(field_type) and issubclass(field_type, BaseModel):
                     pyd_models.append((field_type, False))
                 documentation += generate_field_text(
@@ -1165,8 +1169,15 @@ def generate_field_text(
                     enum_values = [f"'{str(member.value)}'" for member in element_type]
                     for enum_value in enum_values:
                         types.append(enum_value)
+
                 else:
-                    types.append(element_type.__name__)
+                    if get_origin(element_type) == list:
+                        element_type = get_args(element_type)[0]
+                        types.append(
+                            f"(list of {element_type.__name__})"
+                        )
+                    else:
+                        types.append(element_type.__name__)
         field_text = f"{indent}{field_name} ({' or '.join(types)})"
         if field_description != "":
             field_text += ": "

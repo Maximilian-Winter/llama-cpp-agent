@@ -241,12 +241,11 @@ class LlamaCppFunctionToolRegistry:
         allow_inner_thoughts_only=True,
         add_request_heartbeat=True,
         tool_root="function",
-        tool_rule_content="parameters",
+        tool_rule_content="arguments",
         model_prefix="function",
         fields_prefix="parameters",
         inner_thoughts_field_name="thoughts_and_reasoning",
         request_heartbeat_field_name="request_heartbeat",
-        mixtral_8x22B_tool_registry=False,
     ):
         """
         Initialize the LlamaCppFunctionToolRegistry.
@@ -263,12 +262,8 @@ class LlamaCppFunctionToolRegistry:
             inner_thoughts_field_name (str): Field name for inner thoughts in the GBNF grammar.
             request_heartbeat_field_name (str): Field name for request heartbeat in the GBNF grammar.
         """
-        if not mixtral_8x22B_tool_registry:
-            self.tool_root = tool_root
-            self.tool_rule_content = tool_rule_content
-        else:
-            self.tool_root = "name"
-            self.tool_rule_content = "arguments"
+        self.tool_root = tool_root
+        self.tool_rule_content = tool_rule_content
 
         self.model_prefix = model_prefix
         self.fields_prefix = fields_prefix

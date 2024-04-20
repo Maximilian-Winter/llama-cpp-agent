@@ -103,7 +103,6 @@ class LlamaCppAgent:
             fields_prefix="parameters",
             inner_thoughts_field_name="thoughts_and_reasoning",
             request_heartbeat_field_name="request_heartbeat",
-            mixtral_8x22b_tools=False,
     ):
         """
         Creates and returns a function tool registry from a list of LlamaCppFunctionTool instances.
@@ -134,7 +133,6 @@ class LlamaCppAgent:
             fields_prefix,
             inner_thoughts_field_name,
             request_heartbeat_field_name,
-            mixtral_8x22b_tools,
         )
 
         for function_tool in function_tool_list:

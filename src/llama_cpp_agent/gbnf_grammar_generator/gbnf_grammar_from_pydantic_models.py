@@ -24,9 +24,11 @@ from pydantic import BaseModel, Field, create_model
 
 if TYPE_CHECKING:
     from types import GenericAlias
+    from types import UnionType
 else:
     # python 3.8 compat
     from typing import _GenericAlias as GenericAlias
+    from types import UnionType
 
 
 class PydanticDataType(Enum):
@@ -80,7 +82,7 @@ def map_pydantic_type_to_gbnf(pydantic_type: type[Any]) -> str:
     elif get_origin(pydantic_type) is set:
         element_type = get_args(pydantic_type)[0]
         return f"{map_pydantic_type_to_gbnf(element_type)}-set"
-    elif get_origin(pydantic_type) is Union:
+    elif get_origin(pydantic_type) is Union or isinstance(pydantic_type, UnionType):
         union_types = get_args(pydantic_type)
         union_rules = [map_pydantic_type_to_gbnf(ut) for ut in union_types]
         return f"union-{'-or-'.join(union_rules)}"
@@ -952,7 +954,7 @@ def generate_field_markdown(
             field_text += ": "
         else:
             field_text += "\n"
-    elif get_origin(field_type) == Union:
+    elif get_origin(field_type) == Union or isinstance(field_type, UnionType):
         element_types = get_args(field_type)
         types = []
         for element_type in element_types:
@@ -1083,7 +1085,18 @@ def generate_text_documentation(
                     element_type = get_args(field_type)[0]
                     if isclass(element_type) and issubclass(element_type, BaseModel):
                         pyd_models.append((element_type, False))
-                if get_origin(field_type) == Union:
+                    if get_origin(element_type) == Union or isinstance(element_type, UnionType):
+                        element_types = get_args(element_type)
+                        for element_type in element_types:
+                            if isclass(element_type) and issubclass(
+                                    element_type, BaseModel
+                            ):
+                                pyd_models.append((element_type, False))
+                            if get_origin(element_type) == list:
+                                element_type = get_args(element_type)[0]
+                                if isclass(element_type) and issubclass(element_type, BaseModel):
+                                    pyd_models.append((element_type, False))
+                if get_origin(field_type) == Union or isinstance(field_type, UnionType):
                     element_types = get_args(field_type)
                     for element_type in element_types:
                         if isclass(element_type) and issubclass(
@@ -1151,13 +1164,42 @@ def generate_field_text(
 
     if get_origin(field_type) == list:
         element_type = get_args(field_type)[0]
-        field_text = (
-            f"{indent}{field_name} ({field_type.__name__} of {element_type.__name__})"
-        )
-        if field_description != "":
-            field_text += ": "
+        if get_origin(element_type) == Union or isinstance(element_type, UnionType):
+            element_types = get_args(element_type)
+            types = []
+            for element_type in element_types:
+                if element_type.__name__ == "NoneType":
+                    types.append("null")
+                else:
+                    if isclass(element_type) and issubclass(element_type, Enum):
+                        enum_values = [f"'{str(member.value)}'" for member in element_type]
+                        for enum_value in enum_values:
+                            types.append(enum_value)
+
+                    else:
+                        if get_origin(element_type) == list:
+                            element_type = get_args(element_type)[0]
+                            types.append(
+                                f"(list of {element_type.__name__})"
+                            )
+                        else:
+                            types.append(element_type.__name__)
+            field_text = f"({' or '.join(types)})"
+            field_text = (
+                f"{indent}{field_name} ({field_type.__name__} of {field_text})"
+            )
+            if field_description != "":
+                field_text += ": "
+            else:
+                field_text += "\n"
         else:
-            field_text += "\n"
+            field_text = (
+                f"{indent}{field_name} ({field_type.__name__} of {element_type.__name__})"
+            )
+            if field_description != "":
+                field_text += ": "
+            else:
+                field_text += "\n"
     elif get_origin(field_type) == Union:
         element_types = get_args(field_type)
         types = []

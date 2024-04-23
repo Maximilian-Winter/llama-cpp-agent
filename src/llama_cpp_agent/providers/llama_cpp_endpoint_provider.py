@@ -226,7 +226,7 @@ class LlamaCppEndpointSettings:
 
         headers = {"Content-Type": "application/json"}
 
-        data = generation_settings.as_dict()
+        data = copy(generation_settings.as_dict())
         data["prompt"] = prompt
         data["grammar"] = grammar
         data["mirostat"] = data["mirostat_mode"]
@@ -317,7 +317,7 @@ class LlamaCppEndpointSettings:
 
         headers = {"Content-Type": "application/json"}
 
-        data = generation_settings.as_dict()
+        data = copy(generation_settings.as_dict())
         data["prompt"] = prompt
         data["grammar"] = grammar
         data["mirostat"] = data["mirostat_mode"]
@@ -337,7 +337,7 @@ class LlamaCppEndpointSettings:
     async def async_get_response_stream(self, prompt, grammar, generation_settings):
         headers = {"Content-Type": "application/json"}
 
-        data = generation_settings.as_dict()
+        data = copy(generation_settings.as_dict())
         data["prompt"] = prompt
         data["grammar"] = grammar
         data["mirostat"] = data["mirostat_mode"]

@@ -385,6 +385,7 @@ Choose the appropriate function based on the task you want to perform. Provide y
             result = self.intern_get_response(
                 additional_stop_sequences=additional_stop_sequences
             )
+        return result
 
     def intern_get_response(self, additional_stop_sequences: List[str] = None):
         without_grammar_mode = False

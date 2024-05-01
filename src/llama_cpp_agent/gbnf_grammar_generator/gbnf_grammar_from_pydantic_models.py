@@ -1085,16 +1085,20 @@ def generate_text_documentation(
                     element_type = get_args(field_type)[0]
                     if isclass(element_type) and issubclass(element_type, BaseModel):
                         pyd_models.append((element_type, False))
-                    if get_origin(element_type) == Union or isinstance(element_type, UnionType):
+                    if get_origin(element_type) == Union or isinstance(
+                        element_type, UnionType
+                    ):
                         element_types = get_args(element_type)
                         for element_type in element_types:
                             if isclass(element_type) and issubclass(
-                                    element_type, BaseModel
+                                element_type, BaseModel
                             ):
                                 pyd_models.append((element_type, False))
                             if get_origin(element_type) == list:
                                 element_type = get_args(element_type)[0]
-                                if isclass(element_type) and issubclass(element_type, BaseModel):
+                                if isclass(element_type) and issubclass(
+                                    element_type, BaseModel
+                                ):
                                     pyd_models.append((element_type, False))
                 if get_origin(field_type) == Union or isinstance(field_type, UnionType):
                     element_types = get_args(field_type)
@@ -1105,7 +1109,9 @@ def generate_text_documentation(
                             pyd_models.append((element_type, False))
                         if get_origin(element_type) == list:
                             element_type = get_args(element_type)[0]
-                            if isclass(element_type) and issubclass(element_type, BaseModel):
+                            if isclass(element_type) and issubclass(
+                                element_type, BaseModel
+                            ):
                                 pyd_models.append((element_type, False))
                 if isclass(field_type) and issubclass(field_type, BaseModel):
                     pyd_models.append((field_type, False))
@@ -1172,30 +1178,26 @@ def generate_field_text(
                     types.append("null")
                 else:
                     if isclass(element_type) and issubclass(element_type, Enum):
-                        enum_values = [f"'{str(member.value)}'" for member in element_type]
+                        enum_values = [
+                            f"'{str(member.value)}'" for member in element_type
+                        ]
                         for enum_value in enum_values:
                             types.append(enum_value)
 
                     else:
                         if get_origin(element_type) == list:
                             element_type = get_args(element_type)[0]
-                            types.append(
-                                f"(list of {element_type.__name__})"
-                            )
+                            types.append(f"(list of {element_type.__name__})")
                         else:
                             types.append(element_type.__name__)
             field_text = f"({' or '.join(types)})"
-            field_text = (
-                f"{indent}{field_name} ({field_type.__name__} of {field_text})"
-            )
+            field_text = f"{indent}{field_name} ({field_type.__name__} of {field_text})"
             if field_description != "":
                 field_text += ": "
             else:
                 field_text += "\n"
         else:
-            field_text = (
-                f"{indent}{field_name} ({field_type.__name__} of {element_type.__name__})"
-            )
+            field_text = f"{indent}{field_name} ({field_type.__name__} of {element_type.__name__})"
             if field_description != "":
                 field_text += ": "
             else:
@@ -1215,9 +1217,7 @@ def generate_field_text(
                 else:
                     if get_origin(element_type) == list:
                         element_type = get_args(element_type)[0]
-                        types.append(
-                            f"(list of {element_type.__name__})"
-                        )
+                        types.append(f"(list of {element_type.__name__})")
                     else:
                         types.append(element_type.__name__)
         field_text = f"{indent}{field_name} ({' or '.join(types)})"

@@ -8,12 +8,13 @@ class RAGColbertReranker:
     """
     Represents a chromadb vector database with a Colbert reranker.
     """
+
     def __init__(
-            self,
-            persistent_db_path="./retrieval_memory",
-            embedding_model_name="BAAI/bge-small-en-v1.5",
-            collection_name="retrieval_memory_collection",
-            persistent: bool = True,
+        self,
+        persistent_db_path="./retrieval_memory",
+        embedding_model_name="BAAI/bge-small-en-v1.5",
+        collection_name="retrieval_memory_collection",
+        persistent: bool = True,
     ):
         self.RAG = RAGPretrainedModel.from_pretrained("colbert-ir/colbertv2.0")
         if persistent:
@@ -41,11 +42,7 @@ class RAGColbertReranker:
         ids = [str(self.generate_unique_id()) for _ in range(len(documents))]
         self.collection.add(documents=mem, metadatas=metadata, ids=ids)
 
-    def retrieve_documents(
-            self,
-            query: str,
-            k
-    ):
+    def retrieve_documents(self, query: str, k):
         query_embedding = self.sentence_transformer_ef([query])
         query_result = self.collection.query(
             query_embedding,
@@ -62,4 +59,3 @@ class RAGColbertReranker:
     def generate_unique_id():
         unique_id = str(uuid.uuid4())
         return unique_id
-

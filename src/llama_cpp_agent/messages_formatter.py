@@ -102,7 +102,9 @@ USER_PROMPT_START_LLAMA3 = """<|start_header_id|>user<|end_header_id|>\n"""
 USER_PROMPT_END_LLAMA3 = """<|eot_id|>"""
 ASSISTANT_PROMPT_START_LLAMA3 = """<|start_header_id|>assistant<|end_header_id|>\n"""
 ASSISTANT_PROMPT_END_LLAMA3 = """<|eot_id|>"""
-FUNCTION_PROMPT_START_LLAMA3 = """<|start_header_id|>function_calling_results<|end_header_id|>\n"""
+FUNCTION_PROMPT_START_LLAMA3 = (
+    """<|start_header_id|>function_calling_results<|end_header_id|>\n"""
+)
 FUNCTION_PROMPT_END_LLAMA3 = """<|eot_id|>"""
 DEFAULT_LLAMA3_STOP_SEQUENCES = ["assistant", "<|eot_id|>"]
 
@@ -427,7 +429,7 @@ llama_3_formatter = MessagesFormatter(
     USE_USER_ROLE_FUNCTION_CALL_RESULT=False,
     FUNCTION_PROMPT_START=FUNCTION_PROMPT_START_LLAMA3,
     FUNCTION_PROMPT_END=FUNCTION_PROMPT_END_LLAMA3,
-    STRIP_PROMPT=True
+    STRIP_PROMPT=True,
 )
 
 synthia_formatter = MessagesFormatter(
@@ -532,7 +534,7 @@ predefined_formatter = {
     MessagesFormatterType.ALPACA: alpaca_formatter,
     MessagesFormatterType.CODE_DS: code_ds_formatter,
     MessagesFormatterType.B22: b22_chat_formatter,
-    MessagesFormatterType.LLAMA_3: llama_3_formatter
+    MessagesFormatterType.LLAMA_3: llama_3_formatter,
 }
 
 

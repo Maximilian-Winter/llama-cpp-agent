@@ -40,7 +40,14 @@ import re
 
 
 class RecursiveCharacterTextSplitter:
-    def __init__(self, separators, chunk_size, chunk_overlap, length_function=len, keep_separator=False):
+    def __init__(
+        self,
+        separators,
+        chunk_size,
+        chunk_overlap,
+        length_function=len,
+        keep_separator=False,
+    ):
         self.separators = separators
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
@@ -57,11 +64,14 @@ class RecursiveCharacterTextSplitter:
 
         if self.keep_separator:
             # Use regex to keep separators with the text
-            pieces = re.split(f'({re.escape(current_separator)})', text)
+            pieces = re.split(f"({re.escape(current_separator)})", text)
             # Reattach separators to the chunks
             pieces = [
-                pieces[i] + pieces[i + 1] if i + 1 < len(pieces) and pieces[i + 1] == current_separator else pieces[i]
-                for i in range(0, len(pieces), 2)]
+                pieces[i] + pieces[i + 1]
+                if i + 1 < len(pieces) and pieces[i + 1] == current_separator
+                else pieces[i]
+                for i in range(0, len(pieces), 2)
+            ]
         else:
             pieces = text.split(current_separator)
 
@@ -78,7 +88,7 @@ class RecursiveCharacterTextSplitter:
     def _split_into_fixed_size(self, text):
         size = self.chunk_size
         overlap = self.chunk_overlap
-        chunks = [text[i:i + size] for i in range(0, len(text), size - overlap)]
+        chunks = [text[i : i + size] for i in range(0, len(text), size - overlap)]
         if chunks and len(chunks[-1]) < overlap:
             chunks[-2] += chunks[-1]
             chunks.pop()
@@ -94,7 +104,7 @@ class RecursiveCharacterTextSplitter:
             else:
                 merged.append(current_chunk)
                 if len(current_chunk) == self.chunk_size:
-                    current_chunk = current_chunk[-self.chunk_overlap:] + piece
+                    current_chunk = current_chunk[-self.chunk_overlap :] + piece
                 else:
                     current_chunk = piece
 

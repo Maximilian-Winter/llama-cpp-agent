@@ -35,7 +35,10 @@ def generate_id(length=8):
 class Mixtral8x22BAgent:
     def __init__(
         self,
-        model: Llama | LlamaLLMSettings | LlamaCppEndpointSettings | OpenAIEndpointSettings,
+        model: Llama
+        | LlamaLLMSettings
+        | LlamaCppEndpointSettings
+        | OpenAIEndpointSettings,
         system_prompt: str = None,
         debug_output: bool = False,
     ):

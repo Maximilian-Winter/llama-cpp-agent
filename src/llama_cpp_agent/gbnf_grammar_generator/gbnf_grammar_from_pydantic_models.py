@@ -352,7 +352,7 @@ def generate_gbnf_rule_for_type(
             created_rules,
         )
         rules.extend(additional_rules)
-        array_rule = rf"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* ws "]" """
+        array_rule = rf"""{model_name}-{field_name} ::= "[" ws ({element_rule_name})* ("," ws {element_rule_name})* ws "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 
@@ -367,7 +367,7 @@ def generate_gbnf_rule_for_type(
             created_rules,
         )
         rules.extend(additional_rules)
-        array_rule = rf"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* ws "]" """
+        array_rule = rf"""{model_name}-{field_name} ::= "[" ws ({element_rule_name})* ("," ws {element_rule_name})* ws "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 

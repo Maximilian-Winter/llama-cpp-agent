@@ -1,23 +1,25 @@
-import datetime
 import uuid
-
 import chromadb
-import numpy as np
 from chromadb.utils import embedding_functions
-from scipy.spatial.distance import cosine
-
 from ragatouille import RAGPretrainedModel
 
 
 class RAGColbertReranker:
+    """
+    Represents a chromadb vector database with a Colbert reranker.
+    """
     def __init__(
             self,
             persistent_db_path="./retrieval_memory",
             embedding_model_name="BAAI/bge-small-en-v1.5",
-            collection_name="retrieval_memory_collection"
+            collection_name="retrieval_memory_collection",
+            persistent: bool = True,
     ):
         self.RAG = RAGPretrainedModel.from_pretrained("colbert-ir/colbertv2.0")
-        self.client = chromadb.PersistentClient(path=persistent_db_path)
+        if persistent:
+            self.client = chromadb.PersistentClient(path=persistent_db_path)
+        else:
+            self.client = chromadb.EphemeralClient()
         self.sentence_transformer_ef = (
             embedding_functions.SentenceTransformerEmbeddingFunction(
                 model_name=embedding_model_name
@@ -39,7 +41,7 @@ class RAGColbertReranker:
         ids = [str(self.generate_unique_id()) for _ in range(len(documents))]
         self.collection.add(documents=mem, metadatas=metadata, ids=ids)
 
-    def retrieve_memories(
+    def retrieve_documents(
             self,
             query: str,
             k

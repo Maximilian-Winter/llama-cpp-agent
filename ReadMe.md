@@ -1,6 +1,6 @@
 # llama-cpp-agent
 
-<img src="https://github.com/Maximilian-Winter/llama-cpp-agent/blob/5daba580ceb1baf9266a0ed47b5b1daba6a9a122/logo/logo-without-bg.png" alt="Story Sphere Idea" width="400"/>
+<img src="https://github.com/Maximilian-Winter/llama-cpp-agent/blob/5daba580ceb1baf9266a0ed47b5b1daba6a9a122/logo/logo-without-bg.png" alt="llama-cpp-agent logo" width="400"/>
 
 ## Introduction
 The llama-cpp-agent framework is a tool designed for easy interaction with Large Language Models (LLMs). Allowing users to chat with LLM models, execute structured function calls, get structured output (objects) and do retrieval augmented generation.

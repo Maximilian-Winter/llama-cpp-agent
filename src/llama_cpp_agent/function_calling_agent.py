@@ -180,7 +180,7 @@ class FunctionCallingAgent:
         self.tool_registry = LlamaCppAgent.get_function_tool_registry(
             self.llama_cpp_tools,
             add_inner_thoughts=True,
-            allow_inner_thoughts_only=True,
+            allow_inner_thoughts_only=False,
             allow_parallel_function_calling=allow_parallel_function_calling,
         )
 

@@ -300,7 +300,7 @@ title='The Feynman Lectures on Physics' author='Richard Feynman, Robert B. Leigh
 ```
 
 ### RAG - Retrieval Augmented Generation
-This example shows how to do RAG with colbert reranking.
+This example shows how to do RAG with colbert reranking. You have to install the optional rag dependencies (ragatouille) to use the RAGColbertReranker class and this example. 
 ```python
 import json
 

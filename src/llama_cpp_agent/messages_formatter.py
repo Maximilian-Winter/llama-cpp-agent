@@ -12,6 +12,9 @@ FUNCTION_PROMPT_START_MIXTRAL = """"""
 FUNCTION_PROMPT_END_MIXTRAL = """"""
 DEFAULT_MIXTRAL_STOP_SEQUENCES = ["</s>"]
 
+MIXTRAL_8x22_TOOL_JINJA_TEMPLATE = "{{bos_token}}{% set user_messages = messages | selectattr('role', 'equalto', 'user') | list %}{% for message in messages %}{% if message['role'] == 'user' %}{% if message == user_messages[-1] %}{{ '[AVAILABLE_TOOLS]'}}{% for tool in tools %}{{ tool }}{% endfor %}{{ '[/AVAILABLE_TOOLS]'}}{{ '[INST]' + message['content'] + '[/INST]' }}{% else %}{{ '[INST]' + message['content'] + '[/INST]' }}{% endif %}{% elif message['role'] == 'assistant' %}{{ ' ' + message['content'] + ' ' + eos_token}}{% elif message['role'] == 'tool_results' %}{{'[TOOL_RESULTS]' + message['content']|string + '[/TOOL_RESULTS]'}}{% elif message['role'] == 'tool_calls' %}{{'[TOOL_CALLS]' + message['content']|string + eos_token}}{% endif %}{% endfor %}"
+MIXTRAL_8x22_DEFAULT_JINJA_TEMPLATE = "{{bos_token}}{% for message in messages %}{% if (message['role'] == 'user') != (loop.index0 % 2 == 0) %}{{ raise_exception('Conversation roles must alternate user/assistant/user/assistant/...') }}{% endif %}{% if message['role'] == 'user' %}{{ ' [INST] ' + message['content'] + ' [/INST]' }}{% elif message['role'] == 'assistant' %}{{ ' ' + message['content'] + ' ' + eos_token}}{% else %}{{ raise_exception('Only user and assistant roles are supported!') }}{% endif %}{% endfor %}"
+CHATML_JINJA_TEMPLATE = "{% for message in messages %}{{'<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>' + '\n'}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}"
 SYS_PROMPT_START_CHATML = """<|im_start|>system\n"""
 SYS_PROMPT_END_CHATML = """<|im_end|>\n"""
 USER_PROMPT_START_CHATML = """<|im_start|>user\n"""

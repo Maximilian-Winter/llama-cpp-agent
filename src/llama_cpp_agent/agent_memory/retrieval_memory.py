@@ -11,10 +11,10 @@ class RetrievalMemory:
     def __init__(
         self,
         persistent_db_path="./retrieval_memory",
-        embedding_model_name="all-MiniLM-L6-v2",
+        embedding_model_name="BAAI/bge-small-en-v1.5",
         collection_name="retrieval_memory_collection",
+        decay_factor=0.99,
     ):
-        self.next_memory_id = 0
         self.client = chromadb.PersistentClient(path=persistent_db_path)
         self.sentence_transformer_ef = (
             embedding_functions.SentenceTransformerEmbeddingFunction(
@@ -24,6 +24,7 @@ class RetrievalMemory:
         self.collection = self.client.get_or_create_collection(
             name=collection_name, embedding_function=self.sentence_transformer_ef
         )
+        self.decay_factor = decay_factor
 
     def add_memory(
         self,
@@ -42,7 +43,6 @@ class RetrievalMemory:
             "last_access_timestamp": date.strftime("%Y-%m-%d %H:%M:%S"),
         }
         self.collection.add(documents=mem, metadatas=metadata, ids=ids)
-        self.next_memory_id += 1
 
     def retrieve_memories(
         self,
@@ -118,9 +118,8 @@ class RetrievalMemory:
         metadata["last_access_timestamp"] = date.strftime("%Y-%m-%d %H:%M:%S")
         return metadata
 
-    @staticmethod
-    def compute_recency(metadata, date):
-        decay_factor = 0.99
+    def compute_recency(self, metadata, date):
+        decay_factor = self.decay_factor
         time_diff = date - datetime.datetime.strptime(
             metadata["last_access_timestamp"], "%Y-%m-%d %H:%M:%S"
         )

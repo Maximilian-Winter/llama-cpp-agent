@@ -24,9 +24,11 @@ from pydantic import BaseModel, Field, create_model
 
 if TYPE_CHECKING:
     from types import GenericAlias
+    from types import UnionType
 else:
     # python 3.8 compat
     from typing import _GenericAlias as GenericAlias
+    from types import UnionType
 
 
 class PydanticDataType(Enum):
@@ -80,7 +82,7 @@ def map_pydantic_type_to_gbnf(pydantic_type: type[Any]) -> str:
     elif get_origin(pydantic_type) is set:
         element_type = get_args(pydantic_type)[0]
         return f"{map_pydantic_type_to_gbnf(element_type)}-set"
-    elif get_origin(pydantic_type) is Union:
+    elif get_origin(pydantic_type) is Union or isinstance(pydantic_type, UnionType):
         union_types = get_args(pydantic_type)
         union_rules = [map_pydantic_type_to_gbnf(ut) for ut in union_types]
         return f"union-{'-or-'.join(union_rules)}"
@@ -350,7 +352,7 @@ def generate_gbnf_rule_for_type(
             created_rules,
         )
         rules.extend(additional_rules)
-        array_rule = rf"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* ws "]" """
+        array_rule = rf"""{model_name}-{field_name} ::= "[" ws ({element_rule_name})? ("," ws {element_rule_name})* ws "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 
@@ -365,7 +367,7 @@ def generate_gbnf_rule_for_type(
             created_rules,
         )
         rules.extend(additional_rules)
-        array_rule = rf"""{model_name}-{field_name} ::= "[" ws {element_rule_name} ("," ws {element_rule_name})* ws "]" """
+        array_rule = rf"""{model_name}-{field_name} ::= "[" ws ({element_rule_name})? ("," ws {element_rule_name})* ws "]" """
         rules.append(array_rule)
         gbnf_type, rules = model_name + "-" + field_name, rules
 
@@ -952,7 +954,7 @@ def generate_field_markdown(
             field_text += ": "
         else:
             field_text += "\n"
-    elif get_origin(field_type) == Union:
+    elif get_origin(field_type) == Union or isinstance(field_type, UnionType):
         element_types = get_args(field_type)
         types = []
         for element_type in element_types:
@@ -1083,13 +1085,34 @@ def generate_text_documentation(
                     element_type = get_args(field_type)[0]
                     if isclass(element_type) and issubclass(element_type, BaseModel):
                         pyd_models.append((element_type, False))
-                if get_origin(field_type) == Union:
+                    if get_origin(element_type) == Union or isinstance(
+                        element_type, UnionType
+                    ):
+                        element_types = get_args(element_type)
+                        for element_type in element_types:
+                            if isclass(element_type) and issubclass(
+                                element_type, BaseModel
+                            ):
+                                pyd_models.append((element_type, False))
+                            if get_origin(element_type) == list:
+                                element_type = get_args(element_type)[0]
+                                if isclass(element_type) and issubclass(
+                                    element_type, BaseModel
+                                ):
+                                    pyd_models.append((element_type, False))
+                if get_origin(field_type) == Union or isinstance(field_type, UnionType):
                     element_types = get_args(field_type)
                     for element_type in element_types:
                         if isclass(element_type) and issubclass(
                             element_type, BaseModel
                         ):
                             pyd_models.append((element_type, False))
+                        if get_origin(element_type) == list:
+                            element_type = get_args(element_type)[0]
+                            if isclass(element_type) and issubclass(
+                                element_type, BaseModel
+                            ):
+                                pyd_models.append((element_type, False))
                 if isclass(field_type) and issubclass(field_type, BaseModel):
                     pyd_models.append((field_type, False))
                 documentation += generate_field_text(
@@ -1147,13 +1170,38 @@ def generate_field_text(
 
     if get_origin(field_type) == list:
         element_type = get_args(field_type)[0]
-        field_text = (
-            f"{indent}{field_name} ({field_type.__name__} of {element_type.__name__})"
-        )
-        if field_description != "":
-            field_text += ": "
+        if get_origin(element_type) == Union or isinstance(element_type, UnionType):
+            element_types = get_args(element_type)
+            types = []
+            for element_type in element_types:
+                if element_type.__name__ == "NoneType":
+                    types.append("null")
+                else:
+                    if isclass(element_type) and issubclass(element_type, Enum):
+                        enum_values = [
+                            f"'{str(member.value)}'" for member in element_type
+                        ]
+                        for enum_value in enum_values:
+                            types.append(enum_value)
+
+                    else:
+                        if get_origin(element_type) == list:
+                            element_type = get_args(element_type)[0]
+                            types.append(f"(list of {element_type.__name__})")
+                        else:
+                            types.append(element_type.__name__)
+            field_text = f"({' or '.join(types)})"
+            field_text = f"{indent}{field_name} ({field_type.__name__} of {field_text})"
+            if field_description != "":
+                field_text += ": "
+            else:
+                field_text += "\n"
         else:
-            field_text += "\n"
+            field_text = f"{indent}{field_name} ({field_type.__name__} of {element_type.__name__})"
+            if field_description != "":
+                field_text += ": "
+            else:
+                field_text += "\n"
     elif get_origin(field_type) == Union:
         element_types = get_args(field_type)
         types = []
@@ -1165,8 +1213,13 @@ def generate_field_text(
                     enum_values = [f"'{str(member.value)}'" for member in element_type]
                     for enum_value in enum_values:
                         types.append(enum_value)
+
                 else:
-                    types.append(element_type.__name__)
+                    if get_origin(element_type) == list:
+                        element_type = get_args(element_type)[0]
+                        types.append(f"(list of {element_type.__name__})")
+                    else:
+                        types.append(element_type.__name__)
         field_text = f"{indent}{field_name} ({' or '.join(types)})"
         if field_description != "":
             field_text += ": "
@@ -1536,6 +1589,7 @@ def create_dynamic_model_from_function(
             param.annotation if param.annotation != inspect.Parameter.empty else str,
             default_value,
         )
+
     # Creating the dynamic model
     dynamic_model = create_model(f"{func.__name__}", **dynamic_fields)  # type: ignore[call-overload]
     if add_inner_thoughts:
@@ -1624,7 +1678,9 @@ def list_to_enum(enum_name, values):
 
 
 def convert_dictionary_to_pydantic_model(
-    dictionary: dict[str, Any], model_name: str = "CustomModel"
+    dictionary: dict[str, Any],
+    model_name: str = "CustomModel",
+    docs: dict[str, str] = None,
 ) -> type[Any]:
     """
     Convert a dictionary to a Pydantic model class.
@@ -1637,17 +1693,20 @@ def convert_dictionary_to_pydantic_model(
         type[BaseModel]: Generated Pydantic model class.
     """
     fields: dict[str, Any] = {}
-
+    if docs is None:
+        docs = {}
     if "properties" in dictionary:
         for field_name, field_data in dictionary.get("properties", {}).items():
             if field_data == "object":
                 submodel = convert_dictionary_to_pydantic_model(
-                    dictionary, f"{model_name}_{field_name}"
+                    dictionary, f"{model_name}_{field_name}", docs
                 )
                 fields[field_name] = (submodel, ...)
-            else:
-                field_type = field_data.get("type", "str")
 
+            else:
+                field_type = field_data.get("type", "string")
+                if field_data.get("description", None):
+                    docs[field_name] = field_data["description"]
                 if field_data.get("enum", []):
                     fields[field_name] = (
                         list_to_enum(field_name, field_data.get("enum", [])),
@@ -1658,18 +1717,18 @@ def convert_dictionary_to_pydantic_model(
                     if items != {}:
                         array = {"properties": items}
                         array_type = convert_dictionary_to_pydantic_model(
-                            array, f"{model_name}_{field_name}_items"
+                            array, f"{model_name}_{field_name}_items", docs
                         )
                         fields[field_name] = (List[array_type], ...)  # type: ignore[valid-type]
                     else:
                         fields[field_name] = (list, ...)
                 elif field_type == "object":
                     submodel = convert_dictionary_to_pydantic_model(
-                        field_data, f"{model_name}_{field_name}"
+                        field_data, f"{model_name}_{field_name}", docs
                     )
                     fields[field_name] = (submodel, ...)
                 elif field_type == "required":
-                    required = field_data.get("enum", [])
+                    required = field_data
                     for key, field in fields.items():
                         if key not in required:
                             fields[key] = (Optional[fields[key][0]], ...)
@@ -1683,15 +1742,20 @@ def convert_dictionary_to_pydantic_model(
             elif field_name == "description":
                 fields["__doc__"] = field_data
             elif field_name == "parameters":
-                return convert_dictionary_to_pydantic_model(field_data, f"{model_name}")
+                return convert_dictionary_to_pydantic_model(
+                    field_data, f"{model_name}", docs
+                )
 
     if "parameters" in dictionary:
         field_data = {"function": dictionary}
-        return convert_dictionary_to_pydantic_model(field_data, f"{model_name}")
+        return convert_dictionary_to_pydantic_model(field_data, f"{model_name}", docs)
     if "required" in dictionary:
         required = dictionary.get("required", [])
         for key, field in fields.items():
             if key not in required:
                 fields[key] = (Optional[fields[key][0]], ...)
     custom_model = create_model(model_name, **fields)
+    for field_name, doc in docs.items():
+        custom_model.model_fields[field_name].description = doc
+
     return custom_model

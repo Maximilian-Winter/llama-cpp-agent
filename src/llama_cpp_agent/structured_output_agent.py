@@ -81,6 +81,8 @@ class StructuredOutputAgent:
         if llama_generation_settings is None:
             if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings):
                 llama_generation_settings = LlamaLLMGenerationSettings()
+            elif isinstance(llama_llm, OpenAIEndpointSettings):
+                llama_generation_settings = OpenAIGenerationSettings()
             else:
                 llama_generation_settings = LlamaCppGenerationSettings()
 

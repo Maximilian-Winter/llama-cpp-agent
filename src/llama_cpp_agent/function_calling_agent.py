@@ -88,7 +88,7 @@ class FunctionCallingAgent:
     An agent that uses function calling to interact with its environment and the user.
 
     Args:
-        llama_llm (Llama | LlamaLLMSettings | OpenAIEndpointSettings): An instance of Llama, LlamaLLMSettings or LlamaCppServerLLMSettings as LLM.
+        llama_llm (Llama | LlamaLLMSettings | LlamaCppEndpointSettings | OpenAIEndpointSettings): An instance of Llama, LlamaLLMSettings, LlamaCppEndpointSettings or LlamaCppServerLLMSettings as LLM.
         llama_generation_settings (LlamaLLMGenerationSettings | LlamaCppGenerationSettings | OpenAIGenerationSettings): Generation settings for Llama.
         messages_formatter_type (MessagesFormatterType): Type of messages formatter.
         custom_messages_formatter (MessagesFormatter): Optional Custom messages formatter.
@@ -148,7 +148,7 @@ class FunctionCallingAgent:
         Initialize the FunctionCallingAgent.
 
         Args:
-            llama_llm (Llama | LlamaLLMSettings | OpenAIEndpointSettings): An instance of Llama, LlamaLLMSettings or LlamaCppServerLLMSettings as LLM.
+            llama_llm (Llama | LlamaLLMSettings | LlamaCppEndpointSettings | OpenAIEndpointSettings): An instance of Llama, LlamaLLMSettings, LlamaCppEndpointSettings or LlamaCppServerLLMSettings as LLM.
             llama_generation_settings (LlamaLLMGenerationSettings | LlamaCppGenerationSettings | OpenAIGenerationSettings): Generation settings for Llama.
             messages_formatter_type (MessagesFormatterType): Type of messages formatter.
             custom_messages_formatter (MessagesFormatter): Optional Custom messages formatter.
@@ -167,7 +167,9 @@ class FunctionCallingAgent:
 
         self.send_message_to_user_callback = send_message_to_user_callback
         if add_send_message_to_user_function:
-            self.llama_cpp_tools.append(LlamaCppFunctionTool(activate_message_mode, agent=self))
+            self.llama_cpp_tools.append(
+                LlamaCppFunctionTool(activate_message_mode, agent=self)
+            )
 
         if basic_file_tools:
             self.llama_cpp_tools.append(LlamaCppFunctionTool(read_text_file))
@@ -178,13 +180,15 @@ class FunctionCallingAgent:
         self.tool_registry = LlamaCppAgent.get_function_tool_registry(
             self.llama_cpp_tools,
             add_inner_thoughts=True,
-            allow_inner_thoughts_only=True,
+            allow_inner_thoughts_only=False,
             allow_parallel_function_calling=allow_parallel_function_calling,
         )
 
         if llama_generation_settings is None:
             if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings):
                 llama_generation_settings = LlamaLLMGenerationSettings()
+            elif isinstance(llama_llm, OpenAIEndpointSettings):
+                llama_generation_settings = OpenAIGenerationSettings()
             else:
                 llama_generation_settings = LlamaCppGenerationSettings()
 
@@ -205,7 +209,7 @@ class FunctionCallingAgent:
             llama_generation_settings, OpenAIGenerationSettings
         ):
             raise Exception(
-                "Wrong generation settings for OpenAI endpoint, use CompletionRequestSettings under llama_cpp_agent.providers.openai_endpoint_provider!"
+                "Wrong generation settings for OpenAI endpoint, use OpenAIGenerationSettings under llama_cpp_agent.providers.openai_endpoint_provider!"
             )
 
         self.llama_generation_settings = llama_generation_settings
@@ -221,13 +225,13 @@ class FunctionCallingAgent:
                 """You are Funky, an AI assistant that calls functions to perform tasks. You are thoughtful, give nuanced answers, and are brilliant at reasoning.
 
 To call functions, you respond with a JSON object containing three fields:
-"thoughts "and reasoning": Your thoughts and reasoning behind the function call.
+"thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
 "function": The name of the function you want to call.
 "parameters": The arguments required for the function.
 
 After performing a function call, you will receive a response containing the return values of the function calls.
 
-For direct communication with the user, employ the 'activate_message_mode' function. After you have finished your call to 'activate_message_mode', you can freely write a response to the user without any JSON constraints. This enables you to converse naturally. Ensure to end your message with '(End of message)' to signify its conclusion.
+For direct communication with the user, employ the 'activate_message_mode' function. After you have finished your call to 'activate_message_mode', you can freely write a response to the user without any JSON constraints. This enables you to converse naturally.
 
 ### Functions:
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
@@ -363,13 +367,16 @@ Choose the appropriate function based on the task you want to perform. Provide y
                             func(result.strip())
                             func_list.append(func.__name__)
                 break
-            function_message = f"""Function Call Results:\n\n"""
+            function_message = f"""Function Calling Results:\n\n"""
             count = 0
             if result is not None:
                 for res in result:
                     count += 1
                     if not isinstance(res, str):
-                        function_message += f"""{count}. Function: "{res["function"]}"\nReturn Value: {res["return_value"]}\n\n"""
+                        if "params" in res:
+                            function_message += f"""{count}. Function: "{res["function"]}"\nArguments: "{res["params"]}"\nReturn Value: {res["return_value"]}\n\n"""
+                        else:
+                            function_message += f"""{count}. Function: "{res["function"]}"\nReturn Value: {res["return_value"]}\n\n"""
                     else:
                         function_message += f"{count}. " + res + "\n\n"
                 self.llama_cpp_agent.add_message(
@@ -378,6 +385,7 @@ Choose the appropriate function based on the task you want to perform. Provide y
             result = self.intern_get_response(
                 additional_stop_sequences=additional_stop_sequences
             )
+        return result
 
     def intern_get_response(self, additional_stop_sequences: List[str] = None):
         without_grammar_mode = False

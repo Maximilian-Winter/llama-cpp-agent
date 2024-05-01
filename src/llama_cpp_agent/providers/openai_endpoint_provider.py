@@ -3,13 +3,12 @@ from copy import copy
 from typing import Union, List, Optional, Dict, Literal
 from dataclasses import dataclass
 
+import aiohttp
 import requests
 
 
 @dataclass
 class OpenAIGenerationSettings:
-    prompt: Union[str, List[str]] = ""
-    suffix: Optional[str] = None
     max_tokens: Optional[int] = 0
     temperature: float = 0.8
     top_p: float = 0.95
@@ -166,7 +165,7 @@ class OpenAIEndpointSettings:
 
         headers = {"Content-Type": "application/json"}
 
-        data = generation_settings.as_dict()
+        data = copy(generation_settings.as_dict())
         data["prompt"] = prompt
         data["grammar"] = grammar
         data["stop"] = data["stop_sequences"]

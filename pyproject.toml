@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "llama-cpp-agent"
 version = "0.0.30"
-description = "A framework for building LLM based AI agents with llama-cpp-python."
+description = "A framework for building LLM based AI agents with llama.cpp."
 
 readme = "ReadMe.md"
 dependencies = [

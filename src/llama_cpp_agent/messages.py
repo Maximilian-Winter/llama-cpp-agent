@@ -1,9 +1,11 @@
+import json
 import string
+from abc import ABC, abstractmethod
 from enum import Enum
 import random
 from typing import Literal, Union, List, Optional, Annotated, Dict, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, parse_obj_as
 
 from llama_cpp_agent.providers.provider_base import LLMProviderBase
 
@@ -58,16 +60,76 @@ class AssistantMessage(BaseMessage):
 
 
 class ToolMessage(BaseMessage):
-    content: str
-    role: Literal[Roles.tool] = Roles.tool
     tool_call_id: str
+    role: Literal[Roles.tool] = Roles.tool
+    content: str
 
 
 ChatMessage = Annotated[Union[SystemMessage, UserMessage, AssistantMessage, ToolMessage], Field(discriminator="role")]
 
 
-# Function to convert messages to dictionary format
-def convert_messages_to_dict(messages: List[ChatMessage]) -> List[Dict[str, str]]:
+class ChatHistory(ABC):
+    @abstractmethod
+    def get_chat_messages(self):
+        pass
+
+
+class ChatMessageStore(ABC):
+
+    @abstractmethod
+    def add_message(self, message: ChatMessage):
+        pass
+
+    @abstractmethod
+    def add_user_message(self, message: str):
+        pass
+
+    @abstractmethod
+    def add_system_message(self, message: str):
+        pass
+
+    @abstractmethod
+    def remove_last_message(self):
+        pass
+
+    @abstractmethod
+    def remove_last_k_message(self, k: int):
+        pass
+
+    @abstractmethod
+    def pop_message(self, k: int) -> ChatMessage:
+        pass
+
+    @abstractmethod
+    def get_message(self, k: int) -> ChatMessage:
+        pass
+
+    @abstractmethod
+    def get_last_message(self) -> ChatMessage:
+        pass
+
+    @abstractmethod
+    def get_last_k_messages(self, k: int) -> List[ChatMessage]:
+        pass
+
+    @abstractmethod
+    def get_messages(self, k: int) -> List[ChatMessage]:
+        pass
+
+    @abstractmethod
+    def get_all_messages(self) -> List[ChatMessage]:
+        pass
+
+
+# Function to convert messages to list of dictionary format
+def convert_messages_to_list_of_dictionaries(messages: List[ChatMessage]) -> List[Dict[str, str]]:
+    """
+    Converts a list of messages to a list of dictionaries.
+    Args:
+        messages (List[ChatMessage]): The list of messages.
+    Returns:
+        List[Dict[str, str]]: A list of dictionaries.
+    """
     result = []
     for message in messages:
         # Determine the appropriate content to include
@@ -97,23 +159,12 @@ def convert_messages_to_dict(messages: List[ChatMessage]) -> List[Dict[str, str]
     return result
 
 
-class ChatMemoryStrategy(Enum):
-    last_k_messages: str = "last_k_messages"
-    last_k_tokens: str = "last_k_tokens"
+class BasicChatMessageStore(ChatMessageStore):
 
-
-class ChatMemory:
-    def __init__(self, memory_strategy: ChatMemoryStrategy = ChatMemoryStrategy.last_k_messages, k: int = 10, llm_provider: LLMProviderBase = None,
-
-                 messages: List[ChatMessage] = None):
+    def __init__(self, messages: List[ChatMessage] = None):
         if messages is None:
             messages = []
         self.messages: List[ChatMessage] = messages
-        self.k = k
-        self.strategy = memory_strategy
-        self.llm_provider = llm_provider
-        if memory_strategy == ChatMemoryStrategy.last_k_tokens and llm_provider is None:
-            raise Exception("LLM provider needed when using last k tokens as memory strategy!")
 
     def add_message(self, message: ChatMessage):
         self.messages.append(message)
@@ -142,13 +193,52 @@ class ChatMemory:
     def get_last_k_messages(self, k: int) -> List[ChatMessage]:
         return self.messages[-k:]
 
-    def get_chat(self) -> List[Dict[str, str]]:
-        if self.strategy == ChatMemoryStrategy.last_k_messages:
-            return convert_messages_to_dict(self.get_last_k_messages(self.k))
-        elif self.strategy == ChatMemoryStrategy.last_k_tokens:
+    def get_messages(self, k: int) -> List[ChatMessage]:
+        return self.messages[k:]
+
+    def get_all_messages(self) -> List[ChatMessage]:
+        return self.messages
+
+    def save_to_json(self, file_path: str):
+        # Convert messages to a list of dictionaries using pydantic's model_dump() method
+        messages_dict = [message.model_dump() for message in self.messages]
+        # Write the list of dictionaries to a JSON file
+        with open(file_path, 'w') as file:
+            json.dump(messages_dict, file, indent=4)
+
+    def load_from_json(self, file_path: str):
+        # Read the list of dictionaries from a JSON file
+        with open(file_path, 'r') as file:
+            messages_dict = json.load(file)
+        # Convert dictionaries back to ChatMessage instances
+        self.messages = [parse_obj_as(ChatMessage, message) for message in messages_dict]
+
+
+class BasicChatHistoryStrategy(Enum):
+    last_k_messages: str = "last_k_messages"
+    last_k_tokens: str = "last_k_tokens"
+
+
+class BasicChatHistory(ChatHistory):
+    def __init__(self, chat_history_strategy: BasicChatHistoryStrategy = BasicChatHistoryStrategy.last_k_messages,
+                 k: int = 10,
+                 llm_provider: LLMProviderBase = None, message_store: ChatMessageStore = None):
+        if message_store is None:
+            message_store = BasicChatMessageStore()
+        self.message_store: ChatMessageStore = message_store
+        self.k = k
+        self.strategy = chat_history_strategy
+        self.llm_provider = llm_provider
+        if chat_history_strategy == BasicChatHistoryStrategy.last_k_tokens and llm_provider is None:
+            raise Exception("Please pass LLM provider to BasicChatHistory when using last k tokens as memory strategy!")
+
+    def get_chat_messages(self) -> List[Dict[str, str]]:
+        if self.strategy == BasicChatHistoryStrategy.last_k_messages:
+            return convert_messages_to_list_of_dictionaries(self.message_store.get_last_k_messages(self.k))
+        elif self.strategy == BasicChatHistoryStrategy.last_k_tokens:
             total_tokens = 0
             selected_messages = []
-            converted_messages = convert_messages_to_dict(self.messages)
+            converted_messages = convert_messages_to_list_of_dictionaries(self.message_store.get_all_messages())
             sys_message = None
             if converted_messages[0]['role'] == Roles.system:
                 sys_message = converted_messages.pop(0)
@@ -165,4 +255,3 @@ class ChatMemory:
                 selected_messages.append(sys_message)
             return list(reversed(selected_messages))
         return []
-

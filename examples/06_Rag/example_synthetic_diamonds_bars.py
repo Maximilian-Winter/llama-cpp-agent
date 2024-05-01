@@ -75,7 +75,7 @@ grammar, docs = generate_gbnf_grammar_and_documentation([QueryExtension])
 query_extension_agent = LlamaCppAgent(
     main_model,
     debug_output=True,
-    system_prompt="You are a world class query extension algorithm capable of extending queries by writing new queries. Do not answer the queries, simply provide a list of additional queries in JSON format. Structure your output according to the following model:\n\n" + docs,
+    system_prompt="You are a world class query extension algorithm capable of extending queries by writing new queries. Do not answer the queries, simply provide a list of additional queries in JSON format. Structure your output according to the following model:\n\n" + docs.strip(),
     predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
 )
 
@@ -90,13 +90,13 @@ queries = QueryExtension.model_validate(json.loads(output))
 prompt = "Consider the following context:\n==========Context===========\n"
 
 # Retrieve the most fitting document chunks based on the original query and add them to the prompt.
-documents = rag.retrieve_documents(query, k=2)
+documents = rag.retrieve_documents(query, k=3)
 for doc in documents:
     prompt += doc["content"] + "\n\n"
 
 # Retrieve the most fitting document chunks based on the extended queries and add them to the prompt.
 for qu in queries.queries:
-    documents = rag.retrieve_documents(qu, k=2)
+    documents = rag.retrieve_documents(qu, k=3)
     for doc in documents:
         if doc["content"] not in prompt:
             prompt += doc["content"] + "\n\n"
@@ -106,7 +106,7 @@ prompt += "\n======================\nQuestion: " + query
 agent_with_rag_information = LlamaCppAgent(
     main_model,
     debug_output=True,
-    system_prompt="You are an advanced AI assistant, trained by OpenAI.",
+    system_prompt="You are an advanced AI assistant, trained by OpenAI. Only answer question based on the context information provided.",
     predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
 )
 

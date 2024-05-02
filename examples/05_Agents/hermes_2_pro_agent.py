@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -6,6 +7,9 @@ from typing import Union
 from enum import Enum
 
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
+from llama_cpp_agent.hermes_2_pro_agent import Hermes2ProAgent
+from llama_cpp_agent.llm_agent import LlamaCppAgent
+from llama_cpp_agent.llm_prompt_template import PromptTemplate
 from llama_cpp_agent.mixtral_8x22b_agent import Mixtral8x22BAgent
 from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
 
@@ -86,7 +90,7 @@ open_ai_tool_definition = {
                     "description": "The unit, e.g. celsius, fahrenheit",
                 },
             },
-            "required": ["location"],
+            "required": ["location", "unit"],
         },
     },
 }
@@ -104,9 +108,10 @@ model = LlamaCppEndpointSettings(
     "http://localhost:8080/completion"
 )
 
-agent = Mixtral8x22BAgent(model=model)
+agent = Hermes2ProAgent(model=model, debug_output=True)
 
-result = agent.get_response("Get the date and time in '%d-%m-%Y %H:%M' format.", tools=[current_datetime_function_tool])
+
+result = agent.get_response("Get the date and time in '%d-%m-%Y %H:%M' format.", temperature=1.0, tools=[current_datetime_function_tool])
 
 print(result)
 

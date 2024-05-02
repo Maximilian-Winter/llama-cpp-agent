@@ -27,7 +27,6 @@ class OpenAIGenerationSettings:
     mirostat_mode: int = 0
     mirostat_tau: float = 5.0
     mirostat_eta: float = 0.1
-    grammar: Optional[str] = None
 
     def save(self, file_path: str):
         """

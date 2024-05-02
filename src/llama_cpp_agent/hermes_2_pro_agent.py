@@ -4,6 +4,7 @@ import re
 import string
 import uuid
 from enum import Enum
+from typing import List, Dict, Literal, Tuple
 
 from llama_cpp import Llama
 from pydantic import ValidationError
@@ -51,6 +52,163 @@ def parse_tool_calls(text):
     return json_dicts
 
 
+class Hermes2ProMessageFormatter:
+    """
+    Class representing a messages formatter for LLMs.
+    """
+
+    def __init__(
+            self
+    ):
+        """
+        Initializes a new MessagesFormatter object.
+        """
+        SYS_PROMPT_START_MIXTRAL = """"""
+        SYS_PROMPT_END_MIXTRAL = """\n\n"""
+        USER_PROMPT_START_MIXTRAL = """[INST] """
+        USER_PROMPT_END_MIXTRAL = """ """
+        ASSISTANT_PROMPT_START_MIXTRAL = """[/INST] """
+        ASSISTANT_PROMPT_END_MIXTRAL = """</s>"""
+        FUNCTION_PROMPT_START_MIXTRAL = """"""
+        FUNCTION_PROMPT_END_MIXTRAL = """"""
+        DEFAULT_MIXTRAL_STOP_SEQUENCES = ["</s>"]
+        self.PRE_PROMPT = ""
+        self.SYS_PROMPT_START = "<|im_start|>system\n"
+        self.SYS_PROMPT_END = "<|im_end|>\n"
+        self.USER_PROMPT_START = "<|im_start|>user\n"
+        self.USER_PROMPT_END = "<|im_end|>\n"
+        self.ASSISTANT_PROMPT_START = "<|im_start|>assistant\n"
+        self.ASSISTANT_PROMPT_END = "<|im_end|>\n"
+        self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE = False
+
+        self.DEFAULT_STOP_SEQUENCES = [
+            "<|im_end|>",
+            "<|im_start|>assistant",
+            "<|im_start|>user",
+            "<|im_start|>system",
+            "<|im_start|>tool"
+        ]
+        self.FUNCTION_PROMPT_START = "<|im_start|>tool\n"
+        self.FUNCTION_PROMPT_END = "<|im_end|>\n"
+        self.USE_USER_ROLE_FUNCTION_CALL_RESULT = False
+        self.STRIP_PROMPT = True
+
+    def format_messages(
+            self,
+            messages: List[Dict[str, str]],
+            response_role: Literal["user", "assistant"] | None = None,
+    ) -> Tuple[str, str]:
+        """
+        Formats a list of messages into a conversation string.
+
+        Args:
+            messages (List[Dict[str, str]]): List of messages with role and content.
+            response_role(Literal["system", "user", "assistant", "function"]|None): Forces the response role to be "system", "user" or "assistant".
+        Returns:
+            Tuple[str, str]: Formatted conversation string and the role of the last message.
+        """
+        formatted_messages = self.PRE_PROMPT
+        last_role = "assistant"
+
+        no_user_prompt_start = False
+        for message in messages:
+            if message["role"] == "system":
+                formatted_messages += (
+                        self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
+                )
+                last_role = "system"
+                if self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE:
+                    formatted_messages = self.USER_PROMPT_START + formatted_messages
+                    no_user_prompt_start = True
+            elif message["role"] == "user":
+                if no_user_prompt_start:
+                    no_user_prompt_start = False
+                    formatted_messages += message["content"] + self.USER_PROMPT_END
+                else:
+                    formatted_messages += (
+                            self.USER_PROMPT_START
+                            + message["content"]
+                            + self.USER_PROMPT_END
+                    )
+                last_role = "user"
+            elif message["role"] == "assistant":
+                if self.STRIP_PROMPT:
+                    message["content"] = message["content"].strip()
+                formatted_messages += (
+                        self.ASSISTANT_PROMPT_START
+                        + message["content"]
+                        + self.ASSISTANT_PROMPT_END
+                )
+                last_role = "assistant"
+            elif message["role"] == "tool":
+                if isinstance(message["content"], list):
+                    message["content"] = "\n".join(
+                        [json.dumps(m, indent=2) for m in message["content"]]
+                    )
+                if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
+                    formatted_messages += (
+                            self.USER_PROMPT_START
+                            + message["content"]
+                            + self.USER_PROMPT_END
+                    )
+                    last_role = "user"
+                else:
+                    formatted_messages += (
+                            self.FUNCTION_PROMPT_START
+                            + message["content"]
+                            + self.FUNCTION_PROMPT_END
+                    )
+                    last_role = "tool"
+        if last_role == "system" or last_role == "user" or last_role == "tool":
+            if self.STRIP_PROMPT:
+                if response_role is not None:
+                    if response_role == "assistant":
+                        return (
+                            formatted_messages + self.ASSISTANT_PROMPT_START.strip(),
+                            "assistant",
+                        )
+                    if response_role == "user":
+                        return (
+                            formatted_messages + self.USER_PROMPT_START.strip(),
+                            "user",
+                        )
+                else:
+                    return (
+                        formatted_messages + self.ASSISTANT_PROMPT_START.strip(),
+                        "assistant",
+                    )
+            else:
+                if response_role is not None:
+                    if response_role == "assistant":
+                        return (
+                            formatted_messages + self.ASSISTANT_PROMPT_START,
+                            "assistant",
+                        )
+                    if response_role == "user":
+                        return formatted_messages + self.USER_PROMPT_START, "user"
+                else:
+                    return formatted_messages + self.ASSISTANT_PROMPT_START, "assistant"
+        if self.STRIP_PROMPT:
+            if response_role is not None:
+                if response_role == "assistant":
+                    return (
+                        formatted_messages + self.ASSISTANT_PROMPT_START.strip(),
+                        "assistant",
+                    )
+                if response_role == "user":
+                    return formatted_messages + self.USER_PROMPT_START.strip(), "user"
+            else:
+                return formatted_messages + self.USER_PROMPT_START.strip(), "user"
+        else:
+            if response_role is not None:
+                if response_role == "assistant":
+                    return formatted_messages + self.ASSISTANT_PROMPT_START, "assistant"
+                if response_role == "user":
+                    return formatted_messages + self.USER_PROMPT_START, "user"
+            else:
+                return formatted_messages + self.USER_PROMPT_START, "user"
+
+
 class Hermes2ProAgent:
     def __init__(
             self,
@@ -71,13 +229,13 @@ class Hermes2ProAgent:
         else:
             self.system_prompt = "You are a function calling AI model. You are provided with function signatures within <tools></tools> XML tags. You may call one or more functions to assist with the user query. Don't make assumptions about what values to plug into functions.\nHere are the available tools:"
         self.messages.append(SystemMessage(content="system_prompt"))
-        self.messages_formatter = get_predefined_messages_formatter(MessagesFormatterType.CHATML)
+        self.messages_formatter = Hermes2ProMessageFormatter()
         self.sys_prompt_template = """{system_prompt} <tools> {tools} </tools>
 Use the following pydantic model json schema for each tool call you will make: {"properties": {"arguments": {"title": "Arguments", "type": "object"}, "name": {"title": "Name", "type": "string"}}, "required": ["arguments", "name"], "title": "FunctionCall", "type": "object"} 
 For each function call return a json object with function name and arguments within <tool_call></tool_call> XML tags as follows:
 <tool_call>
 {"arguments": <args-dict>, "name": <function-name>}
-</tool_call><|im_end|>
+</tool_call>
 """
         self.system_prompter = PromptTemplate.from_string(self.sys_prompt_template)
 
@@ -109,6 +267,7 @@ For each function call return a json object with function name and arguments wit
             text,
             temperature=temperature,
             top_p=top_p,
+            stop_sequences=self.messages_formatter.DEFAULT_STOP_SEQUENCES,
             stream=self.debug_output,
             print_output=self.debug_output,
         )

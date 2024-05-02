@@ -111,14 +111,14 @@ model = LlamaCppEndpointSettings(
 agent = Hermes2ProAgent(model=model, debug_output=True)
 
 
-result = agent.get_response("Get the date and time in '%d-%m-%Y %H:%M' format.", temperature=1.0, tools=[current_datetime_function_tool])
+result = agent.get_response("Get the date and time in '%d-%m-%Y %H:%M' format.", temperature=0.35, tools=[current_datetime_function_tool])
 
 print(result)
 
-result = agent.get_response("Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.", tools=[calculator_function_tool])
+result = agent.get_response("Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.", temperature=0.35, tools=[calculator_function_tool])
 
 print(result)
 
-result = agent.get_response("Get the current weather in celsius in London, New York and at the North Pole.", tools=[get_weather_function_tool])
+result = agent.get_response("Get the current weather in celsius in London, New York and at the North Pole.", temperature=0.35, tools=[get_weather_function_tool])
 
 print(result)

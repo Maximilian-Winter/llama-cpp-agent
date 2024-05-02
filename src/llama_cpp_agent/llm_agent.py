@@ -55,7 +55,7 @@ class LlamaCppAgent:
             Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings
         ],
         name: str = "llamacpp_agent",
-        system_prompt: str = "You are helpful assistant.",
+        system_prompt: str = "You are a helpful assistant.",
         predefined_messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
         custom_messages_formatter: MessagesFormatter = None,
         debug_output: bool = False,

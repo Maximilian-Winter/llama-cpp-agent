@@ -147,7 +147,7 @@ For each function call return a json object with function name and arguments wit
                     self.messages.extend(tool_messages)
             self.messages.append(AssistantMessage(content=result, tool_calls=tool_calls))
             self.messages.extend(tool_messages)
-            return self.get_response()
+            return self.get_response(tools=tools)
         else:
             self.messages.append(AssistantMessage(content=result.strip()))
             return result.strip()

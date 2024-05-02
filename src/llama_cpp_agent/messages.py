@@ -36,7 +36,7 @@ class Roles(Enum):
     system = "system"
     user = "user"
     assistant = "assistant"
-    tool = "tool"
+    tool = "function"
 
 
 class BaseMessage(BaseModel):

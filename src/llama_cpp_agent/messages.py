@@ -142,12 +142,12 @@ def convert_messages_to_list_of_dictionaries(messages: List[ChatMessage]) -> Lis
                     content = "Function Calls:\n"
                     count = 1
                     for tool_call in message.tool_calls:
-                        content += f"{count}. Function Call Id: {tool_call.id}\nFunction: {tool_call.function.name}\nArguments: {tool_call.function.arguments}\n"
+                        content += f"{count}. Function: {tool_call.function.name}\nArguments: {tool_call.function.arguments}\n"
                         count += 1
                 else:
                     content = f"Function Call:\nFunction Call Id: {message.tool_calls[0].id}\nFunction: {message.tool_calls[0].function.name}\nArguments: {message.tool_calls[0].function.arguments}\n"
         elif isinstance(message, ToolMessage):
-            content = f"Function Call Result:\nFunction Call Id: {message.tool_call_id}\nResult: {message.content}\n"
+            content = f"Function Call Result:\nResult: {message.content}\n"
         else:
             content = f"{message.content}"
         # Construct the dictionary for the current message
@@ -230,7 +230,7 @@ class BasicChatHistory(ChatHistory):
         self.strategy = chat_history_strategy
         self.llm_provider = llm_provider
         if chat_history_strategy == BasicChatHistoryStrategy.last_k_tokens and llm_provider is None:
-            raise Exception("Please pass LLM provider to BasicChatHistory when using last k tokens as memory strategy!")
+            raise Exception("Please pass a LLM provider to BasicChatHistory when using last k tokens as memory strategy!")
 
     def get_chat_messages(self) -> List[Dict[str, str]]:
         if self.strategy == BasicChatHistoryStrategy.last_k_messages:
@@ -240,7 +240,7 @@ class BasicChatHistory(ChatHistory):
             selected_messages = []
             converted_messages = convert_messages_to_list_of_dictionaries(self.message_store.get_all_messages())
             sys_message = None
-            if converted_messages[0]['role'] == Roles.system:
+            if converted_messages[0]['role'] == "system":
                 sys_message = converted_messages.pop(0)
             for message in reversed(converted_messages):
                 tokens = self.llm_provider.tokenize(message["content"])

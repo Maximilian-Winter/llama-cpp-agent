@@ -1599,7 +1599,7 @@ def create_dynamic_model_from_function(
     for name, param_doc in param_docs:
         dynamic_model.model_fields[name].description = param_doc.description
 
-    dynamic_model.__doc__ = docstring.short_description
+    dynamic_model.__doc__ = docstring.short_description + "\n" + docstring.long_description
 
     def run_method_wrapper(self):
         func_args = {name: getattr(self, name) for name, _ in dynamic_fields.items()}

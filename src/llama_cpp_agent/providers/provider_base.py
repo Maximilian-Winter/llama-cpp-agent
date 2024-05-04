@@ -18,45 +18,56 @@ class LLMGenerationSettings(BaseModel):
     settings: Dict[str, LLMGenerationSetting]
 
     def get_settings_dict(self) -> Dict[str, Any]:
+        """Get the current settings as a dictionary."""
         return {name: setting.value for name, setting in self.settings.items()}
 
     def set_setting(self, name: str, value: Any):
+        """Set a setting to the given value."""
         if name in self.settings:
             self.settings[name].value = value
         else:
             self.settings[name] = LLMGenerationSetting(name=name, value=value)
 
     def get_setting(self, name: str) -> Any:
+        """Get a setting from the given name."""
         if name in self.settings:
             return self.settings[name].value
         return None
 
     def __getattr__(self, name: str) -> Any:
+        """Access a setting from the given name as an attribute."""
         if name in self.settings:
             return self.settings[name].value
         else:
             raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     def as_dict(self) -> Dict[str, Any]:
+        """Get the current settings as a dictionary."""
         return self.get_settings_dict()
 
 
 class LLMProviderBase(ABC):
-
+    """
+    Abstract base class for all LLM providers.
+    """
     @abstractmethod
     def get_default_generation_settings(self) -> LLMGenerationSettings:
+        """Get the default generation settings for the LLM provider."""
         pass
 
     @abstractmethod
     def create_completion(self, prompt: str, grammar: str, settings: LLMGenerationSettings):
+        """Create a completion request with the LLM provider and returns the result."""
         pass
 
     @abstractmethod
     def create_chat_completion(self, messages: List[Dict[str, str]], grammar: str, settings: LLMGenerationSettings):
+        """Create a chat completion request with the LLM provider and returns the result."""
         pass
 
     @abstractmethod
     def tokenize(self, prompt: str):
+        """Tokenize the given prompt."""
         pass
 
 

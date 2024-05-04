@@ -222,7 +222,7 @@ class FunctionCallingAgent:
         else:
             # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
             self.system_prompt = (
-                """You are Funky, an AI assistant that calls functions to perform tasks. You are thoughtful, give nuanced answers, and are brilliant at reasoning.
+                """You are Funky, an AI assistant that calls functions to perform tasks.
 
 To call functions, you respond with a JSON object containing three fields:
 "thoughts_and_reasoning": Your thoughts and reasoning behind the function call.

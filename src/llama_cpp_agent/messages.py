@@ -145,7 +145,7 @@ def convert_messages_to_list_of_dictionaries(messages: List[ChatMessage]) -> Lis
                         content += f"{count}. Function: {tool_call.function.name}\nArguments: {tool_call.function.arguments}\n"
                         count += 1
                 else:
-                    content = f"Function Call:\nFunction Call Id: {message.tool_calls[0].id}\nFunction: {message.tool_calls[0].function.name}\nArguments: {message.tool_calls[0].function.arguments}\n"
+                    content = f"Function Call:\nFunction: {message.tool_calls[0].function.name}\nArguments: {message.tool_calls[0].function.arguments}\n"
         elif isinstance(message, ToolMessage):
             content = f"Function Call Result:\nResult: {message.content}\n"
         else:

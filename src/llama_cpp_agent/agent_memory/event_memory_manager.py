@@ -5,9 +5,10 @@ import json
 
 
 class EventMemoryManager:
-    def __init__(self, session: Session):
+    def __init__(self, session: Session, event_queue_limit: int = 10):
         self.session = session
         self.event_queue: list[Event] = []
+        self.event_queue_limit = event_queue_limit
 
     def build_event_memory_context(self):
         messages = []
@@ -24,8 +25,7 @@ class EventMemoryManager:
         )
         self.event_queue.append(new_event)
 
-        # Optional: Limit the size of the event queue
-        if len(self.event_queue) > 40:
+        if len(self.event_queue) > self.event_queue_limit:
             self.commit_oldest_event()
 
     def commit_oldest_event(self):

@@ -395,6 +395,7 @@ class LlamaCppAgent:
         message: str = None,
         role: Literal["system", "user", "assistant", "function"] = "user",
         response_role: Literal["user", "assistant"] | None = None,
+
         system_prompt: str = None,
         prompt_suffix: str = None,
         add_message_to_chat_history: bool = True,

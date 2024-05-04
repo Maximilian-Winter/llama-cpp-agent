@@ -30,7 +30,6 @@ class KoboldCppGenerationSettings:
     mirostat_tau: float = 0
     mirostat_eta: float = 0
     genkey: Optional[str] = None
-    grammar: Optional[str] = None
     grammar_retain_state: bool = False
     memory: Optional[str] = None
     trim_stop: bool = False

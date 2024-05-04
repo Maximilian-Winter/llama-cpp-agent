@@ -193,6 +193,10 @@ class LlamaCppFunctionTool:
             )
         )
 
+    def to_openai_tool(self):
+        root = pydantic_model_to_openai_function_definition(self.model)
+        return root
+
     def __call__(self, *args, **kwargs):
         """
         Calls the Pydantic model with the provided keyword arguments.
@@ -246,6 +250,7 @@ class LlamaCppFunctionToolRegistry:
         fields_prefix="parameters",
         inner_thoughts_field_name="thoughts_and_reasoning",
         request_heartbeat_field_name="request_heartbeat",
+        add_tool_root_content_to_all_results=True
     ):
         """
         Initialize the LlamaCppFunctionToolRegistry.
@@ -278,6 +283,7 @@ class LlamaCppFunctionToolRegistry:
         self.add_request_heartbeat = add_request_heartbeat
         self.inner_thoughts_field_name = inner_thoughts_field_name
         self.request_heartbeat_field_name = request_heartbeat_field_name
+        self.add_tool_root_content_to_all_results = add_tool_root_content_to_all_results
 
     def register_function_tool(self, function_tool: LlamaCppFunctionTool):
         """
@@ -449,7 +455,7 @@ class LlamaCppFunctionToolRegistry:
                 call_parameters = function_call[self.tool_rule_content]
                 call = cls(**call_parameters)
                 output = call.run(**function_tool.additional_parameters)
-                if function_tool.add_params_to_result:
+                if function_tool.add_params_to_result or self.add_tool_root_content_to_all_results:
                     if self.add_request_heartbeat:
                         return [
                             {
@@ -513,7 +519,7 @@ class LlamaCppFunctionToolRegistry:
                         call_parameters = function_call[self.tool_rule_content]
                         call = cls(**call_parameters)
                         output = call.run(**function_tool.additional_parameters)
-                        if function_tool.add_params_to_result:
+                        if function_tool.add_params_to_result or self.add_tool_root_content_to_all_results:
                             if self.add_request_heartbeat:
                                 result.append(
                                     {

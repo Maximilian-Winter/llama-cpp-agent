@@ -6,6 +6,7 @@ from typing import List
 from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
+from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
     LlamaCppEndpointSettings,
     LlamaCppGenerationSettings,
@@ -37,7 +38,8 @@ generation_settings = LlamaCppGenerationSettings(temperature=0.65, stream=True)
 main_model = LlamaCppEndpointSettings("http://localhost:8080/completion")
 
 structured_output_agent = StructuredOutputAgent(
-    main_model, llama_generation_settings=generation_settings, debug_output=True
+    main_model, llama_generation_settings=generation_settings, debug_output=True,
+    messages_formatter_type=MessagesFormatterType.PHI_3
 )
 
 text = """The Feynman Lectures on Physics is a physics textbook based on some lectures by Richard Feynman, a Nobel laureate who has sometimes been called "The Great Explainer". The lectures were presented before undergraduate students at the California Institute of Technology (Caltech), during 1961–1963. The book's co-authors are Feynman, Robert B. Leighton, and Matthew Sands."""

@@ -142,7 +142,7 @@ function_call_agent = FunctionCallingAgent(
     send_message_to_user_callback=send_message_to_user_callback,
     # Set to true to allow parallel function calling
     allow_parallel_function_calling=True,
-    messages_formatter_type=MessagesFormatterType.CHATML,
+    messages_formatter_type=MessagesFormatterType.MIXTRAL,
     debug_output=True)
 
 user_input = '''Get the date and time in '%d-%m-%Y %H:%M' format. Get the current weather in celsius in London, New York and at the North Pole. Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.'''

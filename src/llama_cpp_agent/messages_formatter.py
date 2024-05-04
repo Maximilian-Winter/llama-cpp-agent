@@ -66,7 +66,6 @@ FUNCTION_PROMPT_START_ALPACA = """"""
 FUNCTION_PROMPT_END_ALPACA = """"""
 DEFAULT_ALPACA_STOP_SEQUENCES = ["### Instruction:", "### Input:", "### Response:"]
 
-
 SYS_PROMPT_START_NEURAL_CHAT = """### System:\n"""
 SYS_PROMPT_END_NEURAL_CHAT = """\n"""
 USER_PROMPT_START_NEURAL_CHAT = """### User:\n"""
@@ -108,7 +107,6 @@ FUNCTION_PROMPT_START_LLAMA3 = (
 FUNCTION_PROMPT_END_LLAMA3 = """<|eot_id|>"""
 DEFAULT_LLAMA3_STOP_SEQUENCES = ["assistant", "<|eot_id|>"]
 
-
 SYS_PROMPT_START_SOLAR = """"""
 SYS_PROMPT_END_SOLAR = """\n"""
 USER_PROMPT_START_SOLAR = """### User:\n"""
@@ -129,6 +127,16 @@ FUNCTION_PROMPT_START_OPEN_CHAT = """"""
 FUNCTION_PROMPT_END_OPEN_CHAT = """"""
 DEFAULT_OPEN_CHAT_STOP_SEQUENCES = ["<|end_of_turn|>"]
 
+SYS_PROMPT_START_PHI_3 = """"""
+SYS_PROMPT_END_PHI_3 = """\n\n"""
+USER_PROMPT_START_PHI_3 = """<|user|>"""
+USER_PROMPT_END_PHI_3 = """<|end|>\n"""
+ASSISTANT_PROMPT_START_PHI_3 = """<|assistant|>"""
+ASSISTANT_PROMPT_END_PHI_3 = """<|end|>\n"""
+FUNCTION_PROMPT_START_PHI_3 = """"""
+FUNCTION_PROMPT_END_PHI_3 = """"""
+DEFAULT_PHI_3_STOP_SEQUENCES = ["<|end|>", "<|end_of_turn|>"]
+
 
 class MessagesFormatterType(Enum):
     """
@@ -147,6 +155,7 @@ class MessagesFormatterType(Enum):
     CODE_DS = 10
     B22 = 11
     LLAMA_3 = 12
+    PHI_3 = 13
 
 
 class MessagesFormatter:
@@ -155,20 +164,20 @@ class MessagesFormatter:
     """
 
     def __init__(
-        self,
-        PRE_PROMPT: str,
-        SYS_PROMPT_START: str,
-        SYS_PROMPT_END: str,
-        USER_PROMPT_START: str,
-        USER_PROMPT_END: str,
-        ASSISTANT_PROMPT_START: str,
-        ASSISTANT_PROMPT_END: str,
-        INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE: bool,
-        DEFAULT_STOP_SEQUENCES: List[str],
-        USE_USER_ROLE_FUNCTION_CALL_RESULT: bool = True,
-        FUNCTION_PROMPT_START: str = "",
-        FUNCTION_PROMPT_END: str = "",
-        STRIP_PROMPT: bool = True,
+            self,
+            PRE_PROMPT: str,
+            SYS_PROMPT_START: str,
+            SYS_PROMPT_END: str,
+            USER_PROMPT_START: str,
+            USER_PROMPT_END: str,
+            ASSISTANT_PROMPT_START: str,
+            ASSISTANT_PROMPT_END: str,
+            INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE: bool,
+            DEFAULT_STOP_SEQUENCES: List[str],
+            USE_USER_ROLE_FUNCTION_CALL_RESULT: bool = True,
+            FUNCTION_PROMPT_START: str = "",
+            FUNCTION_PROMPT_END: str = "",
+            STRIP_PROMPT: bool = True,
     ):
         """
         Initializes a new MessagesFormatter object.
@@ -205,9 +214,9 @@ class MessagesFormatter:
         self.STRIP_PROMPT = STRIP_PROMPT
 
     def format_messages(
-        self,
-        messages: List[Dict[str, str]],
-        response_role: Literal["user", "assistant"] | None = None,
+            self,
+            messages: List[Dict[str, str]],
+            response_role: Literal["user", "assistant"] | None = None,
     ) -> Tuple[str, str]:
         """
         Formats a list of messages into a conversation string.
@@ -225,7 +234,7 @@ class MessagesFormatter:
         for message in messages:
             if message["role"] == "system":
                 formatted_messages += (
-                    self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
+                        self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
                 )
                 last_role = "system"
                 if self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE:
@@ -237,18 +246,18 @@ class MessagesFormatter:
                     formatted_messages += message["content"] + self.USER_PROMPT_END
                 else:
                     formatted_messages += (
-                        self.USER_PROMPT_START
-                        + message["content"]
-                        + self.USER_PROMPT_END
+                            self.USER_PROMPT_START
+                            + message["content"]
+                            + self.USER_PROMPT_END
                     )
                 last_role = "user"
             elif message["role"] == "assistant":
                 if self.STRIP_PROMPT:
                     message["content"] = message["content"].strip()
                 formatted_messages += (
-                    self.ASSISTANT_PROMPT_START
-                    + message["content"]
-                    + self.ASSISTANT_PROMPT_END
+                        self.ASSISTANT_PROMPT_START
+                        + message["content"]
+                        + self.ASSISTANT_PROMPT_END
                 )
                 last_role = "assistant"
             elif message["role"] == "function":
@@ -258,16 +267,16 @@ class MessagesFormatter:
                     )
                 if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
                     formatted_messages += (
-                        self.USER_PROMPT_START
-                        + message["content"]
-                        + self.USER_PROMPT_END
+                            self.USER_PROMPT_START
+                            + message["content"]
+                            + self.USER_PROMPT_END
                     )
                     last_role = "user"
                 else:
                     formatted_messages += (
-                        self.FUNCTION_PROMPT_START
-                        + message["content"]
-                        + self.FUNCTION_PROMPT_END
+                            self.FUNCTION_PROMPT_START
+                            + message["content"]
+                            + self.FUNCTION_PROMPT_END
                     )
                     last_role = "function"
         if last_role == "system" or last_role == "user" or last_role == "function":
@@ -522,6 +531,22 @@ b22_chat_formatter = MessagesFormatter(
     DEFAULT_22B_STOP_SEQUENCES,
     STRIP_PROMPT=False,
 )
+
+phi_3_chat_formatter = MessagesFormatter(
+    "",
+    SYS_PROMPT_START_PHI_3,
+    SYS_PROMPT_END_PHI_3,
+    USER_PROMPT_START_PHI_3,
+    USER_PROMPT_END_PHI_3,
+    ASSISTANT_PROMPT_START_PHI_3,
+    ASSISTANT_PROMPT_END_PHI_3,
+    True,
+    DEFAULT_PHI_3_STOP_SEQUENCES,
+    True,
+    FUNCTION_PROMPT_START_PHI_3,
+    FUNCTION_PROMPT_END_PHI_3,
+)
+
 predefined_formatter = {
     MessagesFormatterType.MIXTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
@@ -535,11 +560,12 @@ predefined_formatter = {
     MessagesFormatterType.CODE_DS: code_ds_formatter,
     MessagesFormatterType.B22: b22_chat_formatter,
     MessagesFormatterType.LLAMA_3: llama_3_formatter,
+    MessagesFormatterType.PHI_3: phi_3_chat_formatter
 }
 
 
 def get_predefined_messages_formatter(
-    formatter_type: MessagesFormatterType,
+        formatter_type: MessagesFormatterType,
 ) -> MessagesFormatter:
     """
     Gets a predefined messages formatter based on the formatter type.

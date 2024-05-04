@@ -1,0 +1,63 @@
+{
+    "llama_generation_settings": {
+        "max_tokens": 0,
+        "temperature": 0.4,
+        "top_k": 0,
+        "top_p": 1.0,
+        "min_p": 0.1,
+        "typical_p": 1.0,
+        "repeat_penalty": 1.1,
+        "mirostat_mode": 0,
+        "mirostat_tau": 5.0,
+        "mirostat_eta": 0.1,
+        "tfs_z": 0.95,
+        "stop_sequences": null,
+        "stream": true,
+        "print_output": true
+    },
+    "without_grammar_mode": false,
+    "prompt_suffix": "",
+    "system_prompt": "You are Funky, an AI assistant that calls functions to perform tasks.\n\nTo call functions, you respond with a JSON object containing three fields:\n\"thoughts_and_reasoning\": Your thoughts and reasoning behind the function call.\n\"function\": The name of the function you want to call.\n\"parameters\": The arguments required for the function.\n\nAfter performing a function call, you will receive a response containing the return values of the function calls.\n\nFor direct communication with the user, employ the 'activate_message_mode' function. After you have finished your call to 'activate_message_mode', you can freely write a response to the user without any JSON constraints. This enables you to converse naturally.\n\n### Functions:\nBelow is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.\nChoose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.\n\nfunction: calculator\n  description: Perform a math operation on two numbers.\n  parameters:\n    number_one (int or float): First number.\n    operation ('add' or 'subtract' or 'multiply' or 'divide'): Math operation to perform.\n    number_two (int or float): Second number.\n\nfunction: get_current_datetime\n  description: Get the current date and time in the given format.\n  parameters:\n    output_format (str or null): formatting string for the date and time, defaults to '%Y-%m-%d %H:%M:%S'\n\nfunction: get_current_weather\n  parameters:\n    location (str): The city and state, e.g. San Francisco, CA\n    unit ('celsius' or 'fahrenheit' or null)\n\nfunction: activate_message_mode\n  description: Activates message mode.\n  parameters:\n    none",
+    "k_last_messages_from_chat_history": 0,
+    "debug_output": true,
+    "messages": [
+        {
+            "role": "user",
+            "content": "Get the date and time in '%d-%m-%Y %H:%M' format. Get the current weather in celsius in London, New York and at the North Pole. Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8."
+        },
+        {
+            "role": "assistant",
+            "content": "[\n  {\n    \"thoughts_and_reasoning\": \"First, I will get the current date and time in the specified format. Then, I will call the calculator function four times to solve the given mathematical problems.\",\n    \"function\": \"get_current_datetime\",\n    \"parameters\": {\n      \"output_format\": \"%d-%m-%Y %H:%M\"\n    }\n  },\n  {\n    \"thoughts_and_reasoning\": \"Next, I will call the get_current_weather function three times to get the weather information for London, New York, and the North Pole in Celsius.\",\n    \"function\": \"get_current_weather\",\n    \"parameters\": {\n      \"location\": \"London, UK\",\n      \"unit\": \"celsius\"\n    }\n  },\n  {\n    \"thoughts_and_reasoning\": \"\",\n    \"function\": \"activate_message_mode\",\n    \"parameters\": {}\n  },\n  {\n    \"thoughts_and_reasoning\": \"Current date and time: \",\n    \"function\": \"activate_message_mode\",\n    \"parameters\": {}\n  },\n  {\n    \"thoughts_and_reasoning\": \"\",\n    \"function\": \"calculator\",\n    \"parameters\": {\n      \"number_one\": 42,\n      \"operation\": \"multiply\",\n      \"number_two\": 42\n    }\n  },\n  {\n    \"thoughts_and_reasoning\": \"Result: \",\n    \"function\": \"activate_message_mode\",\n    \"parameters\": {}\n  },\n  {\n    \"thoughts_and_reasoning\": \"\",\n    \"function\": \"calculator\",\n    \"parameters\": {\n      \"number_one\": 74,\n      \"operation\": \"add\",\n      \"number_two\": 26\n    }\n  },\n  {\n    \"thoughts_and_reasoning\": \"Result: \",\n    \"function\": \"activate_message_mode\",\n    \"parameters\": {}\n  },\n  {\n    \"thoughts_and_reasoning\": \"\",\n    \"function\": \"calculator\",\n    \"parameters\": {\n      \"number_one\": 7,\n      \"operation\": \"multiply\",\n      \"number_two\": 26\n    }\n  },\n  {\n    \"thoughts_and_reasoning\": \"Result: \",\n    \"function\": \"activate_message_mode\",\n    \"parameters\": {}\n  },\n  {\n    \"thoughts_and_reasoning\": \"\",\n    \"function\": \"calculator\",\n    \"parameters\": {\n      \"number_one\": 4,\n      \"operation\": \"add\",\n      \"number_two\": 6\n    }\n  },\n  {\n    \"thoughts_and_reasoning\": \"Result: \",\n    \"function\": \"activate_message_mode\",\n    \"parameters\": {}\n  },\n  {\n    \"thoughts_and_reasoning\": \"\",\n    \"function\": \"calculator\",\n    \"parameters\": {\n      \"number_one\": 96,\n      \"operation\": \"divide\",\n      \"number_two\": 8\n    }\n  },\n  {\n    \"thoughts_and_reasoning\": \"Result: \",\n    \"function\": \"activate_message_mode\",\n    \"parameters\": {}\n  },\n  {\n    \"thoughts_and_reasoning\": \"\",\n    \"function\": \"get_current_weather\",\n    \"parameters\": {\n      \"location\": \"New York, NY\",\n      \"unit\": \"celsius\"\n    }\n  },\n  {\n    \"thoughts_and_reasoning\": \"\",\n    \"function\": \"activate_message_mode\",\n    \"parameters\": {}\n  },\n  {\n    \"thoughts_and_reasoning\": \"\",\n    \"function\": \"get_current_weather\",\n    \"parameters\": {\n      \"location\": \"North Pole\",\n      \"unit\": \"celsius\"\n    }\n  },\n  {\n    \"thoughts_and_reasoning\": \"\",\n    \"function\": \"activate_message_mode\",\n    \"parameters\": {}\n  }\n]"
+        },
+        {
+            "role": "function",
+            "content": "Function Calling Results:\n\n1. Function: \"get_current_datetime\"\nArguments: \"{'output_format': '%d-%m-%Y %H:%M'}\"\nReturn Value: 04-05-2024 23:20\n\n2. Function: \"get_current_weather\"\nArguments: \"{'location': 'London, UK', 'unit': 'celsius'}\"\nReturn Value: Weather in London, UK: 22\u00b0 celsius\n\n3. Function: \"activate_message_mode\"\nArguments: \"{}\"\nReturn Value: True\n\n4. Function: \"activate_message_mode\"\nArguments: \"{}\"\nReturn Value: True\n\n5. Function: \"calculator\"\nArguments: \"{'number_one': 42, 'operation': 'multiply', 'number_two': 42}\"\nReturn Value: 1764\n\n6. Function: \"activate_message_mode\"\nArguments: \"{}\"\nReturn Value: True\n\n7. Function: \"calculator\"\nArguments: \"{'number_one': 74, 'operation': 'add', 'number_two': 26}\"\nReturn Value: 100\n\n8. Function: \"activate_message_mode\"\nArguments: \"{}\"\nReturn Value: True\n\n9. Function: \"calculator\"\nArguments: \"{'number_one': 7, 'operation': 'multiply', 'number_two': 26}\"\nReturn Value: 182\n\n10. Function: \"activate_message_mode\"\nArguments: \"{}\"\nReturn Value: True\n\n11. Function: \"calculator\"\nArguments: \"{'number_one': 4, 'operation': 'add', 'number_two': 6}\"\nReturn Value: 10\n\n12. Function: \"activate_message_mode\"\nArguments: \"{}\"\nReturn Value: True\n\n13. Function: \"calculator\"\nArguments: \"{'number_one': 96, 'operation': 'divide', 'number_two': 8}\"\nReturn Value: 12.0\n\n14. Function: \"activate_message_mode\"\nArguments: \"{}\"\nReturn Value: True\n\n15. Function: \"get_current_weather\"\nArguments: \"{'location': 'New York, NY', 'unit': 'celsius'}\"\nReturn Value: Weather in New York, NY: 24\u00b0 celsius\n\n16. Function: \"activate_message_mode\"\nArguments: \"{}\"\nReturn Value: True\n\n17. Function: \"get_current_weather\"\nArguments: \"{'location': 'North Pole', 'unit': 'celsius'}\"\nReturn Value: Weather in North Pole: -42\u00b0 celsius\n\n18. Function: \"activate_message_mode\"\nArguments: \"{}\"\nReturn Value: True"
+        },
+        {
+            "role": "assistant",
+            "content": " Based on the function calling results provided, here is a summary of what has been calculated and obtained:\n\n1. The current date and time in the format '%d-%m-%Y %H:%M' is 04-05-2024 23:20.\n2. The weather in London, UK, in Celsius is 22\u00b0.\n3. The result of multiplying 42 by 42 is 1764.\n4. The sum of 74 and 26 is 100.\n5. The product of 7 and 26 is 182.\n6. The sum of 4 and 6 is 10.\n7. The quotient of 96 divided by 8 is 12.0.\n8. The weather in New York, NY, in Celsius is 24\u00b0.\n9. The weather at the North Pole in Celsius is -42\u00b0."
+        }
+    ],
+    "custom_messages_formatter": {
+        "PRE_PROMPT": "",
+        "SYS_PROMPT_START": "",
+        "SYS_PROMPT_END": "\n\n",
+        "USER_PROMPT_START": "[INST] ",
+        "USER_PROMPT_END": " ",
+        "ASSISTANT_PROMPT_START": "[/INST] ",
+        "ASSISTANT_PROMPT_END": "</s>",
+        "INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE": true,
+        "DEFAULT_STOP_SEQUENCES": [
+            "</s>",
+            "<|end_of_turn|>",
+            "(End of message)",
+            "<|end_of_turn|>",
+            "(End of message)",
+            "(End of message)"
+        ],
+        "FUNCTION_PROMPT_START": "",
+        "FUNCTION_PROMPT_END": "",
+        "USE_USER_ROLE_FUNCTION_CALL_RESULT": true,
+        "STRIP_PROMPT": true
+    }
+}

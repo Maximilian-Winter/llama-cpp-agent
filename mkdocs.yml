@@ -49,13 +49,21 @@ nav:
   - "Usage Examples":
       "Simple Chat": "simple-chat-example.md"
       "Function Calling Agent": "function-calling-agent.md"
+      "Parallel Function Calling Agent": "parallel_function_calling.md"
       "Structured Output Agent": "structured-output-example.md"
+      "RAG- Retrieval Augmented Generation": "rag.md"
+      "llama-index tools example": "llama_index_tool_use.md"
+      "Sequential Chain Example": "sequential_chain.md"
+      "Map Chain Example": "map_chain.md"
+      "Manual Function Calling Example": "manual-function-calling.md"
+      "Manual Function Calling Example With Python Function": "manual_function_calling_with_python_function.md"
       "Knowledge Graph Generation": "knowledge-graph-example.md"
 
 
   - "API Reference":
       "Agents API": "agents-api-reference.md"
       "Function Calling API": "function-calling-api-reference.md"
+      "Agent Chains": "agent_chains.md"
       "Settings API": "settings-api-reference.md"
       "Output Parsing API": "output-parser-api-reference.md"
       "Grammar Generator API": "grammar-api-reference.md"

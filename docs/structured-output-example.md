@@ -1,4 +1,4 @@
-# Structured Output
+### Structured Output
 This example shows how to get structured output objects using the StructureOutputAgent class.
 ```python
 # Example agent that uses the StructuredOutputAgent class to create a dataset entry of a book out of unstructured data.
@@ -58,4 +58,3 @@ Example output
 title='The Feynman Lectures on Physics' author='Richard Feynman, Robert B. Leighton, Matthew Sands' published_year=1963 keywords=['physics', 'textbook', 'Nobel laureate', 'The Great Explainer', 'California Institute of Technology', 'undergraduate', 'lectures'] category=<Category.NonFiction: 'Non-Fiction'> summary="The Feynman Lectures on Physics is a physics textbook based on lectures by Nobel laureate Richard Feynman, known as 'The Great Explainer'. The lectures were presented to undergraduate students at Caltech between 1961 and 1963. Co-authors of the book are Feynman, Robert B. Leighton, and Matthew Sands."
 
 ```
-

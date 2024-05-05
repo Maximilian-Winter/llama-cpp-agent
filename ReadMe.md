@@ -145,7 +145,7 @@ custom_formatter = MessagesFormatter(
     USER_PROMPT_END="<|enduser|>",
     ASSISTANT_PROMPT_START="<|assistant|>",
     ASSISTANT_PROMPT_END="<|endassistant|>",
-    INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE=True,
+    INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE=False,
     DEFAULT_STOP_SEQUENCES=["<|endsystem|>", "<|enduser|>", "<|endassistant|>"]
 )
 ```

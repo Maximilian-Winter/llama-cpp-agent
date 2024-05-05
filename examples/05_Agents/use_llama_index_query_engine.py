@@ -32,7 +32,7 @@ uber_docs = SimpleDirectoryReader(
 
 # build index
 lyft_index = VectorStoreIndex.from_documents(lyft_docs, embed_model="local")
-uber_index = VectorStoreIndex(uber_docs, embed_model="local")
+uber_index = VectorStoreIndex.from_documents(uber_docs, embed_model="local")
 
 # Create the query engines for lyft and uber.
 

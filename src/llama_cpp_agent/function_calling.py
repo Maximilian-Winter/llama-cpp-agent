@@ -182,6 +182,20 @@ class LlamaCppFunctionTool:
         self.add_outer_request_heartbeat_field = add_outer_request_heartbeat_field
 
     @staticmethod
+    def from_pydantic_model_and_callable(pydantic_model: BaseModel, tool_function: Callable):
+        """
+        Converts an OpenAI tool schema and a callable function into a LlamaCppFunctionTool
+        Args:
+            pydantic_model(BaseModel): Pydantic Model representing the arguments to the tool.
+            tool_function(Callable): Callable function that will be invoked when the agent uses it and will be passed the fields of the pydantic model.
+
+        Returns:
+            LlamaCppFunctionTool: The LlamaCppFunctionTool instance.
+        """
+        pydantic_model = add_run_method_to_dynamic_model(pydantic_model, tool_function)
+        return LlamaCppFunctionTool(pydantic_model)
+
+    @staticmethod
     def from_openai_tool(openai_tool_schema: dict, tool_function: Callable):
         """
         Converts an OpenAI tool schema and a callable function into a LlamaCppFunctionTool

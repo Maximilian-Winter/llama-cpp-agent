@@ -16,8 +16,6 @@
     - [Sequential Chain](#sequential-chain-example)
     - [Mapping Chain](#mapping-chain-example)
     - [Knowledge Graph Creation](#knowledge-graph-creation-example)
-    - [Manual Function Calling](#manual-function-calling-example)
-    - [Manual Function Calling with Python Function](#manual-function-calling-with-python-function-example)
 - [Additional Information](#additional-information)
     - [Predefined Messages Formatter](#predefined-messages-formatter)
     - [Creating Custom Messages Formatter](#creating-custom-messages-formatter)

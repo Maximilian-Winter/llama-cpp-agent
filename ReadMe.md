@@ -14,6 +14,7 @@ It works by generating a formal GGML-BNF grammar of the user defined structures 
 - **Single and Parallel Function Calling**: Let the LLM execute functions.
 - **RAG - Retrieval Augmented Generation**: Perform retrieval augmented generation with colbert reranking.
 - **Agent Chains**: Supports processing of text in agent chains with tools. Supports Conversational, Sequential and Mapping Chains.
+- **Works with llama-index tools** You can easily convert a llama-index tool to a llama-cpp-aget tool and use stuff like query engines etc. See in the examples below.
 - **Flexibility**: Suited for various applications from casual chatting to specific function executions.
 
 ## Installation

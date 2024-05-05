@@ -211,8 +211,9 @@ class OpenAIEndpointSettings:
                 print(f"Request failed: {e}")
 
         return generate_text_chunks()
+
     async def async_create_completion(
-            self, prompt, grammar, generation_settings: OpenAIGenerationSettings
+        self, prompt, grammar, generation_settings: OpenAIGenerationSettings
     ):
         """
         Create a completion using the Llama.cpp server asynchronously.
@@ -240,7 +241,7 @@ class OpenAIEndpointSettings:
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                    self.completions_endpoint_url, headers=headers, json=data
+                self.completions_endpoint_url, headers=headers, json=data
             ) as response:
                 response_data = await response.json()
 
@@ -258,7 +259,7 @@ class OpenAIEndpointSettings:
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                    self.completions_endpoint_url, headers=headers, json=data
+                self.completions_endpoint_url, headers=headers, json=data
             ) as response:
                 response.raise_for_status()
 

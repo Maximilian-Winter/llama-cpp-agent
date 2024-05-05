@@ -14,9 +14,20 @@ from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.llm_prompt_template import PromptTemplate
 from llama_cpp_agent.llm_settings import LlamaLLMSettings
-from llama_cpp_agent.messages import ToolCall, FunctionCall, ToolMessage, AssistantMessage, UserMessage, ChatMessage, \
-    convert_messages_to_list_of_dictionaries, SystemMessage
-from llama_cpp_agent.messages_formatter import MessagesFormatterType, get_predefined_messages_formatter
+from llama_cpp_agent.messages import (
+    ToolCall,
+    FunctionCall,
+    ToolMessage,
+    AssistantMessage,
+    UserMessage,
+    ChatMessage,
+    convert_messages_to_list_of_dictionaries,
+    SystemMessage,
+)
+from llama_cpp_agent.messages_formatter import (
+    MessagesFormatterType,
+    get_predefined_messages_formatter,
+)
 from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
     LlamaCppEndpointSettings,
 )
@@ -57,9 +68,7 @@ class Hermes2ProMessageFormatter:
     Class representing a messages formatter for LLMs.
     """
 
-    def __init__(
-            self
-    ):
+    def __init__(self):
         """
         Initializes a new MessagesFormatter object.
         """
@@ -86,7 +95,7 @@ class Hermes2ProMessageFormatter:
             "<|im_start|>assistant",
             "<|im_start|>user",
             "<|im_start|>system",
-            "<|im_start|>tool"
+            "<|im_start|>tool",
         ]
         self.FUNCTION_PROMPT_START = "<|im_start|>tool\n"
         self.FUNCTION_PROMPT_END = "<|im_end|>\n"
@@ -94,9 +103,9 @@ class Hermes2ProMessageFormatter:
         self.STRIP_PROMPT = True
 
     def format_messages(
-            self,
-            messages: List[Dict[str, str]],
-            response_role: Literal["user", "assistant"] | None = None,
+        self,
+        messages: List[Dict[str, str]],
+        response_role: Literal["user", "assistant"] | None = None,
     ) -> Tuple[str, str]:
         """
         Formats a list of messages into a conversation string.
@@ -114,7 +123,7 @@ class Hermes2ProMessageFormatter:
         for message in messages:
             if message["role"] == "system":
                 formatted_messages += (
-                        self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
+                    self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
                 )
                 last_role = "system"
                 if self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE:
@@ -126,18 +135,18 @@ class Hermes2ProMessageFormatter:
                     formatted_messages += message["content"] + self.USER_PROMPT_END
                 else:
                     formatted_messages += (
-                            self.USER_PROMPT_START
-                            + message["content"]
-                            + self.USER_PROMPT_END
+                        self.USER_PROMPT_START
+                        + message["content"]
+                        + self.USER_PROMPT_END
                     )
                 last_role = "user"
             elif message["role"] == "assistant":
                 if self.STRIP_PROMPT:
                     message["content"] = message["content"].strip()
                 formatted_messages += (
-                        self.ASSISTANT_PROMPT_START
-                        + message["content"]
-                        + self.ASSISTANT_PROMPT_END
+                    self.ASSISTANT_PROMPT_START
+                    + message["content"]
+                    + self.ASSISTANT_PROMPT_END
                 )
                 last_role = "assistant"
             elif message["role"] == "tool":
@@ -147,16 +156,16 @@ class Hermes2ProMessageFormatter:
                     )
                 if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
                     formatted_messages += (
-                            self.USER_PROMPT_START
-                            + message["content"]
-                            + self.USER_PROMPT_END
+                        self.USER_PROMPT_START
+                        + message["content"]
+                        + self.USER_PROMPT_END
                     )
                     last_role = "user"
                 else:
                     formatted_messages += (
-                            self.FUNCTION_PROMPT_START
-                            + message["content"]
-                            + self.FUNCTION_PROMPT_END
+                        self.FUNCTION_PROMPT_START
+                        + message["content"]
+                        + self.FUNCTION_PROMPT_END
                     )
                     last_role = "tool"
         if last_role == "system" or last_role == "user" or last_role == "tool":
@@ -211,17 +220,14 @@ class Hermes2ProMessageFormatter:
 
 class Hermes2ProAgent:
     def __init__(
-            self,
-            model: Llama
-                   | LlamaLLMSettings
-                   | LlamaCppEndpointSettings
-                   | OpenAIEndpointSettings,
-            system_prompt: str = None,
-            debug_output: bool = False
+        self,
+        model: (
+            Llama | LlamaLLMSettings | LlamaCppEndpointSettings | OpenAIEndpointSettings
+        ),
+        system_prompt: str = None,
+        debug_output: bool = False,
     ):
-        self.messages: list[
-            ChatMessage
-        ] = []
+        self.messages: list[ChatMessage] = []
         self.agent = LlamaCppAgent(model, debug_output=debug_output)
         self.debug_output = debug_output
         if system_prompt is not None:
@@ -240,11 +246,11 @@ For each function call return a json object with function name and arguments wit
         self.system_prompter = PromptTemplate.from_string(self.sys_prompt_template)
 
     def get_response(
-            self,
-            message=None,
-            tools: list[LlamaCppFunctionTool] = None,
-            temperature=0.7,
-            top_p=1.0,
+        self,
+        message=None,
+        tools: list[LlamaCppFunctionTool] = None,
+        temperature=0.7,
+        top_p=1.0,
     ):
         if tools is None:
             tools = []
@@ -258,8 +264,11 @@ For each function call return a json object with function name and arguments wit
             openai_tool_mapping[tool.model.__name__] = tool
 
         self.messages[0].content = self.system_prompter.generate_prompt(
-            {"tools": json.dumps(openai_tools), "system_prompt": self.system_prompt})
-        text, role = self.messages_formatter.format_messages(convert_messages_to_list_of_dictionaries(self.messages))
+            {"tools": json.dumps(openai_tools), "system_prompt": self.system_prompt}
+        )
+        text, role = self.messages_formatter.format_messages(
+            convert_messages_to_list_of_dictionaries(self.messages)
+        )
 
         if self.debug_output:
             print(text)
@@ -299,12 +308,14 @@ For each function call return a json object with function name and arguments wit
                         ToolMessage(content=str(output), tool_call_id=tool_call_id)
                     )
                 except ValidationError as e:
-                    tool_messages.append(
-                        ToolMessage(content=str(e), tool_call_id="-1")
+                    tool_messages.append(ToolMessage(content=str(e), tool_call_id="-1"))
+                    self.messages.append(
+                        AssistantMessage(content=result, tool_calls=tool_calls)
                     )
-                    self.messages.append(AssistantMessage(content=result, tool_calls=tool_calls))
                     self.messages.extend(tool_messages)
-            self.messages.append(AssistantMessage(content=result, tool_calls=tool_calls))
+            self.messages.append(
+                AssistantMessage(content=result, tool_calls=tool_calls)
+            )
             self.messages.extend(tool_messages)
             return self.get_response(tools=tools)
         else:

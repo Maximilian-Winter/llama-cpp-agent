@@ -65,7 +65,10 @@ class ToolMessage(BaseMessage):
     content: str
 
 
-ChatMessage = Annotated[Union[SystemMessage, UserMessage, AssistantMessage, ToolMessage], Field(discriminator="role")]
+ChatMessage = Annotated[
+    Union[SystemMessage, UserMessage, AssistantMessage, ToolMessage],
+    Field(discriminator="role"),
+]
 
 
 class ChatHistory(ABC):
@@ -122,7 +125,9 @@ class ChatMessageStore(ABC):
 
 
 # Function to convert messages to list of dictionary format
-def convert_messages_to_list_of_dictionaries(messages: List[ChatMessage]) -> List[Dict[str, str]]:
+def convert_messages_to_list_of_dictionaries(
+    messages: List[ChatMessage],
+) -> List[Dict[str, str]]:
     """
     Converts a list of messages to a list of dictionaries.
     Args:
@@ -151,10 +156,7 @@ def convert_messages_to_list_of_dictionaries(messages: List[ChatMessage]) -> Lis
         else:
             content = f"{message.content}"
         # Construct the dictionary for the current message
-        msg_dict = {
-            'role': message.role.value,
-            'content': content
-        }
+        msg_dict = {"role": message.role.value, "content": content}
         result.append(msg_dict)
     return result
 
@@ -203,15 +205,17 @@ class BasicChatMessageStore(ChatMessageStore):
         # Convert messages to a list of dictionaries using pydantic's model_dump() method
         messages_dict = [message.model_dump() for message in self.messages]
         # Write the list of dictionaries to a JSON file
-        with open(file_path, 'w') as file:
+        with open(file_path, "w") as file:
             json.dump(messages_dict, file, indent=4)
 
     def load_from_json(self, file_path: str):
         # Read the list of dictionaries from a JSON file
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             messages_dict = json.load(file)
         # Convert dictionaries back to ChatMessage instances
-        self.messages = [parse_obj_as(ChatMessage, message) for message in messages_dict]
+        self.messages = [
+            parse_obj_as(ChatMessage, message) for message in messages_dict
+        ]
 
 
 class BasicChatHistoryStrategy(Enum):
@@ -220,27 +224,40 @@ class BasicChatHistoryStrategy(Enum):
 
 
 class BasicChatHistory(ChatHistory):
-    def __init__(self, chat_history_strategy: BasicChatHistoryStrategy = BasicChatHistoryStrategy.last_k_messages,
-                 k: int = 10,
-                 llm_provider: LLMProviderBase = None, message_store: ChatMessageStore = None):
+    def __init__(
+        self,
+        chat_history_strategy: BasicChatHistoryStrategy = BasicChatHistoryStrategy.last_k_messages,
+        k: int = 10,
+        llm_provider: LLMProviderBase = None,
+        message_store: ChatMessageStore = None,
+    ):
         if message_store is None:
             message_store = BasicChatMessageStore()
         self.message_store: ChatMessageStore = message_store
         self.k = k
         self.strategy = chat_history_strategy
         self.llm_provider = llm_provider
-        if chat_history_strategy == BasicChatHistoryStrategy.last_k_tokens and llm_provider is None:
-            raise Exception("Please pass a LLM provider to BasicChatHistory when using last k tokens as memory strategy!")
+        if (
+            chat_history_strategy == BasicChatHistoryStrategy.last_k_tokens
+            and llm_provider is None
+        ):
+            raise Exception(
+                "Please pass a LLM provider to BasicChatHistory when using last k tokens as memory strategy!"
+            )
 
     def get_chat_messages(self) -> List[Dict[str, str]]:
         if self.strategy == BasicChatHistoryStrategy.last_k_messages:
-            return convert_messages_to_list_of_dictionaries(self.message_store.get_last_k_messages(self.k))
+            return convert_messages_to_list_of_dictionaries(
+                self.message_store.get_last_k_messages(self.k)
+            )
         elif self.strategy == BasicChatHistoryStrategy.last_k_tokens:
             total_tokens = 0
             selected_messages = []
-            converted_messages = convert_messages_to_list_of_dictionaries(self.message_store.get_all_messages())
+            converted_messages = convert_messages_to_list_of_dictionaries(
+                self.message_store.get_all_messages()
+            )
             sys_message = None
-            if converted_messages[0]['role'] == "system":
+            if converted_messages[0]["role"] == "system":
                 sys_message = converted_messages.pop(0)
             for message in reversed(converted_messages):
                 tokens = self.llm_provider.tokenize(message["content"])

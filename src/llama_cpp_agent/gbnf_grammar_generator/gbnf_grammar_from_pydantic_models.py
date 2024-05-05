@@ -1593,13 +1593,17 @@ def create_dynamic_model_from_function(
     # Creating the dynamic model
     dynamic_model = create_model(f"{func.__name__}", **dynamic_fields)  # type: ignore[call-overload]
     if add_inner_thoughts:
-        dynamic_model.model_fields[
-            inner_thoughts_field_name
-        ].description = "Deep inner monologue private to you only."
+        dynamic_model.model_fields[inner_thoughts_field_name].description = (
+            "Deep inner monologue private to you only."
+        )
     for name, param_doc in param_docs:
         dynamic_model.model_fields[name].description = param_doc.description
-        
-    dynamic_model.__doc__ = (docstring.short_description if docstring.short_description is not None else "") + "\n" + (docstring.long_description if docstring.long_description is not None else "")
+
+    dynamic_model.__doc__ = (
+        (docstring.short_description if docstring.short_description is not None else "")
+        + "\n"
+        + (docstring.long_description if docstring.long_description is not None else "")
+    )
 
     def run_method_wrapper(self):
         func_args = {name: getattr(self, name) for name, _ in dynamic_fields.items()}
@@ -1720,7 +1724,10 @@ def convert_dictionary_to_pydantic_model(
                     if items != {}:
                         array = {"properties": items}
                         array_type = convert_dictionary_to_pydantic_model(
-                            array, f"{model_name}_{field_name}_items", docs, docs_function
+                            array,
+                            f"{model_name}_{field_name}_items",
+                            docs,
+                            docs_function,
                         )
                         fields[field_name] = (List[array_type], ...)  # type: ignore[valid-type]
                     else:
@@ -1751,7 +1758,9 @@ def convert_dictionary_to_pydantic_model(
 
     if "parameters" in dictionary:
         field_data = {"function": dictionary}
-        return convert_dictionary_to_pydantic_model(field_data, f"{model_name}", docs, docs_function)
+        return convert_dictionary_to_pydantic_model(
+            field_data, f"{model_name}", docs, docs_function
+        )
     if "required" in dictionary:
         required = dictionary.get("required", [])
         for key, field in fields.items():

@@ -67,9 +67,11 @@ class RecursiveCharacterTextSplitter:
             pieces = re.split(f"({re.escape(current_separator)})", text)
             # Reattach separators to the chunks
             pieces = [
-                pieces[i] + pieces[i + 1]
-                if i + 1 < len(pieces) and pieces[i + 1] == current_separator
-                else pieces[i]
+                (
+                    pieces[i] + pieces[i + 1]
+                    if i + 1 < len(pieces) and pieces[i + 1] == current_separator
+                    else pieces[i]
+                )
                 for i in range(0, len(pieces), 2)
             ]
         else:

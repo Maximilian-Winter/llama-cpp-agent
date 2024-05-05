@@ -31,12 +31,22 @@ class AgentChainElement:
     Methods:
         __init__: Constructs an instance of the AgentChain class.
     """
-    def __init__(self, output_identifier: str, system_prompt: str, prompt: str,
-                 tools: List[LlamaCppFunctionTool] = None, grammar: str = None,
-                 preprocessor: Callable[[str, str, dict], tuple[str, str, dict]] = None,
-                 postprocessor: Callable[[str, str, dict, str], str] = None,
-                 add_prompt_to_chat_history: bool = False, add_response_to_chat_history: bool = False,
-                 temperature: float = 0.35, top_p: float = 1.0, top_k: int = 0):
+
+    def __init__(
+        self,
+        output_identifier: str,
+        system_prompt: str,
+        prompt: str,
+        tools: List[LlamaCppFunctionTool] = None,
+        grammar: str = None,
+        preprocessor: Callable[[str, str, dict], tuple[str, str, dict]] = None,
+        postprocessor: Callable[[str, str, dict, str], str] = None,
+        add_prompt_to_chat_history: bool = False,
+        add_response_to_chat_history: bool = False,
+        temperature: float = 0.35,
+        top_p: float = 1.0,
+        top_k: int = 0,
+    ):
         """
         Constructs an instance of the AgentChainElement class.
 
@@ -69,7 +79,9 @@ class AgentChainElement:
         self.postprocessor = postprocessor
         self.function_tool_registry = None
         if tools is not None:
-            self.function_tool_registry = LlamaCppAgent.get_function_tool_registry(tools)
+            self.function_tool_registry = LlamaCppAgent.get_function_tool_registry(
+                tools
+            )
         self.temperature = temperature
         self.top_p = top_p
         self.top_k = top_k
@@ -88,6 +100,7 @@ class AgentChain:
         __init__: Constructs an instance of the AgentChain class.
         run_chain: Processes the entire chain of elements using provided inputs.
     """
+
     def __init__(self, agent: LlamaCppAgent, chain_elements: List[AgentChainElement]):
         """
         Constructs an instance of the AgentChain class.
@@ -114,7 +127,7 @@ class AgentChain:
         outputs = {}
 
         if user_message is not None:
-            outputs['user_message'] = user_message
+            outputs["user_message"] = user_message
 
         if additional_fields is not None:
             for field, value in additional_fields.items():
@@ -128,23 +141,38 @@ class AgentChain:
             if chain_element.function_tool_registry is not None:
                 sys_prompt += f"\n\nYou can call functions in JSON format.\n\nAvailable Function Tools:\n\n{chain_element.function_tool_registry.get_documentation()}"
             if chain_element.preprocessor is not None:
-                sys_prompt, prompt, outputs = chain_element.preprocessor(sys_prompt, prompt, outputs)
+                sys_prompt, prompt, outputs = chain_element.preprocessor(
+                    sys_prompt, prompt, outputs
+                )
 
-            outputs[chain_element.output_identifier] = self.agent.get_chat_response(prompt, system_prompt=sys_prompt,
-                                                                                    penalize_nl=False,
-                                                                                    temperature=chain_element.temperature,
-                                                                                    top_p=chain_element.top_p,
-                                                                                    top_k=chain_element.top_k,
-                                                                                    function_tool_registry=chain_element.function_tool_registry,
-                                                                                    grammar=chain_element.grammar,
-                                                                                    add_response_to_chat_history=chain_element.add_response_to_chat_history,
-                                                                                    add_message_to_chat_history=chain_element.add_prompt_to_chat_history)
+            outputs[chain_element.output_identifier] = self.agent.get_chat_response(
+                prompt,
+                system_prompt=sys_prompt,
+                penalize_nl=False,
+                temperature=chain_element.temperature,
+                top_p=chain_element.top_p,
+                top_k=chain_element.top_k,
+                function_tool_registry=chain_element.function_tool_registry,
+                grammar=chain_element.grammar,
+                add_response_to_chat_history=chain_element.add_response_to_chat_history,
+                add_message_to_chat_history=chain_element.add_prompt_to_chat_history,
+            )
             if chain_element.function_tool_registry is not None:
-                outputs[chain_element.output_identifier] = outputs[chain_element.output_identifier][0]["return_value"]
+                outputs[chain_element.output_identifier] = outputs[
+                    chain_element.output_identifier
+                ][0]["return_value"]
             if chain_element.postprocessor is not None:
-                outputs[chain_element.output_identifier] = chain_element.postprocessor = chain_element.postprocessor(
-                    sys_prompt, prompt, outputs, outputs[chain_element.output_identifier])
-        output = '\n'.join([val if isinstance(val, str) else str(val) for val in outputs.values()])
+                outputs[chain_element.output_identifier] = (
+                    chain_element.postprocessor
+                ) = chain_element.postprocessor(
+                    sys_prompt,
+                    prompt,
+                    outputs,
+                    outputs[chain_element.output_identifier],
+                )
+        output = "\n".join(
+            [val if isinstance(val, str) else str(val) for val in outputs.values()]
+        )
         return output, outputs
 
 
@@ -164,9 +192,15 @@ class MapChain:
         __init__: Constructs an instance of the MapChain class.
         run_map_chain: Executes the map chain on a list of items and then processes the results with the combine chain.
     """
-    def __init__(self, agent: LlamaCppAgent, map_chain: List[AgentChainElement],
-                 combine_chain: List[AgentChainElement], item_identifier: str = "item",
-                 map_output_identifier: str = "map_output"):
+
+    def __init__(
+        self,
+        agent: LlamaCppAgent,
+        map_chain: List[AgentChainElement],
+        combine_chain: List[AgentChainElement],
+        item_identifier: str = "item",
+        map_output_identifier: str = "map_output",
+    ):
         """
         Constructs an instance of the MapChain class. This class is designed to process a list of items through
         a mapping chain and then combine the results using a combining chain.
@@ -184,7 +218,12 @@ class MapChain:
         self.item_identifier = item_identifier
         self.map_output_identifier = map_output_identifier
 
-    def run_map_chain(self, items_to_map: list[str], user_message: str = None, additional_fields: dict = None):
+    def run_map_chain(
+        self,
+        items_to_map: list[str],
+        user_message: str = None,
+        additional_fields: dict = None,
+    ):
         """
         Executes the map chain over a list of items and then uses the combine chain to process the concatenated
         results.
@@ -199,7 +238,7 @@ class MapChain:
         """
         outputs = {}
         if user_message is not None:
-            outputs['user_message'] = user_message
+            outputs["user_message"] = user_message
 
         if additional_fields is not None:
             for field, value in additional_fields.items():
@@ -209,7 +248,9 @@ class MapChain:
         results = []
         for item in items_to_map:
             additional_fields[self.item_identifier] = item
-            result, result_dic = self.map_chain.run_chain(additional_fields=additional_fields)
+            result, result_dic = self.map_chain.run_chain(
+                additional_fields=additional_fields
+            )
             results.append(result_dic[self.map_chain.chain[-1].output_identifier])
-        additional_fields[self.map_output_identifier] = '\n\n'.join(results)
+        additional_fields[self.map_output_identifier] = "\n\n".join(results)
         return self.combine_chain.run_chain(additional_fields=additional_fields)

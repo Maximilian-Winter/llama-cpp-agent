@@ -297,7 +297,7 @@ class LlamaCppEndpointSettings:
         return generate_text_chunks()
 
     async def async_create_completion(
-            self, prompt, grammar, generation_settings: LlamaCppGenerationSettings
+        self, prompt, grammar, generation_settings: LlamaCppGenerationSettings
     ):
         """
         Create a completion using the Llama.cpp server asynchronously.
@@ -327,7 +327,7 @@ class LlamaCppEndpointSettings:
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                    self.completions_endpoint_url, headers=headers, json=data
+                self.completions_endpoint_url, headers=headers, json=data
             ) as response:
                 response_data = await response.json()
 
@@ -347,7 +347,7 @@ class LlamaCppEndpointSettings:
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                    self.completions_endpoint_url, headers=headers, json=data
+                self.completions_endpoint_url, headers=headers, json=data
             ) as response:
                 response.raise_for_status()
 

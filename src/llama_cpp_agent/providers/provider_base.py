@@ -39,7 +39,9 @@ class LLMGenerationSettings(BaseModel):
         if name in self.settings:
             return self.settings[name].value
         else:
-            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
 
     def as_dict(self) -> Dict[str, Any]:
         """Get the current settings as a dictionary."""
@@ -50,18 +52,26 @@ class LLMProviderBase(ABC):
     """
     Abstract base class for all LLM providers.
     """
+
     @abstractmethod
     def get_default_generation_settings(self) -> LLMGenerationSettings:
         """Get the default generation settings for the LLM provider."""
         pass
 
     @abstractmethod
-    def create_completion(self, prompt: str, grammar: str, settings: LLMGenerationSettings):
+    def create_completion(
+        self, prompt: str, grammar: str, settings: LLMGenerationSettings
+    ):
         """Create a completion request with the LLM provider and returns the result."""
         pass
 
     @abstractmethod
-    def create_chat_completion(self, messages: List[Dict[str, str]], grammar: str, settings: LLMGenerationSettings):
+    def create_chat_completion(
+        self,
+        messages: List[Dict[str, str]],
+        grammar: str,
+        settings: LLMGenerationSettings,
+    ):
         """Create a chat completion request with the LLM provider and returns the result."""
         pass
 
@@ -72,14 +82,23 @@ class LLMProviderBase(ABC):
 
 
 class LlamaCppServerProvider(LLMProviderBase):
-    def __init__(self, server_address: str, api_key: str = None, llama_cpp_python_server: bool = False):
+    def __init__(
+        self,
+        server_address: str,
+        api_key: str = None,
+        llama_cpp_python_server: bool = False,
+    ):
         self.server_address = server_address
         if llama_cpp_python_server:
-            self.server_completion_endpoint = self.server_address + "/v1/engines/copilot-codex/completions"
+            self.server_completion_endpoint = (
+                self.server_address + "/v1/engines/copilot-codex/completions"
+            )
         else:
             self.server_completion_endpoint = self.server_address + "/completion"
 
-        self.server_chat_completion_endpoint = self.server_address + "/v1/chat/completions"
+        self.server_chat_completion_endpoint = (
+            self.server_address + "/v1/chat/completions"
+        )
         if llama_cpp_python_server:
             self.server_tokenize_endpoint = self.server_address + "/extras/tokenize"
         else:
@@ -104,7 +123,7 @@ class LlamaCppServerProvider(LLMProviderBase):
                 "mirostat_mode": 0,
                 "mirostat_tau": 5.0,
                 "mirostat_eta": 0.1,
-                "seed": -1
+                "seed": -1,
             }
         else:
             dic = {
@@ -136,11 +155,13 @@ class LlamaCppServerProvider(LLMProviderBase):
 
         return default_settings
 
-    def create_completion(self, prompt: str, grammar: str, settings: LLMGenerationSettings):
+    def create_completion(
+        self, prompt: str, grammar: str, settings: LLMGenerationSettings
+    ):
         if self.api_key is not None:
             headers = {
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}"  # Add API key as bearer token
+                "Authorization": f"Bearer {self.api_key}",  # Add API key as bearer token
             }
         else:
             headers = {"Content-Type": "application/json"}
@@ -162,7 +183,9 @@ class LlamaCppServerProvider(LLMProviderBase):
                     "temperature",
                 ]
         if settings.stream:
-            return self.get_response_stream(headers, data, self.server_completion_endpoint)
+            return self.get_response_stream(
+                headers, data, self.server_completion_endpoint
+            )
 
         response = requests.post(
             self.server_completion_endpoint, headers=headers, json=data
@@ -172,11 +195,16 @@ class LlamaCppServerProvider(LLMProviderBase):
         returned_data = {"choices": [{"text": data["content"]}]}
         return returned_data
 
-    def create_chat_completion(self, messages: List[Dict[str, str]], grammar: str, settings: LLMGenerationSettings):
+    def create_chat_completion(
+        self,
+        messages: List[Dict[str, str]],
+        grammar: str,
+        settings: LLMGenerationSettings,
+    ):
         if self.api_key is not None:
             headers = {
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}"  # Add API key as bearer token
+                "Authorization": f"Bearer {self.api_key}",  # Add API key as bearer token
             }
         else:
             headers = {"Content-Type": "application/json"}
@@ -198,7 +226,9 @@ class LlamaCppServerProvider(LLMProviderBase):
                     "temperature",
                 ]
         if settings.stream:
-            return self.get_response_stream(headers, data, self.server_chat_completion_endpoint)
+            return self.get_response_stream(
+                headers, data, self.server_chat_completion_endpoint
+            )
 
         response = requests.post(
             self.server_chat_completion_endpoint, headers=headers, json=data
@@ -212,20 +242,25 @@ class LlamaCppServerProvider(LLMProviderBase):
         if self.api_key is not None:
             headers = {
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}"  # Add API key as bearer token
+                "Authorization": f"Bearer {self.api_key}",  # Add API key as bearer token
             }
         else:
             headers = {"Content-Type": "application/json"}
         if self.llama_cpp_python_server:
-            response = requests.post(self.server_tokenize_endpoint, headers=headers, json={"input": prompt})
+            response = requests.post(
+                self.server_tokenize_endpoint, headers=headers, json={"input": prompt}
+            )
         else:
-            response = requests.post(self.server_tokenize_endpoint, headers=headers, json={"content": prompt})
+            response = requests.post(
+                self.server_tokenize_endpoint, headers=headers, json={"content": prompt}
+            )
         if response.status_code == 200:
             tokens = response.json()["tokens"]
             return tokens
         else:
             raise Exception(
-                f"Tokenization request failed. Status code: {response.status_code}\nResponse: {response.text}")
+                f"Tokenization request failed. Status code: {response.status_code}\nResponse: {response.text}"
+            )
 
     @staticmethod
     def get_response_stream(headers, data, endpoint_address):

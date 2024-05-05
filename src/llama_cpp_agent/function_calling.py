@@ -182,7 +182,9 @@ class LlamaCppFunctionTool:
         self.add_outer_request_heartbeat_field = add_outer_request_heartbeat_field
 
     @staticmethod
-    def from_pydantic_model_and_callable(pydantic_model: BaseModel, tool_function: Callable):
+    def from_pydantic_model_and_callable(
+        pydantic_model: BaseModel, tool_function: Callable
+    ):
         """
         Converts an OpenAI tool schema and a callable function into a LlamaCppFunctionTool
         Args:
@@ -220,7 +222,9 @@ class LlamaCppFunctionTool:
         Returns:
             LlamaCppFunctionTool: The LlamaCppFunctionTool instance.
         """
-        models = create_dynamic_models_from_dictionaries([llama_index_tool.metadata.to_openai_tool()])
+        models = create_dynamic_models_from_dictionaries(
+            [llama_index_tool.metadata.to_openai_tool()]
+        )
         model = add_run_method_to_dynamic_model(models[0], llama_index_tool.call)
         return LlamaCppFunctionTool(model)
 
@@ -293,7 +297,7 @@ class LlamaCppFunctionToolRegistry:
         fields_prefix="parameters",
         inner_thoughts_field_name="thoughts_and_reasoning",
         request_heartbeat_field_name="request_heartbeat",
-        add_tool_root_content_to_all_results=True
+        add_tool_root_content_to_all_results=True,
     ):
         """
         Initialize the LlamaCppFunctionToolRegistry.
@@ -498,16 +502,21 @@ class LlamaCppFunctionToolRegistry:
                 call_parameters = function_call[self.tool_rule_content]
                 call = cls(**call_parameters)
                 output = call.run(**function_tool.additional_parameters)
-                if function_tool.add_params_to_result or self.add_tool_root_content_to_all_results:
+                if (
+                    function_tool.add_params_to_result
+                    or self.add_tool_root_content_to_all_results
+                ):
                     if self.add_request_heartbeat:
                         return [
                             {
                                 "function": function_tool.model.__name__,
                                 "params": call_parameters,
                                 "return_value": output,
-                                "request_heartbeat": function_call["request_heartbeat"]
-                                if "request_heartbeat" in function_call
-                                else None,
+                                "request_heartbeat": (
+                                    function_call["request_heartbeat"]
+                                    if "request_heartbeat" in function_call
+                                    else None
+                                ),
                             }
                         ]
                     return [
@@ -524,9 +533,11 @@ class LlamaCppFunctionToolRegistry:
                             {
                                 "function": function_tool.model.__name__,
                                 "return_value": output,
-                                "request_heartbeat": function_call["request_heartbeat"]
-                                if "request_heartbeat" in function_call
-                                else None,
+                                "request_heartbeat": (
+                                    function_call["request_heartbeat"]
+                                    if "request_heartbeat" in function_call
+                                    else None
+                                ),
                             }
                         ]
                     return [
@@ -562,18 +573,21 @@ class LlamaCppFunctionToolRegistry:
                         call_parameters = function_call[self.tool_rule_content]
                         call = cls(**call_parameters)
                         output = call.run(**function_tool.additional_parameters)
-                        if function_tool.add_params_to_result or self.add_tool_root_content_to_all_results:
+                        if (
+                            function_tool.add_params_to_result
+                            or self.add_tool_root_content_to_all_results
+                        ):
                             if self.add_request_heartbeat:
                                 result.append(
                                     {
                                         "function": function_tool.model.__name__,
                                         "params": call_parameters,
                                         "return_value": output,
-                                        "request_heartbeat": function_call[
-                                            "request_heartbeat"
-                                        ]
-                                        if "request_heartbeat" in function_call
-                                        else None,
+                                        "request_heartbeat": (
+                                            function_call["request_heartbeat"]
+                                            if "request_heartbeat" in function_call
+                                            else None
+                                        ),
                                     }
                                 )
                             else:
@@ -590,11 +604,11 @@ class LlamaCppFunctionToolRegistry:
                                     {
                                         "function": function_tool.model.__name__,
                                         "return_value": output,
-                                        "request_heartbeat": function_call[
-                                            "request_heartbeat"
-                                        ]
-                                        if "request_heartbeat" in function_call
-                                        else None,
+                                        "request_heartbeat": (
+                                            function_call["request_heartbeat"]
+                                            if "request_heartbeat" in function_call
+                                            else None
+                                        ),
                                     }
                                 )
                             else:
@@ -624,11 +638,11 @@ class LlamaCppFunctionToolRegistry:
                                         "function": function_tool.model.__name__,
                                         "params": call_parameters,
                                         "return_value": output,
-                                        "request_heartbeat": function_call[
-                                            "request_heartbeat"
-                                        ]
-                                        if "request_heartbeat" in function_call
-                                        else None,
+                                        "request_heartbeat": (
+                                            function_call["request_heartbeat"]
+                                            if "request_heartbeat" in function_call
+                                            else None
+                                        ),
                                     }
                                 )
                             else:
@@ -645,11 +659,11 @@ class LlamaCppFunctionToolRegistry:
                                     {
                                         "function": function_tool.model.__name__,
                                         "return_value": output,
-                                        "request_heartbeat": function_call[
-                                            "request_heartbeat"
-                                        ]
-                                        if "request_heartbeat" in function_call
-                                        else None,
+                                        "request_heartbeat": (
+                                            function_call["request_heartbeat"]
+                                            if "request_heartbeat" in function_call
+                                            else None
+                                        ),
                                     }
                                 )
                             else:

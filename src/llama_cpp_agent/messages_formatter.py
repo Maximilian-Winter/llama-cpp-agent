@@ -164,20 +164,20 @@ class MessagesFormatter:
     """
 
     def __init__(
-            self,
-            PRE_PROMPT: str,
-            SYS_PROMPT_START: str,
-            SYS_PROMPT_END: str,
-            USER_PROMPT_START: str,
-            USER_PROMPT_END: str,
-            ASSISTANT_PROMPT_START: str,
-            ASSISTANT_PROMPT_END: str,
-            INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE: bool,
-            DEFAULT_STOP_SEQUENCES: List[str],
-            USE_USER_ROLE_FUNCTION_CALL_RESULT: bool = True,
-            FUNCTION_PROMPT_START: str = "",
-            FUNCTION_PROMPT_END: str = "",
-            STRIP_PROMPT: bool = True,
+        self,
+        PRE_PROMPT: str,
+        SYS_PROMPT_START: str,
+        SYS_PROMPT_END: str,
+        USER_PROMPT_START: str,
+        USER_PROMPT_END: str,
+        ASSISTANT_PROMPT_START: str,
+        ASSISTANT_PROMPT_END: str,
+        INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE: bool,
+        DEFAULT_STOP_SEQUENCES: List[str],
+        USE_USER_ROLE_FUNCTION_CALL_RESULT: bool = True,
+        FUNCTION_PROMPT_START: str = "",
+        FUNCTION_PROMPT_END: str = "",
+        STRIP_PROMPT: bool = True,
     ):
         """
         Initializes a new MessagesFormatter object.
@@ -214,9 +214,9 @@ class MessagesFormatter:
         self.STRIP_PROMPT = STRIP_PROMPT
 
     def format_messages(
-            self,
-            messages: List[Dict[str, str]],
-            response_role: Literal["user", "assistant"] | None = None,
+        self,
+        messages: List[Dict[str, str]],
+        response_role: Literal["user", "assistant"] | None = None,
     ) -> Tuple[str, str]:
         """
         Formats a list of messages into a conversation string.
@@ -234,7 +234,7 @@ class MessagesFormatter:
         for message in messages:
             if message["role"] == "system":
                 formatted_messages += (
-                        self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
+                    self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
                 )
                 last_role = "system"
                 if self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE:
@@ -246,18 +246,18 @@ class MessagesFormatter:
                     formatted_messages += message["content"] + self.USER_PROMPT_END
                 else:
                     formatted_messages += (
-                            self.USER_PROMPT_START
-                            + message["content"]
-                            + self.USER_PROMPT_END
+                        self.USER_PROMPT_START
+                        + message["content"]
+                        + self.USER_PROMPT_END
                     )
                 last_role = "user"
             elif message["role"] == "assistant":
                 if self.STRIP_PROMPT:
                     message["content"] = message["content"].strip()
                 formatted_messages += (
-                        self.ASSISTANT_PROMPT_START
-                        + message["content"]
-                        + self.ASSISTANT_PROMPT_END
+                    self.ASSISTANT_PROMPT_START
+                    + message["content"]
+                    + self.ASSISTANT_PROMPT_END
                 )
                 last_role = "assistant"
             elif message["role"] == "function":
@@ -267,16 +267,16 @@ class MessagesFormatter:
                     )
                 if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
                     formatted_messages += (
-                            self.USER_PROMPT_START
-                            + message["content"]
-                            + self.USER_PROMPT_END
+                        self.USER_PROMPT_START
+                        + message["content"]
+                        + self.USER_PROMPT_END
                     )
                     last_role = "user"
                 else:
                     formatted_messages += (
-                            self.FUNCTION_PROMPT_START
-                            + message["content"]
-                            + self.FUNCTION_PROMPT_END
+                        self.FUNCTION_PROMPT_START
+                        + message["content"]
+                        + self.FUNCTION_PROMPT_END
                     )
                     last_role = "function"
         if last_role == "system" or last_role == "user" or last_role == "function":
@@ -560,12 +560,12 @@ predefined_formatter = {
     MessagesFormatterType.CODE_DS: code_ds_formatter,
     MessagesFormatterType.B22: b22_chat_formatter,
     MessagesFormatterType.LLAMA_3: llama_3_formatter,
-    MessagesFormatterType.PHI_3: phi_3_chat_formatter
+    MessagesFormatterType.PHI_3: phi_3_chat_formatter,
 }
 
 
 def get_predefined_messages_formatter(
-        formatter_type: MessagesFormatterType,
+    formatter_type: MessagesFormatterType,
 ) -> MessagesFormatter:
     """
     Gets a predefined messages formatter based on the formatter type.

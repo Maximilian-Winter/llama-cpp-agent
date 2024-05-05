@@ -12,7 +12,8 @@ dependencies = [
     "llama-cpp-python>=0.2.60",
     "pydantic>=2.5.3",
     "requests>=2.31.0",
-    "docstring_parser"
+    "docstring_parser",
+    "aiohttp"
 ]
 
 requires-python = ">=3.10"

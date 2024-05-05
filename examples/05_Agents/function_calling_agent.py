@@ -127,8 +127,8 @@ calculator_function_tool = LlamaCppFunctionTool(calculator)
 # Next we create the current datetime tool.
 current_datetime_function_tool = LlamaCppFunctionTool(get_current_datetime)
 
-# For OpenAI tool specifications, we pass the specification with actual function in a tuple to the LlamaCppFunctionTool constructor.
-get_weather_function_tool = LlamaCppFunctionTool((open_ai_tool_spec, get_current_weather))
+# The from_openai_tool function of the LlamaCppFunctionTool class converts an OpenAI tool schema and a callable function into a LlamaCppFunctionTool
+get_weather_function_tool = LlamaCppFunctionTool.from_openai_tool(open_ai_tool_spec, get_current_weather)
 
 
 function_call_agent = FunctionCallingAgent(

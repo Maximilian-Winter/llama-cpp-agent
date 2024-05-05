@@ -1681,6 +1681,7 @@ def convert_dictionary_to_pydantic_model(
     dictionary: dict[str, Any],
     model_name: str = "CustomModel",
     docs: dict[str, str] = None,
+    docs_function: dict[str, str] = None,
 ) -> type[Any]:
     """
     Convert a dictionary to a Pydantic model class.
@@ -1695,11 +1696,13 @@ def convert_dictionary_to_pydantic_model(
     fields: dict[str, Any] = {}
     if docs is None:
         docs = {}
+    if docs_function is None:
+        docs_function = {}
     if "properties" in dictionary:
         for field_name, field_data in dictionary.get("properties", {}).items():
             if field_data == "object":
                 submodel = convert_dictionary_to_pydantic_model(
-                    dictionary, f"{model_name}_{field_name}", docs
+                    dictionary, f"{model_name}_{field_name}", docs, docs_function
                 )
                 fields[field_name] = (submodel, ...)
 
@@ -1717,14 +1720,14 @@ def convert_dictionary_to_pydantic_model(
                     if items != {}:
                         array = {"properties": items}
                         array_type = convert_dictionary_to_pydantic_model(
-                            array, f"{model_name}_{field_name}_items", docs
+                            array, f"{model_name}_{field_name}_items", docs, docs_function
                         )
                         fields[field_name] = (List[array_type], ...)  # type: ignore[valid-type]
                     else:
                         fields[field_name] = (list, ...)
                 elif field_type == "object":
                     submodel = convert_dictionary_to_pydantic_model(
-                        field_data, f"{model_name}_{field_name}", docs
+                        field_data, f"{model_name}_{field_name}", docs, docs_function
                     )
                     fields[field_name] = (submodel, ...)
                 elif field_type == "required":
@@ -1740,21 +1743,24 @@ def convert_dictionary_to_pydantic_model(
             if field_name == "name":
                 model_name = field_data
             elif field_name == "description":
-                fields["__doc__"] = field_data
+                docs_function["__doc__"] = field_data
             elif field_name == "parameters":
                 return convert_dictionary_to_pydantic_model(
-                    field_data, f"{model_name}", docs
+                    field_data, f"{model_name}", docs, docs_function
                 )
 
     if "parameters" in dictionary:
         field_data = {"function": dictionary}
-        return convert_dictionary_to_pydantic_model(field_data, f"{model_name}", docs)
+        return convert_dictionary_to_pydantic_model(field_data, f"{model_name}", docs, docs_function)
     if "required" in dictionary:
         required = dictionary.get("required", [])
         for key, field in fields.items():
             if key not in required:
                 fields[key] = (Optional[fields[key][0]], ...)
     custom_model = create_model(model_name, **fields)
+
+    if "__doc__" in docs_function:
+        custom_model.__doc__ = docs_function["__doc__"]
     for field_name, doc in docs.items():
         custom_model.model_fields[field_name].description = doc
 

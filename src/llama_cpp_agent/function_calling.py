@@ -181,6 +181,35 @@ class LlamaCppFunctionTool:
         )
         self.add_outer_request_heartbeat_field = add_outer_request_heartbeat_field
 
+    @staticmethod
+    def from_openai_tool(openai_tool_schema: dict, tool_function: Callable):
+        """
+        Converts an OpenAI tool schema and a callable function into a LlamaCppFunctionTool
+        Args:
+            openai_tool_schema(dict): OpenAI tool description dictionary.
+            tool_function(Callable): Callable function that will be invoked when the agent uses it.
+
+        Returns:
+            LlamaCppFunctionTool: The LlamaCppFunctionTool instance.
+        """
+        models = create_dynamic_models_from_dictionaries([openai_tool_schema])
+        model = add_run_method_to_dynamic_model(models[0], tool_function)
+        return LlamaCppFunctionTool(model)
+
+    @staticmethod
+    def from_llama_index_tool(llama_index_tool):
+        """
+        Converts a llama-index tool into a LlamaCppFunctionTool
+        Args:
+            llama_index_tool(["BaseTool"]): OpenAI tool description dictionary.
+
+        Returns:
+            LlamaCppFunctionTool: The LlamaCppFunctionTool instance.
+        """
+        models = create_dynamic_models_from_dictionaries([llama_index_tool.metadata.to_openai_tool()])
+        model = add_run_method_to_dynamic_model(models[0], llama_index_tool.call)
+        return LlamaCppFunctionTool(model)
+
     def to_mistral_tool(self):
         from mistral_common.protocol.instruct.tool_calls import Tool, Function
 

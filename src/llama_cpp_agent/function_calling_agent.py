@@ -378,8 +378,11 @@ Choose the appropriate function based on the task you want to perform. Provide y
             function_message = f"""Function Calling Results:\n\n"""
             count = 0
             if result is not None:
+                agent_sent_message = False
                 for res in result:
                     count += 1
+                    if res["function"] == "send_message":
+                        agent_sent_message = True
                     if not isinstance(res, str):
                         if "params" in res:
                             function_message += f"""{count}. Function: "{res["function"]}"\nArguments: "{res["params"]}"\nReturn Value: {res["return_value"]}\n\n"""
@@ -390,6 +393,8 @@ Choose the appropriate function based on the task you want to perform. Provide y
                 self.llama_cpp_agent.add_message(
                     role="function", message=function_message.strip()
                 )
+                if agent_sent_message:
+                    break
             result = self.intern_get_response(
                 additional_stop_sequences=additional_stop_sequences
             )

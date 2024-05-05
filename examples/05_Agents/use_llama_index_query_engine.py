@@ -80,7 +80,7 @@ function_call_agent = FunctionCallingAgent(
     # Pass the LlamaCppFunctionTool instances as a list to the agent.
     llama_cpp_function_tools=[lyft_query_engine_tool, uber_query_engine_tool],
     allow_parallel_function_calling=True,
-    messages_formatter_type=MessagesFormatterType.MIXTRAL,
+    messages_formatter_type=MessagesFormatterType.CHATML,
     debug_output=True)
 
 user_input = "What was Lyft's revenue growth in 2021?"

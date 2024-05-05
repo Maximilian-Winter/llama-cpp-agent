@@ -498,13 +498,26 @@ function_call_agent = FunctionCallingAgent(
     # Pass the LlamaCppFunctionTool instances as a list to the agent.
     llama_cpp_function_tools=[lyft_query_engine_tool, uber_query_engine_tool],
     allow_parallel_function_calling=True,
-    messages_formatter_type=MessagesFormatterType.MIXTRAL,
+    messages_formatter_type=MessagesFormatterType.CHATML,
     debug_output=True)
 
 user_input = "What was Lyft's revenue growth in 2021?"
 function_call_agent.generate_response(user_input)
-```
 
+```
+Example Output:
+```text
+[
+  {
+    "thoughts_and_reasoning": "The user has asked for Lyft's revenue growth in the year 2021. Based on the context information provided by the 'lyft_10k' function call, we can determine that Lyft's revenue increased by 36% in 2021 compared to the previous year.",
+    "function": "send_message",
+    "parameters": {
+      "content": "Lyft's revenue grew by 36% in the year 2021."
+    }
+  }
+]
+Lyft's revenue grew by 36% in the year 2021.
+```
 ### Sequential Chain Example
 This example demonstrates how to create a complete product launch campaign with help of a sequential chain.
 ```python

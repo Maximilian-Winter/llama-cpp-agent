@@ -165,8 +165,6 @@ If you encounter any issues or have suggestions for improvements, please open an
 The llama-cpp-agent framework is released under the [MIT License](https://github.com/Maximilian-Winter/llama-cpp-agent/blob/master/LICENSE).
 
 ## FAQ
-**Q: Can I use llama-cpp-agent with models other than llama.cpp?**  
-A: Yes, llama-cpp-agent supports llama-cpp-python Llama class instances, OpenAI endpoints with GBNF grammar support, and the llama.cpp backend server.
 
 **Q: How do I install the optional dependencies for RAG?**  
 A: To use the RAGColbertReranker class and the RAG example, you need to install the optional rag dependencies (ragatouille). You can do this by running `pip install llama-cpp-agent[rag]`.

@@ -16,8 +16,6 @@
     - [Sequential Chain](#sequential-chain-example)
     - [Mapping Chain](#mapping-chain-example)
     - [Knowledge Graph Creation](#knowledge-graph-creation-example)
-    - [Manual Function Calling](#manual-function-calling-example)
-    - [Manual Function Calling with Python Function](#manual-function-calling-with-python-function-example)
 - [Additional Information](#additional-information)
     - [Predefined Messages Formatter](#predefined-messages-formatter)
     - [Creating Custom Messages Formatter](#creating-custom-messages-formatter)
@@ -145,7 +143,7 @@ custom_formatter = MessagesFormatter(
     USER_PROMPT_END="<|enduser|>",
     ASSISTANT_PROMPT_START="<|assistant|>",
     ASSISTANT_PROMPT_END="<|endassistant|>",
-    INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE=True,
+    INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE=False,
     DEFAULT_STOP_SEQUENCES=["<|endsystem|>", "<|enduser|>", "<|endassistant|>"]
 )
 ```
@@ -165,8 +163,6 @@ If you encounter any issues or have suggestions for improvements, please open an
 The llama-cpp-agent framework is released under the [MIT License](https://github.com/Maximilian-Winter/llama-cpp-agent/blob/master/LICENSE).
 
 ## FAQ
-**Q: Can I use llama-cpp-agent with models other than llama.cpp?**  
-A: Yes, llama-cpp-agent supports llama-cpp-python Llama class instances, OpenAI endpoints with GBNF grammar support, and the llama.cpp backend server.
 
 **Q: How do I install the optional dependencies for RAG?**  
 A: To use the RAGColbertReranker class and the RAG example, you need to install the optional rag dependencies (ragatouille). You can do this by running `pip install llama-cpp-agent[rag]`.

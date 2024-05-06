@@ -1,4 +1,4 @@
-# Knowledge Graph Creation Example
+### Knowledge Graph Creation Example
 This example, based on an example of the Instructor library for OpenAI,
 demonstrates how to create a knowledge graph using the llama-cpp-agent framework.
 ```python
@@ -53,7 +53,7 @@ gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([Knowledge
 
 
 llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt="You are an advanced AI assistant responding in JSON format.\n\nAvailable JSON response models:\n\n" + documentation)
+                                system_prompt="You are an advanced AI assistant responding in JSON format.\n\nAvailable JSON response models:\n\n" + documentation)
 
 
 from graphviz import Digraph
@@ -77,7 +77,7 @@ def visualize_knowledge_graph(kg: KnowledgeGraph):
 def generate_graph(user_input: str) -> KnowledgeGraph:
     prompt = f'''Help me understand the following by describing it as a detailed knowledge graph: {user_input}'''.strip()
     response = llama_cpp_agent.get_chat_response(message=prompt, temperature=0.65, mirostat_mode=0, mirostat_tau=3.0,
-                                               mirostat_eta=0.1, grammar=gbnf_grammar)
+                                                 mirostat_eta=0.1, grammar=gbnf_grammar)
     knowledge_graph = json.loads(response)
     cls = KnowledgeGraph
     knowledge_graph = cls(**knowledge_graph)

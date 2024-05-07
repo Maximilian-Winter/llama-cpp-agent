@@ -126,9 +126,6 @@ class AgentChain:
         """
         outputs = {}
 
-        if user_message is not None:
-            outputs["user_message"] = user_message
-
         if additional_fields is not None:
             for field, value in additional_fields.items():
                 outputs[field] = value
@@ -139,14 +136,14 @@ class AgentChain:
             prompter = PromptTemplate.from_string(chain_element.prompt)
             prompt = prompter.generate_prompt(outputs)
             if chain_element.function_tool_registry is not None:
-                sys_prompt += f"\n\nYou can call functions in JSON format.\n\nAvailable Function Tools:\n\n{chain_element.function_tool_registry.get_documentation()}"
+                sys_prompt += f"\n\nYou can call functions in JSON format.\n\nAvailable Function Tools:\n\n{chain_element.function_tool_registry.get_documentation().strip()}"
             if chain_element.preprocessor is not None:
                 sys_prompt, prompt, outputs = chain_element.preprocessor(
                     sys_prompt, prompt, outputs
                 )
 
             outputs[chain_element.output_identifier] = self.agent.get_chat_response(
-                prompt,
+                user_message if user_message is not None else prompt,
                 system_prompt=sys_prompt,
                 penalize_nl=False,
                 temperature=chain_element.temperature,

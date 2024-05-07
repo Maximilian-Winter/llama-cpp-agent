@@ -12,13 +12,20 @@ agent = LlamaCppAgent(
     predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
 )
 
-summary_chain = AgentChainElement("out_0", system_prompt="You are an advanced AI agent for summarizing articles",
+
+summary_chain = AgentChainElement("out_0",
+                                  system_prompt="You are an advanced AI agent for summarizing articles",
                                   prompt="Summarize this article into bullet points:\n{item}")
 
-combine_chain = AgentChainElement("out_1", system_prompt="You are an advanced AI agent that summarizes text",
-                                  prompt="Please combine the bullet points of different summaries below, into one summary as bullet points:\n{map_output}")
+translate_chain = AgentChainElement("out_1",
+                                    system_prompt="You are an advanced AI agent for translating text",
+                                    prompt="Translate the following content into French:\n{out_0}")
 
-map_chain = MapChain(agent, [summary_chain], [combine_chain])
+combine_chain = AgentChainElement("out_2",
+                                  system_prompt="You are an advanced AI agent that summarizes text",
+                                  prompt="Please combine the French bullet points of different summaries below, into one summary as French bullet points:\n{map_output}")
+
+map_chain = MapChain(agent, [summary_chain, translate_chain], [combine_chain])
 
 article_list = [
     """### 1. Quantum Computing: The Next Frontier in Computational Power

@@ -10,7 +10,7 @@ model = LlamaCppEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080
 
 agent = LlamaCppAgent(
     model,
-    debug_output=True,
+    debug_output=False,
     system_prompt="",
     predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
 )

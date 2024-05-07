@@ -51,7 +51,10 @@ class Calculator(BaseModel):
             raise ValueError("Unknown operation.")
 
 
+# Create a list of function call tools.
 function_tools = [LlamaCppFunctionTool(Calculator)]
+
+# We generate the function tool registry needed for the agent. We pass the function_tools list and enable parallel function calling by setting it to true.
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools, True)
 model = LlamaCppEndpointSettings("http://localhost:8080/completion")
 llama_cpp_agent = LlamaCppAgent(

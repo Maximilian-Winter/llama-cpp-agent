@@ -11,7 +11,7 @@ from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
 )
 
 
-# Simple calculator tool for the agent that can add, subtract, multiply, and divide.
+# Simple pydantic calculator tool for the agent that can add, subtract, multiply, and divide.
 class MathOperation(Enum):
     ADD = "add"
     SUBTRACT = "subtract"
@@ -50,8 +50,10 @@ class Calculator(BaseModel):
         else:
             raise ValueError("Unknown operation.")
 
-
+# Create a list of function call tools.
 function_tools = [LlamaCppFunctionTool(Calculator)]
+
+# We generate the function tool registry needed for the agent. We pass the function_tools list and use default parameters for simple function calls (without parallel function calls).
 function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
 model = LlamaCppEndpointSettings("http://localhost:8080/completion")
 llama_cpp_agent = LlamaCppAgent(

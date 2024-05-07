@@ -6,7 +6,9 @@
 - [Introduction](#introduction)
 - [Key Features](#key-features)
 - [Installation](#installation)
+- [Documentation](#documentation)
 - [Getting Started](#getting-started)
+- [Discord Community](#discord-community)
 - [Usage Examples](#usage-examples)
     - [Simple Chat](#simple-chat-example-using-llamacpp-server-backend)
     - [Parallel Function Calling](#parallel-function-calling-agent-example)
@@ -40,6 +42,8 @@ Install the llama-cpp-agent framework using pip:
 ```shell
 pip install llama-cpp-agent
 ```
+## Documentation
+You can find the latest documentation [here!](https://llama-cpp-agent.readthedocs.io/en/latest/)
 
 ## Getting Started
 1. Ensure you have the required dependencies installed, including pydantic and llama-cpp-python.
@@ -70,6 +74,9 @@ while True:
     user_input = llama_cpp_agent.get_chat_response(user_input, temperature=0.7)
     print("AI: " + user_input)
 ```
+
+## Discord Community
+Join the Discord Community [here](https://discord.gg/6tGznupZGX)
 
 ## Usage Examples
 The llama-cpp-agent framework provides a wide range of examples demonstrating its capabilities. Here are some key examples:

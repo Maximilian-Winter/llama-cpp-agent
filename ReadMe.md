@@ -40,6 +40,8 @@ Install the llama-cpp-agent framework using pip:
 ```shell
 pip install llama-cpp-agent
 ```
+## Documentation
+[You can find the latest documentation here!](https://llama-cpp-agent.readthedocs.io/en/latest/)
 
 ## Getting Started
 1. Ensure you have the required dependencies installed, including pydantic and llama-cpp-python.

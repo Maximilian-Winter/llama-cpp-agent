@@ -31,6 +31,7 @@ jobs:
       with:
         name: dist
         path: dist
+        retention-days: 1
   publish:
     needs: build
     runs-on: ubuntu-latest

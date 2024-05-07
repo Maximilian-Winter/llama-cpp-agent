@@ -6,7 +6,9 @@
 - [Introduction](#introduction)
 - [Key Features](#key-features)
 - [Installation](#installation)
+- [Documentation](#documentation)
 - [Getting Started](#getting-started)
+- [Discord Community](#discord-community)
 - [Usage Examples](#usage-examples)
     - [Simple Chat](#simple-chat-example-using-llamacpp-server-backend)
     - [Parallel Function Calling](#parallel-function-calling-agent-example)
@@ -73,7 +75,7 @@ while True:
     print("AI: " + user_input)
 ```
 
-## Discord
+## Discord Community
 Join the Discord Community [here](https://discord.gg/6tGznupZGX)
 
 ## Usage Examples

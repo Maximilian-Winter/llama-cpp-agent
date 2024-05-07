@@ -909,6 +909,7 @@ class LlamaCppAgent:
         cache_prompt: bool = False,
         samplers: List[str] = None,
     ):
+        from .chat_template import chatml_template
         if function_tool_registry is not None:
             grammar = function_tool_registry.gbnf_grammar
 
@@ -939,8 +940,8 @@ class LlamaCppAgent:
         else:
             messages.extend(self.messages)
 
-        prompt, response_role = self.messages_formatter.format_messages(
-            messages, response_role
+        prompt, response_role = chatml_template(
+            messages, True
         )
 
         if prompt_suffix:

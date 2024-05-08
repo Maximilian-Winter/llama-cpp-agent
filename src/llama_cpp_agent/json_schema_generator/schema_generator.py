@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Union, get_origin, get_args, List, Set, Dict
 from types import NoneType
 
-from llama_cpp_agent.pydantic_model_documentation.documentation_context import generate_text_documentation
+from llama_cpp_agent.llm_documentation import generate_text_documentation
 
 
 def custom_json_schema(model: BaseModel):
@@ -97,7 +97,8 @@ def custom_json_schema(model: BaseModel):
     return refine_schema(model.schema(), model)
 
 
-def generate_list(models: List[BaseModel], outer_object_name=None, outer_object_properties_name=None):
+def generate_list(models: List[BaseModel], outer_object_name=None, outer_object_properties_name=None,
+                  add_inner_thoughts: bool = False, inner_thoughts_name: str = "thoughts_and_reasoning"):
     list_object = {"type": "array", "items": {"type": "object", "anyOf": []}}
 
     for model in models:
@@ -108,31 +109,43 @@ def generate_list(models: List[BaseModel], outer_object_name=None, outer_object_
             function_name_object = {"enum": [model.__name__], "type": "string"}
             model_schema_object = schema
 
-            # Create a wrapper object that contains the function name and the model schema
-            wrapper_object = {
-                "type": "object",
-                "properties": {
-                    "001_" + outer_object_name: function_name_object,
-                    "002_" + outer_object_properties_name: model_schema_object
-                },
-                "required": [outer_object_name, outer_object_properties_name]
-            }
+            if add_inner_thoughts:
+                # Create a wrapper object that contains the function name and the model schema
+                wrapper_object = {
+                    "type": "object",
+                    "properties": {
+                        "001_" + inner_thoughts_name: {"type": "string"},
+                        "002_" + outer_object_name: function_name_object,
+                        "003_" + outer_object_properties_name: model_schema_object
+                    },
+                    "required": ["001_" + inner_thoughts_name, "002_" + outer_object_name, "003_" + outer_object_properties_name]
+                }
+            else:
+                # Create a wrapper object that contains the function name and the model schema
+                wrapper_object = {
+                    "type": "object",
+                    "properties": {
+                        "001_" + outer_object_name: function_name_object,
+                        "002_" + outer_object_properties_name: model_schema_object
+                    },
+                    "required": ["001_" + outer_object_name, "002_" + outer_object_properties_name]
+                }
 
             outer_object.update(wrapper_object)
         else:
             outer_object = schema
         list_object['items']['anyOf'].append(outer_object)
         list_object['minItems'] = 1
-        list_object['maxItems'] = 10
+        list_object['maxItems'] = 100
 
     return list_object
 
 
 def generate_json_schemas(models: List[BaseModel], outer_object_name=None,
                           outer_object_properties_name=None,
-                          allow_list=False):
+                          allow_list=False, add_inner_thoughts: bool = False, inner_thoughts_name: str = "thoughts_and_reasoning"):
     if allow_list:
-        model_schema_list = generate_list(models, outer_object_name, outer_object_properties_name)
+        model_schema_list = generate_list(models, outer_object_name, outer_object_properties_name, add_inner_thoughts, inner_thoughts_name)
     else:
         model_schema_list = [custom_json_schema(model) for model in models]
 

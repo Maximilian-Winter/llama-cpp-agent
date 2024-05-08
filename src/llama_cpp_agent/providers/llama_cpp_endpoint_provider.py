@@ -160,53 +160,6 @@ class LlamaCppEndpointSettings:
 
     completions_endpoint_url: str
 
-    def save(self, file_path: str):
-        """
-        Save the settings to a file.
-
-        Args:
-            file_path (str): The path to the file.
-        """
-        with open(file_path, "w", encoding="utf-8") as file:
-            json.dump(self.as_dict(), file, indent=4)
-
-    @staticmethod
-    def load_from_file(file_path: str) -> "LlamaCppEndpointSettings":
-        """
-        Load the settings from a file.
-
-        Args:
-            file_path (str): The path to the file.
-
-        Returns:
-            LlamaCppEndpointSettings: The loaded settings.
-        """
-        with open(file_path, "r", encoding="utf-8") as file:
-            loaded_settings = json.load(file)
-            return LlamaCppEndpointSettings(**loaded_settings)
-
-    @staticmethod
-    def load_from_dict(settings: dict) -> "LlamaCppEndpointSettings":
-        """
-        Load the settings from a dictionary.
-
-        Args:
-            settings (dict): The dictionary containing the settings.
-
-        Returns:
-            LlamaCppEndpointSettings: The loaded settings.
-        """
-        return LlamaCppEndpointSettings(**settings)
-
-    def as_dict(self) -> dict:
-        """
-        Convert the settings to a dictionary.
-
-        Returns:
-            dict: The dictionary representation of the settings.
-        """
-        return self.__dict__
-
     def create_completion(
         self, prompt, grammar, generation_settings: LlamaCppGenerationSettings
     ):

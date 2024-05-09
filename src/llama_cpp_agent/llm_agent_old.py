@@ -52,7 +52,7 @@ class LlamaCppAgent:
     def __init__(
         self,
         model: Union[
-            LlmProvier
+            Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings
         ],
         name: str = "llamacpp_agent",
         system_prompt: str = "You are a helpful assistant.",

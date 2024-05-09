@@ -234,8 +234,6 @@ class MapChain:
             tuple: A tuple containing the final output string from the combine chain and the outputs dictionary.
         """
         outputs = {}
-        if user_message is not None:
-            outputs["user_message"] = user_message
 
         if additional_fields is not None:
             for field, value in additional_fields.items():
@@ -246,6 +244,7 @@ class MapChain:
         for item in items_to_map:
             additional_fields[self.item_identifier] = item
             result, result_dic = self.map_chain.run_chain(
+                user_message=user_message,
                 additional_fields=additional_fields
             )
             results.append(result_dic[self.map_chain.chain[-1].output_identifier])

@@ -3,9 +3,9 @@ from llama_cpp_agent.chain import AgentChainElement, AgentChain
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
+from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
 
-model = LlamaCppEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080/completion")
+model = LlamaCppServerProvider("http://127.0.0.1:8080")
 
 agent = LlamaCppAgent(
     model,

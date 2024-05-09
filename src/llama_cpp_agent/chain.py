@@ -159,9 +159,9 @@ class AgentChain:
                     chain_element.output_identifier
                 ][0]["return_value"]
             if chain_element.postprocessor is not None:
-                outputs[chain_element.output_identifier] = (
-                    chain_element.postprocessor
-                ) = chain_element.postprocessor(
+                outputs[
+                    chain_element.output_identifier
+                ] = chain_element.postprocessor = chain_element.postprocessor(
                     sys_prompt,
                     prompt,
                     outputs,

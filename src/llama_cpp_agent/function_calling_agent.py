@@ -277,9 +277,9 @@ Choose the appropriate function based on the task you want to perform. Provide y
             dic["debug_output"] = self.llama_cpp_agent.debug_output
             dic["messages"] = self.llama_cpp_agent.messages
             dic["llama_generation_settings"] = self.llama_generation_settings.as_dict()
-            dic["custom_messages_formatter"] = (
-                self.llama_cpp_agent.messages_formatter.as_dict()
-            )
+            dic[
+                "custom_messages_formatter"
+            ] = self.llama_cpp_agent.messages_formatter.as_dict()
             json.dump(dic, file, indent=4)
 
     @staticmethod
@@ -317,18 +317,18 @@ Choose the appropriate function based on the task you want to perform. Provide y
             loaded_agent["open_ai_functions"] = open_ai_functions
             messages = copy(loaded_agent["messages"])
             del loaded_agent["messages"]
-            loaded_agent["send_message_to_user_callback"] = (
-                send_message_to_user_callback
+            loaded_agent[
+                "send_message_to_user_callback"
+            ] = send_message_to_user_callback
+            loaded_agent[
+                "llama_generation_settings"
+            ] = LlamaLLMGenerationSettings.load_from_dict(
+                loaded_agent["llama_generation_settings"]
             )
-            loaded_agent["llama_generation_settings"] = (
-                LlamaLLMGenerationSettings.load_from_dict(
-                    loaded_agent["llama_generation_settings"]
-                )
-            )
-            loaded_agent["custom_messages_formatter"] = (
-                MessagesFormatter.load_from_dict(
-                    loaded_agent["custom_messages_formatter"]
-                )
+            loaded_agent[
+                "custom_messages_formatter"
+            ] = MessagesFormatter.load_from_dict(
+                loaded_agent["custom_messages_formatter"]
             )
             agent = FunctionCallingAgent(**loaded_agent)
 

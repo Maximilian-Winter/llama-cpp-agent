@@ -22,8 +22,10 @@ from typing import (
 from docstring_parser import parse
 from pydantic import BaseModel, Field, create_model
 
-from llama_cpp_agent.llm_documentation import generate_markdown_documentation, \
-    generate_text_documentation
+from llama_cpp_agent.llm_documentation import (
+    generate_markdown_documentation,
+    generate_text_documentation,
+)
 
 if TYPE_CHECKING:
     from types import GenericAlias
@@ -841,9 +843,6 @@ triple-quotes ::= "'''" """
     )
 
 
-
-
-
 def save_gbnf_grammar_and_documentation(
     grammar,
     documentation,
@@ -1137,9 +1136,9 @@ def create_dynamic_model_from_function(
     # Creating the dynamic model
     dynamic_model = create_model(f"{func.__name__}", **dynamic_fields)  # type: ignore[call-overload]
     if add_inner_thoughts:
-        dynamic_model.model_fields[inner_thoughts_field_name].description = (
-            "Deep inner monologue private to you only."
-        )
+        dynamic_model.model_fields[
+            inner_thoughts_field_name
+        ].description = "Deep inner monologue private to you only."
     for name, param_doc in param_docs:
         dynamic_model.model_fields[name].description = param_doc.description
 

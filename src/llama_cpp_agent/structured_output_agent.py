@@ -140,9 +140,9 @@ class StructuredOutputAgent:
             del dic["streaming_callback"]
             dic["debug_output"] = self.llama_cpp_agent.debug_output
             dic["llama_generation_settings"] = self.llama_generation_settings.as_dict()
-            dic["custom_messages_formatter"] = (
-                self.llama_cpp_agent.messages_formatter.as_dict()
-            )
+            dic[
+                "custom_messages_formatter"
+            ] = self.llama_cpp_agent.messages_formatter.as_dict()
             json.dump(dic, file, indent=4)
 
     @staticmethod
@@ -166,15 +166,15 @@ class StructuredOutputAgent:
             loaded_agent = json.load(file)
             loaded_agent["llama_llm"] = llama_llm
             loaded_agent["streaming_callback"] = streaming_callback
-            loaded_agent["llama_generation_settings"] = (
-                LlamaLLMGenerationSettings.load_from_dict(
-                    loaded_agent["llama_generation_settings"]
-                )
+            loaded_agent[
+                "llama_generation_settings"
+            ] = LlamaLLMGenerationSettings.load_from_dict(
+                loaded_agent["llama_generation_settings"]
             )
-            loaded_agent["custom_messages_formatter"] = (
-                MessagesFormatter.load_from_dict(
-                    loaded_agent["custom_messages_formatter"]
-                )
+            loaded_agent[
+                "custom_messages_formatter"
+            ] = MessagesFormatter.load_from_dict(
+                loaded_agent["custom_messages_formatter"]
             )
             return StructuredOutputAgent(**loaded_agent)
 

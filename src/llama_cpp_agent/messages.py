@@ -7,7 +7,7 @@ from typing import Literal, Union, List, Optional, Annotated, Dict, Any
 
 from pydantic import BaseModel, Field, parse_obj_as
 
-from llama_cpp_agent.providers.provider_base import LLMProviderBase
+from llama_cpp_agent.providers.provider_base import LlmProviderBase
 
 
 def generate_id(length=9):
@@ -78,7 +78,6 @@ class ChatHistory(ABC):
 
 
 class ChatMessageStore(ABC):
-
     @abstractmethod
     def add_message(self, message: ChatMessage):
         pass
@@ -162,7 +161,6 @@ def convert_messages_to_list_of_dictionaries(
 
 
 class BasicChatMessageStore(ChatMessageStore):
-
     def __init__(self, messages: List[ChatMessage] = None):
         if messages is None:
             messages = []
@@ -228,7 +226,7 @@ class BasicChatHistory(ChatHistory):
         self,
         chat_history_strategy: BasicChatHistoryStrategy = BasicChatHistoryStrategy.last_k_messages,
         k: int = 10,
-        llm_provider: LLMProviderBase = None,
+        llm_provider: LlmProviderBase = None,
         message_store: ChatMessageStore = None,
     ):
         if message_store is None:

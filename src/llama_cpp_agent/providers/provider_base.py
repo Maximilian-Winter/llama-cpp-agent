@@ -2,6 +2,7 @@ import json
 from abc import ABC, abstractmethod
 from copy import copy
 from dataclasses import dataclass
+from enum import Enum
 from typing import List, Dict, Union
 
 import requests
@@ -9,10 +10,15 @@ import requests
 from llama_cpp_agent.structured_output.settings import StructuredOutputSettings
 
 
-class LLMGenerationSettings(ABC):
+class LlmProviderId(Enum):
+    llama_cpp = "llama_cpp"
+    tgi = "text_generation_inference"
+    vllm = "vllm"
 
+
+class LlmGenerationSettings(ABC):
     @abstractmethod
-    def get_provider_identifier(self) -> str:
+    def get_provider_identifier(self) -> LlmProviderId:
         """
         Returns a internally used provider identifier.
 
@@ -33,7 +39,7 @@ class LLMGenerationSettings(ABC):
 
     @staticmethod
     @abstractmethod
-    def load_from_file(file_path: str) -> "LLMGenerationSettings":
+    def load_from_file(file_path: str) -> "LlmGenerationSettings":
         """
         Load the settings from a file.
 
@@ -41,13 +47,13 @@ class LLMGenerationSettings(ABC):
             file_path (str): The path to the file.
 
         Returns:
-            LLMGenerationSettings: The loaded settings.
+            LlmGenerationSettings: The loaded settings.
         """
         pass
 
     @staticmethod
     @abstractmethod
-    def load_from_dict(settings: dict) -> "LLMGenerationSettings":
+    def load_from_dict(settings: dict) -> "LlmGenerationSettings":
         """
         Load the settings from a dictionary.
 
@@ -55,7 +61,7 @@ class LLMGenerationSettings(ABC):
             settings (dict): The dictionary containing the settings.
 
         Returns:
-            LLMGenerationSettings: The loaded settings.
+            LlmGenerationSettings: The loaded settings.
         """
         pass
 
@@ -70,7 +76,7 @@ class LLMGenerationSettings(ABC):
         pass
 
 
-class LLMProviderBase(ABC):
+class LlmProviderBase(ABC):
     """
     Abstract base class for all LLM providers.
     """
@@ -81,17 +87,20 @@ class LLMProviderBase(ABC):
 
     @abstractmethod
     def create_completion(
-            self, prompt: str, structured_output_settings: StructuredOutputSettings, settings: LLMGenerationSettings
+        self,
+        prompt: str,
+        structured_output_settings: StructuredOutputSettings,
+        settings: LlmGenerationSettings,
     ):
         """Create a completion request with the LLM provider and returns the result."""
         pass
 
     @abstractmethod
     def create_chat_completion(
-            self,
-            messages: List[Dict[str, str]],
-            structured_output_settings: StructuredOutputSettings,
-            settings: LLMGenerationSettings,
+        self,
+        messages: List[Dict[str, str]],
+        structured_output_settings: StructuredOutputSettings,
+        settings: LlmGenerationSettings,
     ):
         """Create a chat completion request with the LLM provider and returns the result."""
         pass
@@ -103,7 +112,7 @@ class LLMProviderBase(ABC):
 
 
 @dataclass
-class LlamaCppGenerationSettings(LLMGenerationSettings):
+class LlamaCppGenerationSettings(LlmGenerationSettings):
     """
     Settings for generating completions using the Llama.cpp server.
 
@@ -235,26 +244,26 @@ class LlamaCppGenerationSettings(LLMGenerationSettings):
         return self.__dict__
 
 
-class LlamaCppServerProvider(LLMProviderBase):
-    def get_provider_identifier(self) -> str:
-        return """llama_cpp"""
+class LlamaCppServerProvider(LlmProviderBase):
+    def get_provider_identifier(self) -> LlmProviderId:
+        return LlmProviderId.llama_cpp
 
     def __init__(
-            self,
-            server_address: str,
-            api_key: str = None,
-            llama_cpp_python_server: bool = False,
+        self,
+        server_address: str,
+        api_key: str = None,
+        llama_cpp_python_server: bool = False,
     ):
         self.server_address = server_address
         if llama_cpp_python_server:
             self.server_completion_endpoint = (
-                    self.server_address + "/v1/engines/copilot-codex/completions"
+                self.server_address + "/v1/engines/copilot-codex/completions"
             )
         else:
             self.server_completion_endpoint = self.server_address + "/completion"
 
         self.server_chat_completion_endpoint = (
-                self.server_address + "/v1/chat/completions"
+            self.server_address + "/v1/chat/completions"
         )
         if llama_cpp_python_server:
             self.server_tokenize_endpoint = self.server_address + "/extras/tokenize"
@@ -263,8 +272,25 @@ class LlamaCppServerProvider(LLMProviderBase):
         self.api_key = api_key
         self.llama_cpp_python_server = llama_cpp_python_server
 
-    def get_default_generation_settings(self) -> LLMGenerationSettings:
-        default_settings = LLMGenerationSettings()
+    def create_completion(
+        self,
+        prompt: str,
+        structured_output_settings: StructuredOutputSettings,
+        settings: LlamaCppGenerationSettings,
+    ):
+        if self.api_key is not None:
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",  # Add API key as bearer token
+            }
+        else:
+            headers = {"Content-Type": "application/json"}
+
+        data = copy(settings.as_dict())
+        data["prompt"] = prompt
+        data["grammar"] = structured_output_settings.get_gbnf_grammar()
+        if not self.llama_cpp_python_server:
+            data["mirostat"] = data.pop("mirostat_mode")
         if self.llama_cpp_python_server:
             dic = {
                 "temperature": 0.8,
@@ -282,53 +308,6 @@ class LlamaCppServerProvider(LLMProviderBase):
                 "mirostat_eta": 0.1,
                 "seed": -1,
             }
-        else:
-            dic = {
-                "temperature": 0.8,
-                "top_k": 40,
-                "top_p": 0.95,
-                "min_p": 0.05,
-                "n_predict": -1,
-                "n_keep": 0,
-                "stream": False,
-                "stop_sequences": [],
-                "tfs_z": 1.0,
-                "typical_p": 1.0,
-                "repeat_penalty": 1.1,
-                "repeat_last_n": -1,
-                "penalize_nl": False,
-                "presence_penalty": 0.0,
-                "frequency_penalty": 0.0,
-                "penalty_prompt": None,
-                "mirostat_mode": 0,
-                "mirostat_tau": 5.0,
-                "mirostat_eta": 0.1,
-                "seed": -1,
-                "ignore_eos": False,
-            }
-        # Populate the LLMGenerationSettings instance
-        for key, value in dic.items():
-            default_settings.set_setting(key, value)
-
-        return default_settings
-
-    def create_completion(
-            self, prompt: str, structured_output_settings: StructuredOutputSettings,
-            settings: LlamaCppGenerationSettings
-    ):
-        if self.api_key is not None:
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}",  # Add API key as bearer token
-            }
-        else:
-            headers = {"Content-Type": "application/json"}
-
-        data = copy(settings.as_dict())
-        data["prompt"] = prompt
-        data["grammar"] = structured_output_settings.get_gbnf_grammar()
-        if not self.llama_cpp_python_server:
-            data["mirostat"] = data.pop("mirostat_mode")
         data["stop"] = data.pop("stop_sequences")
         if not self.llama_cpp_python_server:
             if "samplers" not in data or data["samplers"] is None:
@@ -354,10 +333,10 @@ class LlamaCppServerProvider(LLMProviderBase):
         return returned_data
 
     def create_chat_completion(
-            self,
-            messages: List[Dict[str, str]],
-            structured_output_settings: StructuredOutputSettings,
-            settings: LlamaCppGenerationSettings,
+        self,
+        messages: List[Dict[str, str]],
+        structured_output_settings: StructuredOutputSettings,
+        settings: LlamaCppGenerationSettings,
     ):
         if self.api_key is not None:
             headers = {
@@ -372,6 +351,23 @@ class LlamaCppServerProvider(LLMProviderBase):
         data["grammar"] = structured_output_settings.get_gbnf_grammar()
         if not self.llama_cpp_python_server:
             data["mirostat"] = data.pop("mirostat_mode")
+        if self.llama_cpp_python_server:
+            dic = {
+                "temperature": 0.8,
+                "top_k": 40,
+                "top_p": 0.95,
+                "min_p": 0.05,
+                "max_tokens": -1,
+                "stream": False,
+                "stop_sequences": [],
+                "repeat_penalty": 1.1,
+                "presence_penalty": 0.0,
+                "frequency_penalty": 0.0,
+                "mirostat_mode": 0,
+                "mirostat_tau": 5.0,
+                "mirostat_eta": 0.1,
+                "seed": -1,
+            }
         data["stop"] = data.pop("stop_sequences")
         if not self.llama_cpp_python_server:
             if "samplers" not in data or data["samplers"] is None:
@@ -422,7 +418,6 @@ class LlamaCppServerProvider(LLMProviderBase):
 
     @staticmethod
     def get_response_stream(headers, data, endpoint_address):
-
         response = requests.post(
             endpoint_address,
             headers=headers,

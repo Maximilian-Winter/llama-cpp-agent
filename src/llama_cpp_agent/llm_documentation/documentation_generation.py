@@ -8,10 +8,10 @@ from pydantic import BaseModel
 
 
 def generate_markdown_documentation(
-        pydantic_models: list[type[BaseModel]],
-        model_prefix="Model",
-        fields_prefix="Fields",
-        documentation_with_field_description=True,
+    pydantic_models: list[type[BaseModel]],
+    model_prefix="Model",
+    fields_prefix="Fields",
+    documentation_with_field_description=True,
 ) -> str:
     """
     Generate markdown documentation for a list of Pydantic models.
@@ -60,7 +60,7 @@ def generate_markdown_documentation(
                     element_types = get_args(field_type)
                     for element_type in element_types:
                         if isclass(element_type) and issubclass(
-                                element_type, BaseModel
+                            element_type, BaseModel
                         ):
                             pyd_models.append((element_type, False))
                 documentation += generate_field_markdown(
@@ -78,9 +78,9 @@ def generate_markdown_documentation(
             documentation += "\n"
 
         if (
-                hasattr(model, "Config")
-                and hasattr(model.Config, "json_schema_extra")
-                and "example" in model.Config.json_schema_extra
+            hasattr(model, "Config")
+            and hasattr(model.Config, "json_schema_extra")
+            and "example" in model.Config.json_schema_extra
         ):
             documentation += f"  Expected Example Output for {model.__name__}:\n"
             json_example = json.dumps(model.Config.json_schema_extra["example"])
@@ -90,11 +90,11 @@ def generate_markdown_documentation(
 
 
 def generate_field_markdown(
-        field_name: str,
-        field_type: type[Any],
-        model: type[BaseModel],
-        depth=1,
-        documentation_with_field_description=True,
+    field_name: str,
+    field_type: type[Any],
+    model: type[BaseModel],
+    depth=1,
+    documentation_with_field_description=True,
 ) -> str:
     """
     Generate markdown documentation for a Pydantic model field.
@@ -118,7 +118,9 @@ def generate_field_markdown(
 
     if get_origin(field_type) == list:
         element_type = get_args(field_type)[0]
-        field_text = f"{indent}{field_name} ({field_type.__name__} of {element_type.__name__})"
+        field_text = (
+            f"{indent}{field_name} ({field_type.__name__} of {element_type.__name__})"
+        )
         if field_description != "":
             field_text += ": "
         else:
@@ -147,9 +149,7 @@ def generate_field_markdown(
             field_text += "\n"
 
     else:
-        field_text = (
-            f"{indent}{field_name} ({field_type.__name__})"
-        )
+        field_text = f"{indent}{field_name} ({field_type.__name__})"
         if field_description != "":
             field_text += ": "
         else:
@@ -163,9 +163,9 @@ def generate_field_markdown(
 
     # Check for and include field-specific examples if available
     if (
-            hasattr(model, "Config")
-            and hasattr(model.Config, "json_schema_extra")
-            and "example" in model.Config.json_schema_extra
+        hasattr(model, "Config")
+        and hasattr(model.Config, "json_schema_extra")
+        and "example" in model.Config.json_schema_extra
     ):
         field_example = model.Config.json_schema_extra["example"].get(field_name)
         if field_example is not None:
@@ -205,10 +205,10 @@ def format_json_example(example: dict[str, Any], depth: int) -> str:
 
 
 def generate_text_documentation(
-        pydantic_models: list[type[BaseModel]],
-        model_prefix="Model",
-        fields_prefix="Fields",
-        documentation_with_field_description=True,
+    pydantic_models: list[type[BaseModel]],
+    model_prefix="Model",
+    fields_prefix="Fields",
+    documentation_with_field_description=True,
 ) -> str:
     """
     Generate markdown documentation for a list of Pydantic models.
@@ -255,31 +255,31 @@ def generate_text_documentation(
                     if isclass(element_type) and issubclass(element_type, BaseModel):
                         pyd_models.append((element_type, False))
                     if get_origin(element_type) == Union or isinstance(
-                            element_type, UnionType
+                        element_type, UnionType
                     ):
                         element_types = get_args(element_type)
                         for element_type in element_types:
                             if isclass(element_type) and issubclass(
-                                    element_type, BaseModel
+                                element_type, BaseModel
                             ):
                                 pyd_models.append((element_type, False))
                             if get_origin(element_type) == list:
                                 element_type = get_args(element_type)[0]
                                 if isclass(element_type) and issubclass(
-                                        element_type, BaseModel
+                                    element_type, BaseModel
                                 ):
                                     pyd_models.append((element_type, False))
                 if get_origin(field_type) == Union or isinstance(field_type, UnionType):
                     element_types = get_args(field_type)
                     for element_type in element_types:
                         if isclass(element_type) and issubclass(
-                                element_type, BaseModel
+                            element_type, BaseModel
                         ):
                             pyd_models.append((element_type, False))
                         if get_origin(element_type) == list:
                             element_type = get_args(element_type)[0]
                             if isclass(element_type) and issubclass(
-                                    element_type, BaseModel
+                                element_type, BaseModel
                             ):
                                 pyd_models.append((element_type, False))
                 if isclass(field_type) and issubclass(field_type, BaseModel):
@@ -299,9 +299,9 @@ def generate_text_documentation(
             documentation += "\n"
 
         if (
-                hasattr(model, "Config")
-                and hasattr(model.Config, "json_schema_extra")
-                and "example" in model.Config.json_schema_extra
+            hasattr(model, "Config")
+            and hasattr(model.Config, "json_schema_extra")
+            and "example" in model.Config.json_schema_extra
         ):
             documentation += f"  Expected Example Output for {model.__name__}:\n"
             json_example = json.dumps(model.Config.json_schema_extra["example"])
@@ -311,11 +311,11 @@ def generate_text_documentation(
 
 
 def generate_field_text(
-        field_name: str,
-        field_type: type[Any],
-        model: type[BaseModel],
-        depth=1,
-        documentation_with_field_description=True,
+    field_name: str,
+    field_type: type[Any],
+    model: type[BaseModel],
+    depth=1,
+    documentation_with_field_description=True,
 ) -> str:
     """
     Generate markdown documentation for a Pydantic model field.
@@ -422,9 +422,7 @@ def generate_field_text(
             field_text += "\n"
 
     else:
-        field_text = (
-            f"{indent}{field_name} ({field_type.__name__})"
-        )
+        field_text = f"{indent}{field_name} ({field_type.__name__})"
         if field_description != "":
             field_text += ": "
         else:
@@ -438,9 +436,9 @@ def generate_field_text(
 
     # Check for and include field-specific examples if available
     if (
-            hasattr(model, "Config")
-            and hasattr(model.Config, "json_schema_extra")
-            and "example" in model.Config.json_schema_extra
+        hasattr(model, "Config")
+        and hasattr(model.Config, "json_schema_extra")
+        and "example" in model.Config.json_schema_extra
     ):
         field_example = model.Config.json_schema_extra["example"].get(field_name)
         if field_example is not None:

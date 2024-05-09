@@ -146,6 +146,7 @@ class AgentChain:
                 structured_output_settings=chain_element.structured_output_settings,
                 add_response_to_chat_history=chain_element.add_response_to_chat_history,
                 add_message_to_chat_history=chain_element.add_prompt_to_chat_history,
+                llm_samplings_settings=chain_element.llm_sampling_settings
             )
             if chain_element.function_tool_registry is not None:
                 outputs[chain_element.output_identifier] = outputs[

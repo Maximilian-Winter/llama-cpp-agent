@@ -13,7 +13,7 @@ from .llm_agent import LlamaCppAgent, StreamingResponse
 from .messages_formatter import MessagesFormatterType, MessagesFormatter
 from .function_calling import LlamaCppFunctionTool
 
-from .providers.provider_base import LlmProvider
+from .providers.provider_base import LlmProvider, LlmSamplingSettings
 
 
 class activate_message_mode(BaseModel):
@@ -191,7 +191,7 @@ To call functions, you respond with a JSON object containing three fields:
 "function": The name of the function you want to call.
 "parameters": The arguments required for the function.
 
-After performing a function call, you will receive a response containing the return values of the function calls.
+After performing a function call, you will receive a response containing the return values of the function calls. Only you will see the return values of functions after you call them.
 
 ### Functions:
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
@@ -310,12 +310,12 @@ Choose the appropriate function based on the task you want to perform. Provide y
         return self.__dict__
 
     def generate_response(
-        self, message: str, additional_stop_sequences: List[str] = None
+        self, message: str, llm_sampling_settings: LlmSamplingSettings = None
     ):
         self.llama_cpp_agent.add_message(role="user", message=message)
 
         result = self.intern_get_response(
-            additional_stop_sequences=additional_stop_sequences
+            llm_sampling_settings=llm_sampling_settings
         )
 
         while True:
@@ -348,22 +348,20 @@ Choose the appropriate function based on the task you want to perform. Provide y
                 if agent_sent_message:
                     break
             result = self.intern_get_response(
-                additional_stop_sequences=additional_stop_sequences
+                llm_sampling_settings=llm_sampling_settings
             )
         return result
 
-    def intern_get_response(self, additional_stop_sequences: List[str] = None):
+    def intern_get_response(self, llm_sampling_settings: List[str] = None):
         without_grammar_mode = False
         if self.without_grammar_mode:
             without_grammar_mode = True
             self.without_grammar_mode = False
-        if additional_stop_sequences is None:
-            additional_stop_sequences = []
-        additional_stop_sequences.append("(End of message)")
         result = self.llama_cpp_agent.get_chat_response(
             system_prompt=self.system_prompt,
             streaming_callback=self.streaming_callback,
             structured_output_settings=LlmStructuredOutputSettings.from_llama_cpp_function_tools(self.llama_cpp_tools, output_type=LlmStructuredOutputType.parallel_function_calling),
+            llm_samplings_settings=llm_sampling_settings
         )
         if without_grammar_mode:
             self.prompt_suffix = ""

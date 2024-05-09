@@ -2,25 +2,18 @@ import json
 from copy import copy
 from typing import Type, Callable, Union
 
-from llama_cpp import Llama, LlamaGrammar
+from llama_cpp import Llama
 from pydantic import BaseModel
 
 from .llm_agent import LlamaCppAgent, StreamingResponse
+from .llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 from .llm_prompt_template import PromptTemplate
 from .llm_settings import LlamaLLMGenerationSettings, LlamaLLMSettings
 from .output_parser import extract_object_from_response
 from .messages_formatter import MessagesFormatterType, MessagesFormatter
-from .gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import (
-    generate_gbnf_grammar_and_documentation,
-)
-from .providers.llama_cpp_endpoint_provider import (
-    LlamaCppEndpointSettings,
-    LlamaCppGenerationSettings,
-)
-from .providers.openai_endpoint_provider import (
-    OpenAIGenerationSettings,
-    OpenAIEndpointSettings,
-)
+
+
+from .providers.provider_base import LlmProvider, LlmSamplingSettings
 
 
 class StructuredOutputAgent:
@@ -54,14 +47,7 @@ class StructuredOutputAgent:
 
     def __init__(
         self,
-        llama_llm: Union[
-            Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings
-        ],
-        llama_generation_settings: Union[
-            LlamaLLMGenerationSettings,
-            LlamaCppGenerationSettings,
-            OpenAIGenerationSettings,
-        ] = None,
+        llama_llm: LlmProvider,
         messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
         custom_messages_formatter: MessagesFormatter = None,
         streaming_callback: Callable[[StreamingResponse], None] = None,
@@ -78,35 +64,6 @@ class StructuredOutputAgent:
             streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
             debug_output (bool): Enable debug output.
         """
-        if llama_generation_settings is None:
-            if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings):
-                llama_generation_settings = LlamaLLMGenerationSettings()
-            elif isinstance(llama_llm, OpenAIEndpointSettings):
-                llama_generation_settings = OpenAIGenerationSettings()
-            else:
-                llama_generation_settings = LlamaCppGenerationSettings()
-
-        if isinstance(
-            llama_generation_settings, LlamaLLMGenerationSettings
-        ) and isinstance(llama_llm, LlamaCppEndpointSettings):
-            raise Exception(
-                "Wrong generation settings for llama.cpp server endpoint, use LlamaCppServerGenerationSettings under llama_cpp_agent.providers.llama_cpp_server_provider!"
-            )
-        if (
-            isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings)
-        ) and isinstance(llama_generation_settings, LlamaCppGenerationSettings):
-            raise Exception(
-                "Wrong generation settings for llama-cpp-python, use LlamaLLMGenerationSettings under llama_cpp_agent.llm_settings!"
-            )
-
-        if isinstance(llama_llm, OpenAIEndpointSettings) and not isinstance(
-            llama_generation_settings, OpenAIGenerationSettings
-        ):
-            raise Exception(
-                "Wrong generation settings for OpenAI endpoint, use CompletionRequestSettings under llama_cpp_agent.providers.openai_endpoint_provider!"
-            )
-
-        self.llama_generation_settings = llama_generation_settings
         self.grammar_cache = {}
         self.system_prompt_template = PromptTemplate.from_string(
             "You are an advanced AI agent. You are tasked to assist the user by creating structured output in JSON format.\n\n{documentation}"
@@ -200,7 +157,7 @@ class StructuredOutputAgent:
         """
         return self.__dict__
 
-    def create_object(self, model: Type[BaseModel], data: str = "") -> object:
+    def create_object(self, model: Type[BaseModel], data: str = "", llm_sampling_settings: LlmSamplingSettings = None) -> object:
         """
         Creates an object of the given model from the given data.
 
@@ -211,19 +168,10 @@ class StructuredOutputAgent:
         Returns:
             object: The created object.
         """
-        if model not in self.grammar_cache:
-            grammar, documentation = generate_gbnf_grammar_and_documentation(
-                [model],
-                model_prefix="Response Model",
-                fields_prefix="Response Model Field",
-            )
-
-            self.grammar_cache[model] = grammar, documentation
-        else:
-            grammar, documentation = self.grammar_cache[model]
+        output_settings = LlmStructuredOutputSettings.from_pydantic_models([model], output_type=LlmStructuredOutputType.object_instance)
 
         system_prompt = self.system_prompt_template.generate_prompt(
-            {"documentation": documentation}
+            {"documentation": output_settings.get_llm_documentation()}
         )
         if data == "":
             prompt = "Create a random JSON response based on the response model."
@@ -232,10 +180,10 @@ class StructuredOutputAgent:
         response = self.llama_cpp_agent.get_chat_response(
             prompt,
             system_prompt=system_prompt,
-            grammar=grammar,
             add_response_to_chat_history=False,
             add_message_to_chat_history=False,
             streaming_callback=self.streaming_callback,
-            **self.llama_generation_settings.as_dict(),
+            structured_output_settings=output_settings,
+            llm_samplings_settings=llm_sampling_settings
         )
         return extract_object_from_response(response, model)

@@ -57,7 +57,7 @@ class LlmStructuredOutputSettings(BaseModel):
 
     @staticmethod
     def from_llama_cpp_function_tools(
-            llama_cpp_function_tools: List[LlamaCppFunctionTool], output_type: LlmStructuredOutputType
+            llama_cpp_function_tools: List[LlamaCppFunctionTool], parallel_function_calling: bool = False
     ):
         """
         Create settings from a list of LlamaCppFunctionTools with a specific output type. Has to be either LlmOutputType.function_call or LlmOutputType.parallel_function_call.
@@ -70,7 +70,7 @@ class LlmStructuredOutputSettings(BaseModel):
             LlmStructuredOutputSettings: Configured settings object.
         """
         return LlmStructuredOutputSettings(
-            output_type=output_type, function_tools=llama_cpp_function_tools
+            output_type=LlmStructuredOutputType.function_calling if not parallel_function_calling else LlmStructuredOutputType.parallel_function_calling, function_tools=llama_cpp_function_tools
         )
 
     @staticmethod

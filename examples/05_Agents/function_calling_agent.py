@@ -10,7 +10,9 @@ from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
 from llama_cpp_agent.llm_settings import LlamaLLMGenerationSettings
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings, LlamaCppGenerationSettings
+from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
+
+model = LlamaCppServerProvider("http://127.0.0.1:8080")
 
 
 def get_current_datetime(output_format: Optional[str] = None):
@@ -98,26 +100,8 @@ def send_message_to_user_callback(message: str):
 
 path_to_model = "../../../gguf-models/mistral-7b-instruct-v0.2.Q6_K.gguf"
 
-model = Llama(
-    path_to_model,
-    n_gpu_layers=49,
-    f16_kv=True,
-    offload_kqv=True,
-    use_mlock=False,
-    embedding=False,
-    n_threads=8,
-    n_batch=1024,
-    n_ctx=4096,
-    last_n_tokens_size=1024,
-    verbose=True,
-    seed=-1,
-)
-generation_settings = LlamaLLMGenerationSettings(
-    temperature=0.4, top_k=0, top_p=1.0, repeat_penalty=1.1,
-    min_p=0.1, tfs_z=0.95, stream=True)
-# Can be saved and loaded like that:
-# generation_settings.save("generation_settings.json")
-# generation_settings = LlamaLLMGenerationSettings.load_from_file("generation_settings.json")
+
+
 
 # To make the function tools available to our agent, we have to create a list of LlamaCppFunctionTool instances.
 
@@ -134,8 +118,6 @@ get_weather_function_tool = LlamaCppFunctionTool.from_openai_tool(open_ai_tool_s
 function_call_agent = FunctionCallingAgent(
     # Can be lama-cpp-python Llama class, llama_cpp_agent.llm_settings.LlamaLLMSettings class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerLLMSettings.
     model,
-    # llama_cpp_agent.llm_settings.LlamaLLMGenerationSettings  class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerGenerationSettings.
-    llama_generation_settings=generation_settings,
     # Pass the LlamaCppFunctionTool instances as a list to the agent.
     llama_cpp_function_tools=[calculator_function_tool, current_datetime_function_tool, get_weather_function_tool],
     # Callback for receiving messages for the user.
@@ -146,8 +128,5 @@ function_call_agent = FunctionCallingAgent(
     debug_output=True)
 
 user_input = '''Get the date and time in '%d-%m-%Y %H:%M' format. Get the current weather in celsius in London, New York and at the North Pole. Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.'''
-function_call_agent.generate_response(user_input, ["<|end_of_turn|>"])
-function_call_agent.save("function_calling_agent.json")
-user_input = input(">")
 function_call_agent.generate_response(user_input)
-function_call_agent.save("function_calling_agent.json")
+

@@ -2,7 +2,9 @@ from typing import List, Callable
 
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.llm_agent import LlamaCppAgent
+from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
 from llama_cpp_agent.llm_prompt_template import PromptTemplate
+from llama_cpp_agent.providers.provider_base import LlmSamplingSettings
 
 
 class AgentChainElement:
@@ -38,14 +40,12 @@ class AgentChainElement:
         system_prompt: str,
         prompt: str,
         tools: List[LlamaCppFunctionTool] = None,
-        grammar: str = None,
+        structured_output_settings: LlmStructuredOutputSettings = None,
         preprocessor: Callable[[str, str, dict], tuple[str, str, dict]] = None,
         postprocessor: Callable[[str, str, dict, str], str] = None,
         add_prompt_to_chat_history: bool = False,
         add_response_to_chat_history: bool = False,
-        temperature: float = 0.35,
-        top_p: float = 1.0,
-        top_k: int = 0,
+        llm_sampling_settings: LlmSamplingSettings = None
     ):
         """
         Constructs an instance of the AgentChainElement class.
@@ -74,17 +74,15 @@ class AgentChainElement:
         self.prompt = prompt
         self.add_prompt_to_chat_history = add_prompt_to_chat_history
         self.add_response_to_chat_history = add_response_to_chat_history
-        self.grammar = grammar
+        self.structured_output_settings = structured_output_settings
         self.preprocessor = preprocessor
         self.postprocessor = postprocessor
         self.function_tool_registry = None
         if tools is not None:
-            self.function_tool_registry = LlamaCppAgent.get_function_tool_registry(
+            self.structured_output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(
                 tools
             )
-        self.temperature = temperature
-        self.top_p = top_p
-        self.top_k = top_k
+        self.llm_sampling_settings = llm_sampling_settings
 
 
 class AgentChain:
@@ -145,12 +143,7 @@ class AgentChain:
             outputs[chain_element.output_identifier] = self.agent.get_chat_response(
                 user_message if user_message is not None else prompt,
                 system_prompt=sys_prompt,
-                penalize_nl=False,
-                temperature=chain_element.temperature,
-                top_p=chain_element.top_p,
-                top_k=chain_element.top_k,
-                function_tool_registry=chain_element.function_tool_registry,
-                grammar=chain_element.grammar,
+                structured_output_settings=chain_element.structured_output_settings,
                 add_response_to_chat_history=chain_element.add_response_to_chat_history,
                 add_message_to_chat_history=chain_element.add_prompt_to_chat_history,
             )

@@ -4,8 +4,9 @@
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings, LlamaCppGenerationSettings
+from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
 
+model = LlamaCppServerProvider("http://127.0.0.1:8080")
 # Code taken from llama-index example to create a query engine for asking questions
 # https://docs.llamaindex.ai/en/stable/examples/agent/react_agent_with_query_engine/
 
@@ -63,10 +64,6 @@ query_engine_tools = [
     ),
 ]
 
-# Initialize the llama-cpp-agent LLM and the generation parameters.
-generation_settings = LlamaCppGenerationSettings(temperature=0.45, top_p=1.0, top_k=0, stream=True)
-main_model = LlamaCppEndpointSettings("http://localhost:8080/completion")
-
 # Creating LlamaCppFunctionTool instances out of the llama-index query engine tools.
 # We pass the llama-index query engine tools to the from_llama_index_tool function of the LlamaCppFunctionTool class and create the llama-cpp-agent tools.
 lyft_query_engine_tool = LlamaCppFunctionTool.from_llama_index_tool(query_engine_tools[0])
@@ -75,8 +72,7 @@ uber_query_engine_tool = LlamaCppFunctionTool.from_llama_index_tool(query_engine
 
 
 function_call_agent = FunctionCallingAgent(
-    main_model,
-    llama_generation_settings=generation_settings,
+    model,
     # Pass the LlamaCppFunctionTool instances as a list to the agent.
     llama_cpp_function_tools=[lyft_query_engine_tool, uber_query_engine_tool],
     allow_parallel_function_calling=True,

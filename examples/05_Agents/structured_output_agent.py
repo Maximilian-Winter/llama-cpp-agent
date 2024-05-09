@@ -7,10 +7,9 @@ from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
-    LlamaCppEndpointSettings,
-    LlamaCppGenerationSettings,
-)
+from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
+
+model = LlamaCppServerProvider("http://127.0.0.1:8080")
 from llama_cpp_agent.structured_output_agent import StructuredOutputAgent
 
 
@@ -34,11 +33,8 @@ class Book(BaseModel):
     summary: str = Field(..., description="Summary of the book.")
 
 
-generation_settings = LlamaCppGenerationSettings(temperature=0.65, stream=True)
-main_model = LlamaCppEndpointSettings("http://localhost:8080/completion")
-
 structured_output_agent = StructuredOutputAgent(
-    main_model, llama_generation_settings=generation_settings, debug_output=True,
+    model, debug_output=True,
     messages_formatter_type=MessagesFormatterType.PHI_3
 )
 

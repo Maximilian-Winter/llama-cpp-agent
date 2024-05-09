@@ -1,10 +1,18 @@
+import json
+from copy import copy
+from dataclasses import dataclass, field
+from typing import List, Dict, Optional, Union
+
+from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
+from llama_cpp_agent.providers.provider_base import LlmProvider, LlmProviderId, LlmSamplingSettings
 
 
 @dataclass
 class VLLMServerSamplingSettings(LlmSamplingSettings):
     """
-    TGIServerSamplingSettings dataclass
+    VLLMServerSamplingSettings dataclass
     """
+
 
     best_of: Optional[int] = None
     use_beam_search = False
@@ -26,6 +34,13 @@ class VLLMServerSamplingSettings(LlmSamplingSettings):
     def get_provider_identifier(self) -> LlmProviderId:
         return LlmProviderId.tgi_server
 
+    def get_additional_stop_sequences(self) -> Union[List[str], None]:
+        return None
+
+    def add_additional_stop_sequences(self, sequences: List[str]):
+        pass
+    def is_streaming(self):
+        return self.stream
     def save(self, file_path: str):
         """
         Save the settings to a file.

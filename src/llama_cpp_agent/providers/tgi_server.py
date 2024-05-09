@@ -1,7 +1,7 @@
 import json
 from copy import copy
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
 
 import requests
 
@@ -38,6 +38,13 @@ class TGIServerSamplingSettings(LlmSamplingSettings):
     def get_provider_identifier(self) -> LlmProviderId:
         return LlmProviderId.tgi_server
 
+    def get_additional_stop_sequences(self) -> Union[List[str], None]:
+        return None
+
+    def add_additional_stop_sequences(self, sequences: List[str]):
+        pass
+    def is_streaming(self):
+        return self.stream
     def save(self, file_path: str):
         """
         Save the settings to a file.
@@ -220,7 +227,8 @@ class TGIServerProvider(LlmProvider):
                         if "token" in new_data and (new_data["token"]["text"] is not None):
                             returned_data = {"choices": [{"text": new_data["token"]["text"]}]}
                             yield returned_data
-                        elif "choices" in new_data and (new_data["choices"][0]["delta"] is not None) and ("content" in new_data["choices"][0]["delta"]):
+                        elif "choices" in new_data and (new_data["choices"][0]["delta"] is not None) and (
+                                "content" in new_data["choices"][0]["delta"]):
                             returned_data = {"choices": [{"text": new_data["choices"][0]["delta"]["content"]}]}
                             yield returned_data
                         decoded_chunk = ""
@@ -229,5 +237,3 @@ class TGIServerProvider(LlmProvider):
                 print(f"Request failed: {e}")
 
         return generate_text_chunks()
-
-

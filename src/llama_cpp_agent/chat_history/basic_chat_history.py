@@ -108,6 +108,8 @@ class BasicChatHistory(ChatHistory):
             sys_message = None
             if converted_messages[0]["role"] == "system":
                 sys_message = converted_messages.pop(0)
+            if sys_message is not None:
+                total_tokens = len(self.llm_provider.tokenize(sys_message["content"]))
             for message in reversed(converted_messages):
                 tokens = self.llm_provider.tokenize(message["content"])
                 total_tokens += len(tokens)

@@ -4,11 +4,12 @@ from typing import Union
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
+from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
-    LlamaCppEndpointSettings,
-)
+from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
+
+model = LlamaCppServerProvider("http://127.0.0.1:8080")
 
 
 # Simple pydantic calculator tool for the agent that can add, subtract, multiply, and divide.
@@ -53,19 +54,18 @@ class Calculator(BaseModel):
 # Create a list of function call tools.
 function_tools = [LlamaCppFunctionTool(Calculator)]
 
-# We generate the function tool registry needed for the agent. We pass the function_tools list and use default parameters for simple function calls (without parallel function calls).
-function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools)
-model = LlamaCppEndpointSettings("http://localhost:8080/completion")
+output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(function_tools, output_type=LlmStructuredOutputType.function_calling)
 llama_cpp_agent = LlamaCppAgent(
     model,
     debug_output=False,
-    system_prompt=f"You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n{function_tool_registry.get_documentation()}",
+    system_prompt=f"You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n{output_settings.get_llm_documentation()}",
     predefined_messages_formatter_type=MessagesFormatterType.CHATML,
 )
 
 user_input = "What is 42 + 42?"
 print(
     llama_cpp_agent.get_chat_response(
-        user_input, temperature=0.45, function_tool_registry=function_tool_registry
+        user_input,
+        structured_output_settings=output_settings
     )
 )

@@ -22,13 +22,12 @@ class LlamaCppPythonSamplingSettings(LlmSamplingSettings):
         min_p (float): Minimum probability for nucleus sampling. Lower values result in more focused completions.
         max_tokens (int): Number of max tokens to generate.
         stream (bool): Enable streaming for long completions.
-        stop_sequences (List[str]): List of stop sequences to finish completion generation.
+        additional_stop_sequences (List[str]): List of stop sequences to finish completion generation. The official stop sequences of the model get added automatically.
         tfs_z (float): Controls the temperature for top frequent sampling.
         typical_p (float): Typical probability for top frequent sampling.
         repeat_penalty (float): Penalty for repeating tokens in completions.
         presence_penalty (float): Penalty for presence of certain tokens.
         frequency_penalty (float): Penalty based on token frequency.
-        penalty_prompt (Union[None, str, List[int]]): Prompts to apply penalty for certain tokens.
         mirostat_mode (int): Mirostat level.
         mirostat_tau (float): Mirostat temperature.
         mirostat_eta (float): Mirostat eta parameter.
@@ -42,13 +41,12 @@ class LlamaCppPythonSamplingSettings(LlmSamplingSettings):
         min_p (float): Minimum probability for nucleus sampling. Lower values result in more focused completions.
         max_tokens (int): Number of max tokens to generate.
         stream (bool): Enable streaming for long completions.
-        stop_sequences (List[str]): List of stop sequences to finish completion generation.
+        additional_stop_sequences (List[str]): List of stop sequences to finish completion generation. The official stop sequences of the model get added automatically.
         tfs_z (float): Controls the temperature for top frequent sampling.
         typical_p (float): Typical probability for top frequent sampling.
         repeat_penalty (float): Penalty for repeating tokens in completions.
         presence_penalty (float): Penalty for presence of certain tokens.
         frequency_penalty (float): Penalty based on token frequency.
-        penalty_prompt (Union[None, str, List[int]]): Prompts to apply penalty for certain tokens.
         mirostat_mode (int): Mirostat level.
         mirostat_tau (float): Mirostat temperature.
         mirostat_eta (float): Mirostat eta parameter.
@@ -60,13 +58,14 @@ class LlamaCppPythonSamplingSettings(LlmSamplingSettings):
         as_dict() -> dict: Convert the settings to a dictionary.
 
     """
+
     temperature: float = 0.8
     top_k: int = 40
     top_p: float = 0.95
     min_p: float = 0.05
     max_tokens: int = -1
     stream: bool = False
-    stop_sequences: List[str] = None
+    additional_stop_sequences: List[str] = None
     tfs_z: float = 1.0
     typical_p: float = 1.0
     repeat_penalty: float = 1.1
@@ -79,6 +78,19 @@ class LlamaCppPythonSamplingSettings(LlmSamplingSettings):
 
     def get_provider_identifier(self) -> LlmProviderId:
         return LlmProviderId.llama_cpp_server
+
+    def get_additional_stop_sequences(self) -> List[str]:
+        if self.additional_stop_sequences is None:
+            self.additional_stop_sequences = []
+        return self.additional_stop_sequences
+
+    def add_additional_stop_sequences(self, sequences: List[str]):
+        if self.additional_stop_sequences is None:
+            self.additional_stop_sequences = []
+        self.additional_stop_sequences.extend(sequences)
+
+    def is_streaming(self):
+        return self.stream
 
     def save(self, file_path: str):
         """
@@ -159,16 +171,8 @@ class LlamaCppPythonProvider(LlmProvider):
                 grammar = self.grammar_cache[grammar]
 
         settings_dictionary = copy(settings.as_dict())
-        settings_dictionary["max_tokens"] = settings_dictionary.pop("n_predict")
-        settings_dictionary["stop"] = settings_dictionary.pop("stop_sequences")
 
-        settings_dictionary.pop("n_keep")
-        settings_dictionary.pop("repeat_last_n")
-        settings_dictionary.pop("penalize_nl")
-        settings_dictionary.pop("penalty_prompt")
-        settings_dictionary.pop("samplers")
-        settings_dictionary.pop("cache_prompt")
-        settings_dictionary.pop("ignore_eos")
+        settings_dictionary["stop"] = settings_dictionary.pop("additional_stop_sequences")
 
         return self.llama_model.create_completion(prompt, grammar=grammar, **settings_dictionary)
 
@@ -189,14 +193,6 @@ class LlamaCppPythonProvider(LlmProvider):
         settings_dictionary = copy(settings.as_dict())
         settings_dictionary["max_tokens"] = settings_dictionary.pop("n_predict")
         settings_dictionary["stop"] = settings_dictionary.pop("stop_sequences")
-
-        settings_dictionary.pop("n_keep")
-        settings_dictionary.pop("repeat_last_n")
-        settings_dictionary.pop("penalize_nl")
-        settings_dictionary.pop("penalty_prompt")
-        settings_dictionary.pop("samplers")
-        settings_dictionary.pop("cache_prompt")
-        settings_dictionary.pop("ignore_eos")
 
         return self.llama_model.create_chat_completion(messages, grammar=grammar, **settings_dictionary)
 

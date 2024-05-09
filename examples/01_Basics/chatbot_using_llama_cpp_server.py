@@ -1,10 +1,8 @@
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.openai_endpoint_provider import (
-    OpenAIEndpointSettings,
-)
+from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
 
-model = OpenAIEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080/v1/completions")
+model = LlamaCppServerProvider("http://127.0.0.1:8080")
 
 bot = LlamaCppAgent(
     model,
@@ -17,5 +15,5 @@ while True:
     user_input = input("User: ")
     if user_input == "exit":
         break
-    bot_output = bot.get_chat_response(user_input, temperature=0.7, stream=False)
+    bot_output = bot.get_chat_response(user_input)
     print(f"AI: { bot_output}")

@@ -22,7 +22,7 @@ class LlamaCppSamplingSettings(LlmSamplingSettings):
         n_predict (int): Number of completions to predict. Set to -1 to use the default value.
         n_keep (int): Number of completions to keep. Set to 0 for all predictions.
         stream (bool): Enable streaming for long completions.
-        stop_sequences (List[str]): List of stop sequences to finish completion generation.
+        additional_stop_sequences (List[str]): List of stop sequences to finish completion generation. The official stop sequences of the model get added automatically.
         tfs_z (float): Controls the temperature for top frequent sampling.
         typical_p (float): Typical probability for top frequent sampling.
         repeat_penalty (float): Penalty for repeating tokens in completions.
@@ -45,7 +45,7 @@ class LlamaCppSamplingSettings(LlmSamplingSettings):
         n_predict (int): Number of completions to predict. Set to -1 to use the default value.
         n_keep (int): Number of completions to keep. Set to 0 for all predictions.
         stream (bool): Enable streaming for long completions.
-        stop_sequences (List[str]): List of stop sequences to finish completion generation.
+        additional_stop_sequences (List[str]): List of stop sequences to finish completion generation. The official stop sequences of the model get added automatically.
         tfs_z (float): Controls the temperature for top frequent sampling.
         typical_p (float): Typical probability for top frequent sampling.
         repeat_penalty (float): Penalty for repeating tokens in completions.
@@ -73,8 +73,8 @@ class LlamaCppSamplingSettings(LlmSamplingSettings):
     min_p: float = 0.05
     n_predict: int = -1
     n_keep: int = 0
-    stream: bool = False
-    stop_sequences: List[str] = None
+    stream: bool = True
+    additional_stop_sequences: List[str] = None
     tfs_z: float = 1.0
     typical_p: float = 1.0
     repeat_penalty: float = 1.1
@@ -94,6 +94,17 @@ class LlamaCppSamplingSettings(LlmSamplingSettings):
     def get_provider_identifier(self) -> LlmProviderId:
         return LlmProviderId.llama_cpp_server
 
+    def get_additional_stop_sequences(self) -> List[str]:
+        if self.additional_stop_sequences is None:
+            self.additional_stop_sequences = []
+        return self.additional_stop_sequences
+
+    def add_additional_stop_sequences(self, sequences: List[str]):
+        if self.additional_stop_sequences is None:
+            self.additional_stop_sequences = []
+        self.additional_stop_sequences.extend(sequences)
+    def is_streaming(self):
+        return self.stream
     def save(self, file_path: str):
         """
         Save the settings to a file.
@@ -303,7 +314,7 @@ class LlamaCppServerProvider(LlmProvider):
         if self.llama_cpp_python_server:
             settings_dictionary["max_tokens"] = settings_dictionary.pop("n_predict")
 
-        settings_dictionary["stop"] = settings_dictionary.pop("stop_sequences")
+        settings_dictionary["stop"] = settings_dictionary.pop("additional_stop_sequences")
         if not self.llama_cpp_python_server:
             if "samplers" not in settings_dictionary or settings_dictionary["samplers"] is None:
                 settings_dictionary["samplers"] = [

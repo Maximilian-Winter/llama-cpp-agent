@@ -7,8 +7,11 @@ from pydantic import BaseModel, Field
 
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
-from llama_cpp_agent.providers.provider_base import LlmProviderId, LlamaCppServerProvider, LlamaCppPythonProvider, \
-    TGIServerProvider, VLLMServerProvider
+from llama_cpp_agent.providers.llama_cpp_server import LlmProviderId, LlamaCppServerProvider
+from llama_cpp_agent.providers.tgi_server import LlmProviderId, TGIServerProvider
+from llama_cpp_agent.providers.vllm_server import LlmProviderId, VLLMServerProvider
+from llama_cpp_agent.providers.llama_cpp_python import LlmProviderId, LlamaCppPythonProvider
+
 
 if __name__ == "__main__":
     test_endpoint = LlmProviderId.tgi_server
@@ -140,9 +143,6 @@ if __name__ == "__main__":
     settings = LlmStructuredOutputSettings(output_type=LlmStructuredOutputType.parallel_function_calling,
                                            function_tools=tools)
 
-    docs = settings.get_llm_documentation()
-
-    tools_schema = settings.get_json_schema(add_inner_thoughts=True)
     prompt_test = f"""[INST] You are Funky, an AI assistant that calls functions to perform tasks.
 
 To call functions, you respond with a JSON object containing three fields:

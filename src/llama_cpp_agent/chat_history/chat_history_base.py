@@ -15,6 +15,9 @@ class ChatHistory(ABC):
     def get_chat_messages(self) -> List[Dict[str, str]]:
         pass
 
+    def add_message(self, message: ChatMessage):
+        pass
+
 
 class ChatMessageStore(ABC):
     @abstractmethod
@@ -60,4 +63,3 @@ class ChatMessageStore(ABC):
     @abstractmethod
     def get_all_messages(self) -> List[ChatMessage]:
         pass
-

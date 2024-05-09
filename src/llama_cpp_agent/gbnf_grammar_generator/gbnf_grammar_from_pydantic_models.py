@@ -718,7 +718,7 @@ def generate_gbnf_grammar_from_pydantic_models(
             [format_model_and_field_name(model.__name__) for model in models]
         )
         all_rules.insert(0, root_rule)
-        return "\n".join(all_rules)
+        return "\n".join(all_rules) + get_primitive_grammar("\n".join(all_rules))
     elif outer_object_name is not None:
         if list_of_outputs:
             root_rule = (
@@ -770,7 +770,7 @@ def generate_gbnf_grammar_from_pydantic_models(
             all_rules.extend(model_rules)
 
         all_rules.insert(0, root_rule + model_rule + grammar_model_rules)
-        return "\n".join(all_rules)
+        return "\n".join(all_rules) + get_primitive_grammar("\n".join(all_rules))
 
 
 def get_primitive_grammar(grammar):

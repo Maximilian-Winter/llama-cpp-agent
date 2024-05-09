@@ -11,14 +11,11 @@ from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models im
     generate_gbnf_grammar_and_documentation,
 )
 from llama_cpp_agent.llm_agent import LlamaCppAgent
+from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
-    LlamaCppEndpointSettings,
-)
+from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
 
-model = LlamaCppEndpointSettings(
-    completions_endpoint_url="http://127.0.0.1:8080/completion"
-)
+model = LlamaCppServerProvider("http://127.0.0.1:8080")
 
 
 class Node(BaseModel):
@@ -45,7 +42,7 @@ gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
     fields_prefix="Response Model Field",
 )
 
-print(gbnf_grammar)
+output_settings = LlmStructuredOutputSettings.from_pydantic_models([KnowledgeGraph], output_type=LlmStructuredOutputType.object_instance)
 
 agent = LlamaCppAgent(
     model,
@@ -75,11 +72,7 @@ def generate_graph(user_input: str) -> KnowledgeGraph:
     prompt = f"""Help me understand the following by describing it as a extremely detailed knowledge graph with at least 20 nodes: {user_input}""".strip()
     response = agent.get_chat_response(
         message=prompt,
-        temperature=0.65,
-        mirostat_mode=0,
-        mirostat_tau=5.0,
-        mirostat_eta=0.1,
-        grammar=gbnf_grammar,
+        structured_output_settings=output_settings
     )
     knowledge_graph = json.loads(response)
     cls = KnowledgeGraph

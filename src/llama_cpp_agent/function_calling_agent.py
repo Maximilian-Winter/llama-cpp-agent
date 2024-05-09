@@ -7,23 +7,13 @@ from typing import Type, List, Callable, Union, Literal
 from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
+from .llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 from .llm_settings import LlamaLLMGenerationSettings, LlamaLLMSettings
 from .llm_agent import LlamaCppAgent, StreamingResponse
 from .messages_formatter import MessagesFormatterType, MessagesFormatter
 from .function_calling import LlamaCppFunctionTool
-from .gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import (
-    create_dynamic_model_from_function,
-    create_dynamic_models_from_dictionaries,
-    add_run_method_to_dynamic_model,
-)
-from .providers.llama_cpp_endpoint_provider import (
-    LlamaCppGenerationSettings,
-    LlamaCppEndpointSettings,
-)
-from .providers.openai_endpoint_provider import (
-    OpenAIGenerationSettings,
-    OpenAIEndpointSettings,
-)
+
+from .providers.provider_base import LlmProvider
 
 
 class activate_message_mode(BaseModel):
@@ -136,14 +126,7 @@ class FunctionCallingAgent:
 
     def __init__(
         self,
-        llama_llm: Union[
-            Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings
-        ],
-        llama_generation_settings: Union[
-            LlamaLLMGenerationSettings,
-            LlamaCppGenerationSettings,
-            OpenAIGenerationSettings,
-        ] = None,
+        llama_llm: LlmProvider,
         messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
         custom_messages_formatter: MessagesFormatter = None,
         streaming_callback: Callable[[StreamingResponse], None] = None,
@@ -193,37 +176,6 @@ class FunctionCallingAgent:
             allow_inner_thoughts_only=False,
             allow_parallel_function_calling=allow_parallel_function_calling,
         )
-
-        if llama_generation_settings is None:
-            if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings):
-                llama_generation_settings = LlamaLLMGenerationSettings()
-            elif isinstance(llama_llm, OpenAIEndpointSettings):
-                llama_generation_settings = OpenAIGenerationSettings()
-            else:
-                llama_generation_settings = LlamaCppGenerationSettings()
-
-        if isinstance(
-            llama_generation_settings, LlamaLLMGenerationSettings
-        ) and isinstance(llama_llm, LlamaCppEndpointSettings):
-            raise Exception(
-                "Wrong generation settings for llama.cpp server endpoint, use LlamaCppServerGenerationSettings under llama_cpp_agent.providers.llama_cpp_server_provider!"
-            )
-        if (
-            isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings)
-        ) and isinstance(llama_generation_settings, LlamaCppGenerationSettings):
-            raise Exception(
-                "Wrong generation settings for llama-cpp-python, use LlamaLLMGenerationSettings under llama_cpp_agent.llm_settings!"
-            )
-
-        if isinstance(llama_llm, OpenAIEndpointSettings) and not isinstance(
-            llama_generation_settings, OpenAIGenerationSettings
-        ):
-            raise Exception(
-                "Wrong generation settings for OpenAI endpoint, use OpenAIGenerationSettings under llama_cpp_agent.providers.openai_endpoint_provider!"
-            )
-
-        self.llama_generation_settings = llama_generation_settings
-
         self.without_grammar_mode = False
         self.without_grammar_mode_function = []
         self.prompt_suffix = ""
@@ -411,11 +363,7 @@ Choose the appropriate function based on the task you want to perform. Provide y
         result = self.llama_cpp_agent.get_chat_response(
             system_prompt=self.system_prompt,
             streaming_callback=self.streaming_callback,
-            function_tool_registry=(
-                self.tool_registry if not without_grammar_mode else None
-            ),
-            additional_stop_sequences=additional_stop_sequences,
-            **self.llama_generation_settings.as_dict(),
+            structured_output_settings=LlmStructuredOutputSettings.from_llama_cpp_function_tools(self.llama_cpp_tools, output_type=LlmStructuredOutputType.parallel_function_calling),
         )
         if without_grammar_mode:
             self.prompt_suffix = ""

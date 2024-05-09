@@ -33,6 +33,18 @@ class LlmSamplingSettings(ABC):
         pass
 
     @abstractmethod
+    def get_additional_stop_sequences(self) -> List[str]:
+        pass
+
+    @abstractmethod
+    def add_additional_stop_sequences(self, sequences: List[str]):
+        pass
+
+    @abstractmethod
+    def is_streaming(self):
+        pass
+
+    @abstractmethod
     def save(self, file_path: str):
         """
         Save the settings to a file.
@@ -119,11 +131,3 @@ class LlmProvider(ABC):
     def tokenize(self, prompt: str):
         """Tokenize the given prompt."""
         pass
-
-
-
-
-
-
-
-

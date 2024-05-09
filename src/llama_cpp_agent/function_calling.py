@@ -140,27 +140,27 @@ class LlamaCppFunctionTool:
     """
 
     def __init__(
-        self,
-        function_tool: Union[
-            Type[BaseModel], Callable, Tuple[Dict[str, Any], Callable]
-        ],
-        add_params_to_result=False,
-        has_markdown_code_block=False,
-        has_triple_quoted_string=False,
-        markdown_code_block_field_name=None,
-        triple_quoted_string_field_name=None,
-        add_outer_request_heartbeat_field=True,
-        **additional_parameters,
+            self,
+            function_tool: Union[
+                Type[BaseModel], Callable, Tuple[Dict[str, Any], Callable]
+            ],
+            add_params_to_result=False,
+            has_markdown_code_block=False,
+            has_triple_quoted_string=False,
+            markdown_code_block_field_name=None,
+            triple_quoted_string_field_name=None,
+            add_outer_request_heartbeat_field=True,
+            **additional_parameters,
     ):
         # Determine the type of function_tool and set up the appropriate handling
         if isinstance(function_tool, type) and issubclass(function_tool, BaseModel):
             # Handle BaseModel subclass
             self.model = function_tool  # instantiate the model if needed
         elif (
-            isinstance(function_tool, tuple)
-            and len(function_tool) == 2
-            and isinstance(function_tool[0], dict)
-            and callable(function_tool[1])
+                isinstance(function_tool, tuple)
+                and len(function_tool) == 2
+                and isinstance(function_tool[0], dict)
+                and callable(function_tool[1])
         ):
             # Handle OpenAI functions
             models = create_dynamic_models_from_dictionaries([function_tool[0]])
@@ -183,7 +183,7 @@ class LlamaCppFunctionTool:
 
     @staticmethod
     def from_pydantic_model_and_callable(
-        pydantic_model: BaseModel, tool_function: Callable
+            pydantic_model: BaseModel, tool_function: Callable
     ):
         """
         Converts an OpenAI tool schema and a callable function into a LlamaCppFunctionTool
@@ -286,18 +286,18 @@ class LlamaCppFunctionToolRegistry:
     """
 
     def __init__(
-        self,
-        allow_parallel_function_calling,
-        add_inner_thoughts=True,
-        allow_inner_thoughts_only=True,
-        add_request_heartbeat=True,
-        tool_root="function",
-        tool_rule_content="arguments",
-        model_prefix="function",
-        fields_prefix="parameters",
-        inner_thoughts_field_name="thoughts_and_reasoning",
-        request_heartbeat_field_name="request_heartbeat",
-        add_tool_root_content_to_all_results=True,
+            self,
+            allow_parallel_function_calling,
+            add_inner_thoughts=True,
+            allow_inner_thoughts_only=True,
+            add_request_heartbeat=True,
+            tool_root="function",
+            tool_rule_content="arguments",
+            model_prefix="function",
+            fields_prefix="parameters",
+            inner_thoughts_field_name="thoughts_and_reasoning",
+            request_heartbeat_field_name="request_heartbeat",
+            add_tool_root_content_to_all_results=True,
     ):
         """
         Initialize the LlamaCppFunctionToolRegistry.
@@ -423,46 +423,6 @@ class LlamaCppFunctionToolRegistry:
             str: The output of the function call or an error message.
         """
         try:
-            for name, tool in self.function_tools_containing_field_string.items():
-                if (
-                    f'"function": "{name}"' in function_call_response
-                    or f'"function":"{name}"' in function_call_response
-                ):
-                    marker = (
-                        "'''"
-                        if self.function_tools_containing_field_string[
-                            name
-                        ].has_triple_quoted_string
-                        else "```"
-                    )
-                    (
-                        function_call,
-                        content,
-                    ) = parse_json_response_with_markdown_code_block_or_triple_quoted_string(
-                        function_call_response, marker
-                    )
-                    if self.function_tools_containing_field_string[
-                        function_call[self.tool_root]
-                    ].has_markdown_code_block:
-                        function_call[self.tool_rule_content][
-                            tool.markdown_code_block_field_name
-                        ] = content
-                    elif self.function_tools_containing_field_string[
-                        function_call[self.tool_root]
-                    ].has_triple_quoted_string:
-                        function_call[self.tool_rule_content][
-                            tool.triple_quoted_string_field_name
-                        ] = content
-                    if not self.allow_parallel_function_calling:
-                        output = self.intern_function_call(
-                            function_call, with_markdown_code_block=True
-                        )
-                    else:
-                        output = self.intern_parallel_function_call(
-                            function_call, with_markdown_code_block=True
-                        )
-                    return output
-
             function_call = parse_json_response(function_call_response)
             if function_call is None:
                 return "Error: Invalid function call response."
@@ -487,24 +447,16 @@ class LlamaCppFunctionToolRegistry:
         Returns:
             str: The output of the function call or an error message.
         """
-        function_tool = None
-        if with_markdown_code_block:
-            if self.tool_root in function_call:
-                function_tool = self.function_tools_containing_field_string[
-                    function_call[self.tool_root]
-                ]
-        else:
-            if self.tool_root in function_call:
-                function_tool = self.function_tools[function_call[self.tool_root]]
-        try:
+        if self.tool_root in function_call:
+            function_tool = self.function_tools[function_call[self.tool_root]]
             if self.tool_root in function_call:
                 cls = function_tool.model
                 call_parameters = function_call[self.tool_rule_content]
                 call = cls(**call_parameters)
                 output = call.run(**function_tool.additional_parameters)
                 if (
-                    function_tool.add_params_to_result
-                    or self.add_tool_root_content_to_all_results
+                        function_tool.add_params_to_result
+                        or self.add_tool_root_content_to_all_results
                 ):
                     if self.add_request_heartbeat:
                         return [
@@ -547,11 +499,9 @@ class LlamaCppFunctionToolRegistry:
                             "request_heartbeat": None,
                         }
                     ]
-        except AttributeError as e:
-            return f"Error: {e}"
 
     def intern_parallel_function_call(
-        self, function_calls: List[dict], with_markdown_code_block=False
+            self, function_calls: List[dict], with_markdown_code_block=False
     ):
         """
         Internal method to handle a function call and return the output.
@@ -564,115 +514,60 @@ class LlamaCppFunctionToolRegistry:
             str: The output of the function call or an error message.
         """
         result = []
-        if not with_markdown_code_block:
-            for function_call in function_calls:
-                if self.tool_root in function_call:
-                    function_tool = self.function_tools[function_call[self.tool_root]]
-                    try:
-                        cls = function_tool.model
-                        call_parameters = function_call[self.tool_rule_content]
-                        call = cls(**call_parameters)
-                        output = call.run(**function_tool.additional_parameters)
-                        if (
+        for function_call in function_calls:
+            if self.tool_root in function_call:
+                function_tool = self.function_tools[function_call[self.tool_root]]
+                try:
+                    cls = function_tool.model
+                    call_parameters = function_call[self.tool_rule_content]
+                    call = cls(**call_parameters)
+                    output = call.run(**function_tool.additional_parameters)
+                    if (
                             function_tool.add_params_to_result
                             or self.add_tool_root_content_to_all_results
-                        ):
-                            if self.add_request_heartbeat:
-                                result.append(
-                                    {
-                                        "function": function_tool.model.__name__,
-                                        "params": call_parameters,
-                                        "return_value": output,
-                                        "request_heartbeat": (
-                                            function_call["request_heartbeat"]
-                                            if "request_heartbeat" in function_call
-                                            else None
-                                        ),
-                                    }
-                                )
-                            else:
-                                result.append(
-                                    {
-                                        "function": function_tool.model.__name__,
-                                        "params": call_parameters,
-                                        "return_value": output,
-                                    }
-                                )
+                    ):
+                        if self.add_request_heartbeat:
+                            result.append(
+                                {
+                                    "function": function_tool.model.__name__,
+                                    "params": call_parameters,
+                                    "return_value": output,
+                                    "request_heartbeat": (
+                                        function_call["request_heartbeat"]
+                                        if "request_heartbeat" in function_call
+                                        else None
+                                    ),
+                                }
+                            )
                         else:
-                            if self.add_request_heartbeat:
-                                result.append(
-                                    {
-                                        "function": function_tool.model.__name__,
-                                        "return_value": output,
-                                        "request_heartbeat": (
-                                            function_call["request_heartbeat"]
-                                            if "request_heartbeat" in function_call
-                                            else None
-                                        ),
-                                    }
-                                )
-                            else:
-                                result.append(
-                                    {
-                                        "function": function_tool.model.__name__,
-                                        "return_value": output,
-                                    }
-                                )
-                    except AttributeError as e:
-                        return f"Error: {e}"
-        else:
-            for function_call in function_calls:
-                if self.tool_root in function_call:
-                    function_tool = self.function_tools_containing_field_string[
-                        function_call[self.tool_root]
-                    ]
-                    try:
-                        cls = function_tool.model
-                        call_parameters = function_call[self.tool_rule_content]
-                        call = cls(**call_parameters)
-                        output = call.run(**function_tool.additional_parameters)
-                        if function_tool.add_params_to_result:
-                            if self.add_request_heartbeat:
-                                result.append(
-                                    {
-                                        "function": function_tool.model.__name__,
-                                        "params": call_parameters,
-                                        "return_value": output,
-                                        "request_heartbeat": (
-                                            function_call["request_heartbeat"]
-                                            if "request_heartbeat" in function_call
-                                            else None
-                                        ),
-                                    }
-                                )
-                            else:
-                                result.append(
-                                    {
-                                        "function": function_tool.model.__name__,
-                                        "params": call_parameters,
-                                        "return_value": output,
-                                    }
-                                )
+                            result.append(
+                                {
+                                    "function": function_tool.model.__name__,
+                                    "params": call_parameters,
+                                    "return_value": output,
+                                }
+                            )
+                    else:
+                        if self.add_request_heartbeat:
+                            result.append(
+                                {
+                                    "function": function_tool.model.__name__,
+                                    "return_value": output,
+                                    "request_heartbeat": (
+                                        function_call["request_heartbeat"]
+                                        if "request_heartbeat" in function_call
+                                        else None
+                                    ),
+                                }
+                            )
                         else:
-                            if self.add_request_heartbeat:
-                                result.append(
-                                    {
-                                        "function": function_tool.model.__name__,
-                                        "return_value": output,
-                                        "request_heartbeat": (
-                                            function_call["request_heartbeat"]
-                                            if "request_heartbeat" in function_call
-                                            else None
-                                        ),
-                                    }
-                                )
-                            else:
-                                result.append(
-                                    {
-                                        "function": function_tool.model.__name__,
-                                        "return_value": output,
-                                    }
-                                )
-                    except AttributeError as e:
-                        return f"Error: {e}"
+                            result.append(
+                                {
+                                    "function": function_tool.model.__name__,
+                                    "return_value": output,
+                                }
+                            )
+                except AttributeError as e:
+                    return f"Error: {e}"
+
         return result

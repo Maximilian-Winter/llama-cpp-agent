@@ -22,7 +22,7 @@ def calculate_a_to_the_power_b(a: Union[int, float], b: Union[int, float]):
     return f"Result: {math.pow(a, b)}"
 
 
-output_settings = LlmStructuredOutputSettings.from_functions([calculate_a_to_the_power_b], output_type=LlmStructuredOutputType.function_calling)
+output_settings = LlmStructuredOutputSettings.from_functions([calculate_a_to_the_power_b], allow_parallel_function_calling=True)
 llama_cpp_agent = LlamaCppAgent(
     provider,
     debug_output=True,

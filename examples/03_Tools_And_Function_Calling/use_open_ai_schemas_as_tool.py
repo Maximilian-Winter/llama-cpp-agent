@@ -44,7 +44,7 @@ def get_current_weather(location, unit):
 function_tools = [LlamaCppFunctionTool((open_ai_tool_spec, get_current_weather))]
 
 output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(function_tools,
-                                                                            parallel_function_calling=True)
+                                                                            allow_parallel_function_calling=True)
 llama_cpp_agent = LlamaCppAgent(
     provider,
     debug_output=False,

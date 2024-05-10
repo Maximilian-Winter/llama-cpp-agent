@@ -50,7 +50,7 @@ class Calculator(BaseModel):
 # Create a list of function call tools.
 function_tools = [LlamaCppFunctionTool(Calculator)]
 
-output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(function_tools, parallel_function_calling=True)
+output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(function_tools, allow_parallel_function_calling=True)
 llama_cpp_agent = LlamaCppAgent(
     provider,
     debug_output=False,

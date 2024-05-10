@@ -15,6 +15,7 @@ from llama_cpp_agent.providers.tgi_server import TGIServerProvider
 model = TGIServerProvider("http://localhost:8080")
 
 
+# Simple tool for the agent, to get the current date and time in a specific format.
 def get_current_datetime(output_format: Optional[str] = None):
     """
     Get the current date and time in the given format.
@@ -35,7 +36,6 @@ class MathOperation(Enum):
     DIVIDE = "divide"
 
 
-# llama-cpp-agent also supports "Instructor" library like function definitions as Pydantic models for function calling.
 # Simple pydantic calculator tool for the agent that can add, subtract, multiply, and divide. Docstring and description of fields will be used in system prompt.
 class calculator(BaseModel):
     """
@@ -59,7 +59,7 @@ class calculator(BaseModel):
 
 
 # Example function based on an OpenAI example.
-# llama-cpp-agent also supports OpenAI like dictionaries for function definition.
+# llama-cpp-agent supports OpenAI like schemas for function definition.
 def get_current_weather(location, unit):
     """Get the current weather in a given location"""
     if "London" in location:
@@ -97,14 +97,6 @@ open_ai_tool_spec = {
 def send_message_to_user_callback(message: str):
     print(message)
 
-
-path_to_model = "../../../gguf-models/mistral-7b-instruct-v0.2.Q6_K.gguf"
-
-
-
-
-# To make the function tools available to our agent, we have to create a list of LlamaCppFunctionTool instances.
-
 # First we create the calculator tool.
 calculator_function_tool = LlamaCppFunctionTool(calculator)
 
@@ -114,18 +106,13 @@ current_datetime_function_tool = LlamaCppFunctionTool(get_current_datetime)
 # The from_openai_tool function of the LlamaCppFunctionTool class converts an OpenAI tool schema and a callable function into a LlamaCppFunctionTool
 get_weather_function_tool = LlamaCppFunctionTool.from_openai_tool(open_ai_tool_spec, get_current_weather)
 
-
+# Create the function calling agent. We are passing the provider, the tool list, send message to user callback and the chat message formatter. Also, we allow parallel function calling.
 function_call_agent = FunctionCallingAgent(
-    # Can be lama-cpp-python Llama class, llama_cpp_agent.llm_settings.LlamaLLMSettings class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerLLMSettings.
     model,
-    # Pass the LlamaCppFunctionTool instances as a list to the agent.
     llama_cpp_function_tools=[calculator_function_tool, current_datetime_function_tool, get_weather_function_tool],
-    # Callback for receiving messages for the user.
     send_message_to_user_callback=send_message_to_user_callback,
-    # Set to true to allow parallel function calling
     allow_parallel_function_calling=True,
-    messages_formatter_type=MessagesFormatterType.CHATML,
-    debug_output=True)
+    messages_formatter_type=MessagesFormatterType.CHATML)
 
 user_input = '''Get the date and time in '%d-%m-%Y %H:%M' format. Get the current weather in celsius in London, New York and at the North Pole. Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.'''
 function_call_agent.generate_response(user_input)

@@ -16,7 +16,7 @@ class AgentChainElement:
         output_identifier (str): Unique identifier for the output of this chain element.
         system_prompt (str): Template string for the system prompt.
         prompt (str): Template string for the main prompt to the language model.
-        grammar (str, optional): GBNF-Grammar to constrain the language model's output.
+
         preprocessor (Callable[[str, str, dict], tuple[str, str, dict]], optional): Function to preprocess the input
                 before sending it to the language model. Takes the system prompt with template fields replaced, the prompt
                 with template fields replaced, and the additional information dictionary as arguments and returns the
@@ -27,9 +27,7 @@ class AgentChainElement:
         function_tool_registry (LlamaCppFunctionToolRegistry): Registry for LlamaCppFunctionTool and enables function calling.
         add_prompt_to_chat_history (bool): Flag to determine if the prompt should be added to the chat history.
         add_response_to_chat_history (bool): Flag to determine if the response should be added to the chat history.
-        temperature (float): Controls randomness in the generation process. Lower values make responses more deterministic.
-        top_p (float): Controls diversity via nucleus sampling: smaller values make responses more focused.
-        top_k (int): Controls diversity via top-k sampling: the number of highest probability vocabulary tokens considered.
+
     Methods:
         __init__: Constructs an instance of the AgentChain class.
     """
@@ -55,7 +53,6 @@ class AgentChainElement:
             system_prompt (str): Template string for the system prompt.
             prompt (str): Template string for the main prompt to the language model.
             tools (List[LlamaCppFunctionTool], optional): List of function tools available for use in this chain element.
-            grammar (str, optional): GBNF-Grammar to constrain the language model's output.
             preprocessor (Callable[[str, str, dict], tuple[str, str, dict]], optional): Function to preprocess the input
                 before sending it to the language model. Takes the system prompt with template fields replaced, the prompt
                 with template fields replaced, and the additional information dictionary as arguments and returns the
@@ -65,9 +62,6 @@ class AgentChainElement:
                 result as arguments and returns the modified result.
             add_prompt_to_chat_history (bool): Flag to determine if the prompt should be added to the chat history.
             add_response_to_chat_history (bool): Flag to determine if the response should be added to the chat history.
-            temperature (float): Controls randomness in the generation process. Lower values make responses more deterministic.
-            top_p (float): Controls diversity via nucleus sampling: smaller values make responses more focused.
-            top_k (int): Controls diversity via top-k sampling: the number of highest probability vocabulary tokens considered.
         """
         self.output_identifier = output_identifier
         self.system_prompt = system_prompt

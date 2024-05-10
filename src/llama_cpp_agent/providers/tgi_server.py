@@ -43,32 +43,9 @@ class TGIServerSamplingSettings(LlmSamplingSettings):
 
     def add_additional_stop_sequences(self, sequences: List[str]):
         self.stop.extend(sequences)
+
     def is_streaming(self):
         return self.stream
-    def save(self, file_path: str):
-        """
-        Save the settings to a file.
-
-        Args:
-            file_path (str): The path to the file.
-        """
-        with open(file_path, "w", encoding="utf-8") as file:
-            json.dump(self.as_dict(), file, indent=4)
-
-    @staticmethod
-    def load_from_file(file_path: str) -> "TGIServerSamplingSettings":
-        """
-        Load the settings from a file.
-
-        Args:
-            file_path (str): The path to the file.
-
-        Returns:
-            LlamaCppSamplingSettings: The loaded settings.
-        """
-        with open(file_path, "r", encoding="utf-8") as file:
-            loaded_settings = json.load(file)
-            return TGIServerSamplingSettings(**loaded_settings)
 
     @staticmethod
     def load_from_dict(settings: dict) -> "TGIServerSamplingSettings":
@@ -131,7 +108,7 @@ class TGIServerProvider(LlmProvider):
             headers = {"Content-Type": "application/json"}
 
         settings_dict = copy(settings.as_dict())
-        print(bos_token + prompt)
+
         data = {"parameters": settings_dict, "inputs": bos_token + prompt}
         grammar = None
         if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:

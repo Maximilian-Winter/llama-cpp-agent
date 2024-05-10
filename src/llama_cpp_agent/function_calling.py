@@ -436,14 +436,12 @@ class LlamaCppFunctionToolRegistry:
         except AttributeError as e:
             return f"Error: {e}"
 
-    def intern_function_call(self, function_call: dict, with_markdown_code_block=False):
+    def intern_function_call(self, function_call: dict):
         """
         Internal method to handle a function call and return the output.
 
         Args:
             function_call (dict): The function call dictionary.
-            with_markdown_code_block (bool): Flag indicating whether the response contains a markdown code block.
-
         Returns:
             str: The output of the function call or an error message.
         """

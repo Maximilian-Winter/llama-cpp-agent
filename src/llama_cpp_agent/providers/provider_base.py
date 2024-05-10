@@ -34,17 +34,34 @@ class LlmSamplingSettings(ABC):
 
     @abstractmethod
     def get_additional_stop_sequences(self) -> List[str]:
+        """
+        Returns the additional stop sequences.
+
+        Returns:
+            List[str]: The additional stop sequences.
+        """
         pass
 
     @abstractmethod
     def add_additional_stop_sequences(self, sequences: List[str]):
+        """
+        Adds additional stop sequences.
+
+        Args:
+            sequences (List[str]): The sequences to add.
+        """
         pass
 
     @abstractmethod
     def is_streaming(self):
+        """
+        Checks if streaming is enabled.
+
+        Returns:
+            bool: True if streaming is enabled, False otherwise.
+        """
         pass
 
-    @abstractmethod
     def save(self, file_path: str):
         """
         Save the settings to a file.
@@ -52,10 +69,10 @@ class LlmSamplingSettings(ABC):
         Args:
             file_path (str): The path to the file.
         """
-        pass
+        with open(file_path, 'w') as file:
+            json.dump(self.as_dict(), file)
 
     @staticmethod
-    @abstractmethod
     def load_from_file(file_path: str) -> "LlmSamplingSettings":
         """
         Load the settings from a file.
@@ -66,7 +83,9 @@ class LlmSamplingSettings(ABC):
         Returns:
             LlmSamplingSettings: The loaded settings.
         """
-        pass
+        with open(file_path, 'r') as file:
+            settings_dict = json.load(file)
+        return LlmSamplingSettings.load_from_dict(settings_dict)
 
     @staticmethod
     @abstractmethod
@@ -99,12 +118,23 @@ class LlmProvider(ABC):
     """
 
     @abstractmethod
-    def get_provider_identifier(self) -> str:
+    def get_provider_identifier(self) -> LlmProviderId:
+        """
+        Returns the provider identifier.
+
+        Returns:
+            str: The provider identifier.
+        """
         pass
 
     @abstractmethod
     def get_provider_default_settings(self) -> LlmSamplingSettings:
-        """Returns the default generation settings of the provider."""
+        """
+        Returns the default generation settings of the provider.
+
+        Returns:
+            LlmSamplingSettings: The default settings.
+        """
         pass
 
     @abstractmethod
@@ -115,7 +145,18 @@ class LlmProvider(ABC):
             settings: LlmSamplingSettings,
             bos_token: str
     ):
-        """Create a completion request with the LLM provider and returns the result."""
+        """
+        Create a completion request with the LLM provider and returns the result.
+
+        Args:
+            prompt (str): The prompt for the completion.
+            structured_output_settings (LlmStructuredOutputSettings): The structured output settings.
+            settings (LlmSamplingSettings): The sampling settings.
+            bos_token (str): The beginning-of-sequence token.
+
+        Returns:
+            The completion result.
+        """
         pass
 
     @abstractmethod
@@ -126,10 +167,29 @@ class LlmProvider(ABC):
             settings: LlmSamplingSettings,
             bos_token: str
     ):
-        """Create a chat completion request with the LLM provider and returns the result."""
+        """
+        Create a chat completion request with the LLM provider and returns the result.
+
+        Args:
+            messages (List[Dict[str, str]]): The list of messages for the chat completion.
+            structured_output_settings (LlmStructuredOutputSettings): The structured output settings.
+            settings (LlmSamplingSettings): The sampling settings.
+            bos_token (str): The beginning-of-sequence token.
+
+        Returns:
+            The chat completion result.
+        """
         pass
 
     @abstractmethod
-    def tokenize(self, prompt: str):
-        """Tokenize the given prompt."""
+    def tokenize(self, prompt: str) -> List[int]:
+        """
+        Tokenize the given prompt.
+
+        Args:
+            prompt (str): The prompt to tokenize.
+
+        Returns:
+            The tokenized prompt.
+        """
         pass

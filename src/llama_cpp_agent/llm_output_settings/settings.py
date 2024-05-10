@@ -124,7 +124,7 @@ class LlmStructuredOutputSettings(BaseModel):
 
     @staticmethod
     def from_open_ai_tools(
-            tools: List[Tuple[Dict[str, Any], Callable]], output_type: LlmStructuredOutputType
+            tools: List[Tuple[Dict[str, Any], Callable]], parallel_function_calling: bool = False
     ):
         """
         Create settings from OpenAI tools for structured outputs. Has to be either LlmOutputType.function_call or LlmOutputType.parallel_function_call.
@@ -139,24 +139,10 @@ class LlmStructuredOutputSettings(BaseModel):
         Raises:
             NotImplementedError: If the specified output type is not supported for tools.
         """
-        if output_type is LlmStructuredOutputType.no_structured_output:
-            raise NotImplementedError(
-                "LlmOutputType: no_structured_output not supported for structured output and function calling!"
-            )
-        elif output_type is LlmStructuredOutputType.function_calling:
-            return LlmStructuredOutputSettings(
-                output_type=LlmStructuredOutputType.function_calling,
-                function_tools=[LlamaCppFunctionTool(model) for model in tools],
-            )
-        elif output_type is LlmStructuredOutputType.parallel_function_calling:
-            return LlmStructuredOutputSettings(
-                output_type=LlmStructuredOutputType.parallel_function_calling,
-                function_tools=[LlamaCppFunctionTool(model) for model in tools],
-            )
-        else:
-            raise NotImplementedError(
-                f"LlmOutputType: {output_type.value} not supported for tools!"
-            )
+        return LlmStructuredOutputSettings(
+            output_type=LlmStructuredOutputType.parallel_function_calling if parallel_function_calling else LlmStructuredOutputType.function_calling,
+            function_tools=[LlamaCppFunctionTool(model) for model in tools],
+        )
 
     @staticmethod
     def from_functions(tools: List[Callable], output_type: LlmStructuredOutputType):

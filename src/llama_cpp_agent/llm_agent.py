@@ -4,14 +4,13 @@ from copy import copy
 from dataclasses import dataclass
 from typing import List, Dict, Literal, Callable, Union, Generator
 
-from llama_cpp import Llama, LlamaGrammar
 from pydantic import BaseModel
 
 from .chat_history.basic_chat_history import BasicChatHistory
 from .chat_history.chat_history_base import ChatHistory
-from .chat_history.messages import ChatMessage
+
 from .llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
-from .llm_settings import LlamaLLMSettings, LlamaLLMGenerationSettings
+
 from .messages_formatter import (
     MessagesFormatterType,
     get_predefined_messages_formatter,
@@ -19,8 +18,7 @@ from .messages_formatter import (
 )
 from .function_calling import LlamaCppFunctionTool, LlamaCppFunctionToolRegistry
 from .output_parser import parse_json_response
-from .providers.llama_cpp_python import LlamaCppPythonProvider
-from .providers.llama_cpp_server import LlamaCppServerProvider
+
 from .providers.provider_base import LlmProvider, LlmSamplingSettings
 
 
@@ -91,56 +89,6 @@ class LlamaCppAgent:
         else:
             self.chat_history = chat_history
 
-    @staticmethod
-    def get_function_tool_registry(
-            function_tool_list: List[LlamaCppFunctionTool],
-            allow_parallel_function_calling=False,
-            add_inner_thoughts=False,
-            allow_inner_thoughts_only=False,
-            add_request_heartbeat=False,
-            tool_root="function",
-            tool_rule_content="parameters",
-            model_prefix="function",
-            fields_prefix="parameters",
-            inner_thoughts_field_name="thoughts_and_reasoning",
-            request_heartbeat_field_name="request_heartbeat",
-    ):
-        """
-        Creates and returns a function tool registry from a list of LlamaCppFunctionTool instances.
-
-        Args:
-            function_tool_list (List[LlamaCppFunctionTool]): List of function tools to register.
-            allow_parallel_function_calling: Allow parallel function calling (Default=False)
-            add_inner_thoughts: Add inner thoughts field (Default=False)
-            allow_inner_thoughts_only: Allow inner thoughts only (Default=False)
-            add_request_heartbeat: Add request heartbeat field (Default=False)
-            tool_root: The root name of the tool (Default="function")
-            tool_rule_content: The content of the tool rule (Default="parameters")
-            model_prefix: The prefix for the model in the documentation (Default="function")
-            fields_prefix: The prefix for the fields in the documentation (Default="parameters")
-            inner_thoughts_field_name: The name of the inner thoughts field (Default="thoughts_and_reasoning")
-            request_heartbeat_field_name: The name of the request heartbeat field (Default="request_heartbeat")
-        Returns:
-            LlamaCppFunctionToolRegistry: The created function tool registry.
-        """
-        function_tool_registry = LlamaCppFunctionToolRegistry(
-            allow_parallel_function_calling,
-            add_inner_thoughts,
-            allow_inner_thoughts_only,
-            add_request_heartbeat,
-            tool_root,
-            tool_rule_content,
-            model_prefix,
-            fields_prefix,
-            inner_thoughts_field_name,
-            request_heartbeat_field_name,
-        )
-
-        for function_tool in function_tool_list:
-            function_tool_registry.register_function_tool(function_tool)
-        function_tool_registry.finalize()
-        return function_tool_registry
-
     def add_message(
             self,
             message: str,
@@ -173,7 +121,19 @@ class LlamaCppAgent:
             streaming_callback: Callable[[StreamingResponse], None] = None,
             print_output: bool = False,
     ) -> Union[str, List[dict], BaseModel]:
-        """ """
+        """
+        Get a text response from the LLM provider.
+
+        Args:
+            prompt (str | list[int]): The prompt or tokenized prompt for the LLM.
+            structured_output_settings (LlmStructuredOutputSettings): Settings for structured output.
+            llm_samplings_settings (LlmSamplingSettings): Sampling settings for the LLM.
+            streaming_callback (Callable[[StreamingResponse], None]): Callback for streaming responses.
+            print_output (bool): Whether to print the output.
+
+        Returns:
+            Union[str, List[dict], BaseModel]: The generated text response.
+        """
 
         if self.debug_output:
             if type(prompt) is str:
@@ -241,25 +201,24 @@ class LlamaCppAgent:
 
     ) -> Union[str, List[dict], BaseModel]:
         """
-        Gets a chat response based on the input message and context.
+        Get a chat response based on the input message and context.
 
         Args:
             message (str): The input message.
             role (Literal["system", "user", "assistant", "function"]): The role of the message sender.
             response_role (Literal["user", "assistant"]): The role of the message response.
             system_prompt (str): The system prompt used in chat interactions.
-            prompt_suffix: Suffix to append after the prompt.
-            add_message_to_chat_history (bool): Indicates whether to add the input message to the chat history.
-            add_response_to_chat_history (bool): Indicates whether to add the generated response to the chat history.
-            function_tool_registry (LlamaCppFunctionToolRegistry): The function tool registry for handling function calls.
-            streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
-            print_output (bool): Indicates whether to print the generated response.
+            prompt_suffix (str): Suffix to append after the prompt.
+            add_message_to_chat_history (bool): Whether to add the input message to the chat history.
+            add_response_to_chat_history (bool): Whether to add the generated response to the chat history.
+            structured_output_settings (LlmStructuredOutputSettings): Settings for structured output.
+            llm_samplings_settings (LlmSamplingSettings): Sampling settings for the LLM.
+            streaming_callback (Callable[[StreamingResponse], None]): Callback for streaming responses.
+            print_output (bool): Whether to print the generated response.
             k_last_messages (int): Number of last messages to consider from the chat history.
 
-
-            Additional parameters for llama.cpp server backends and OpenAI endpoints
         Returns:
-            list[dict]|str: The generated chat response.
+            Union[str, List[dict], BaseModel]: The generated chat response.
         """
         if structured_output_settings is None:
             structured_output_settings = LlmStructuredOutputSettings(
@@ -503,3 +462,53 @@ class LlamaCppAgent:
         else:
             # Return the item as is if it's not a dict or list
             return data
+
+    @staticmethod
+    def get_function_tool_registry(
+            function_tool_list: List[LlamaCppFunctionTool],
+            allow_parallel_function_calling=False,
+            add_inner_thoughts=False,
+            allow_inner_thoughts_only=False,
+            add_request_heartbeat=False,
+            tool_root="function",
+            tool_rule_content="parameters",
+            model_prefix="function",
+            fields_prefix="parameters",
+            inner_thoughts_field_name="thoughts_and_reasoning",
+            request_heartbeat_field_name="request_heartbeat",
+    ):
+        """
+        Creates and returns a function tool registry from a list of LlamaCppFunctionTool instances.
+
+        Args:
+            function_tool_list (List[LlamaCppFunctionTool]): List of function tools to register.
+            allow_parallel_function_calling: Allow parallel function calling (Default=False)
+            add_inner_thoughts: Add inner thoughts field (Default=False)
+            allow_inner_thoughts_only: Allow inner thoughts only (Default=False)
+            add_request_heartbeat: Add request heartbeat field (Default=False)
+            tool_root: The root name of the tool (Default="function")
+            tool_rule_content: The content of the tool rule (Default="parameters")
+            model_prefix: The prefix for the model in the documentation (Default="function")
+            fields_prefix: The prefix for the fields in the documentation (Default="parameters")
+            inner_thoughts_field_name: The name of the inner thoughts field (Default="thoughts_and_reasoning")
+            request_heartbeat_field_name: The name of the request heartbeat field (Default="request_heartbeat")
+        Returns:
+            LlamaCppFunctionToolRegistry: The created function tool registry.
+        """
+        function_tool_registry = LlamaCppFunctionToolRegistry(
+            allow_parallel_function_calling,
+            add_inner_thoughts,
+            allow_inner_thoughts_only,
+            add_request_heartbeat,
+            tool_root,
+            tool_rule_content,
+            model_prefix,
+            fields_prefix,
+            inner_thoughts_field_name,
+            request_heartbeat_field_name,
+        )
+
+        for function_tool in function_tool_list:
+            function_tool_registry.register_function_tool(function_tool)
+        function_tool_registry.finalize()
+        return function_tool_registry

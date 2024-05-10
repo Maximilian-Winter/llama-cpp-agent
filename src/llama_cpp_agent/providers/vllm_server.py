@@ -13,7 +13,6 @@ class VLLMServerSamplingSettings(LlmSamplingSettings):
     VLLMServerSamplingSettings dataclass
     """
 
-
     best_of: Optional[int] = None
     use_beam_search = False
     top_k: float = -1
@@ -39,32 +38,9 @@ class VLLMServerSamplingSettings(LlmSamplingSettings):
 
     def add_additional_stop_sequences(self, sequences: List[str]):
         pass
+
     def is_streaming(self):
         return self.stream
-    def save(self, file_path: str):
-        """
-        Save the settings to a file.
-
-        Args:
-            file_path (str): The path to the file.
-        """
-        with open(file_path, "w", encoding="utf-8") as file:
-            json.dump(self.as_dict(), file, indent=4)
-
-    @staticmethod
-    def load_from_file(file_path: str) -> "VLLMServerSamplingSettings":
-        """
-        Load the settings from a file.
-
-        Args:
-            file_path (str): The path to the file.
-
-        Returns:
-            LlamaCppSamplingSettings: The loaded settings.
-        """
-        with open(file_path, "r", encoding="utf-8") as file:
-            loaded_settings = json.load(file)
-            return VLLMServerSamplingSettings(**loaded_settings)
 
     @staticmethod
     def load_from_dict(settings: dict) -> "VLLMServerSamplingSettings":

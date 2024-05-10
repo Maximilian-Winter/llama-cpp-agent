@@ -170,7 +170,7 @@ class LlamaCppAgent:
                     streaming_callback(
                         StreamingResponse(text="", is_last_response=True)
                     )
-                if print_output:
+                if print_output or self.debug_output:
                     print("")
                 self.last_response = full_response
                 return self.handle_structured_output(full_response, structured_output_settings, llm_samplings_settings)
@@ -178,7 +178,7 @@ class LlamaCppAgent:
                 full_response = ""
                 text = completion["choices"][0]["text"]
                 full_response += text
-                if print_output:
+                if print_output or self.debug_output:
                     print(full_response)
                 self.last_response = full_response
                 return self.handle_structured_output(full_response, structured_output_settings, llm_samplings_settings)
@@ -249,13 +249,13 @@ class LlamaCppAgent:
                         streaming_callback(
                             StreamingResponse(text=text, is_last_response=False)
                         )
-                    if print_output:
+                    if print_output or self.debug_output:
                         print(text, end="")
                 if streaming_callback is not None:
                     streaming_callback(
                         StreamingResponse(text="", is_last_response=True)
                     )
-                if print_output:
+                if print_output or self.debug_output:
                     print("")
 
                 self.last_response = full_response
@@ -269,7 +269,7 @@ class LlamaCppAgent:
                 return self.handle_structured_output(full_response, structured_output_settings, llm_samplings_settings)
             else:
                 text = completion["choices"][0]["text"]
-                if print_output:
+                if print_output or self.debug_output:
                     print(text)
                 self.last_response = text
                 if add_response_to_chat_history:

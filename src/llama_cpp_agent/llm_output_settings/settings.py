@@ -1,4 +1,3 @@
-
 from enum import Enum
 from typing import Dict, List, Optional, Any, Callable, Tuple
 
@@ -10,7 +9,6 @@ from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models im
 )
 from llama_cpp_agent.json_schema_generator.schema_generator import generate_json_schemas
 from llama_cpp_agent.llm_documentation import generate_text_documentation
-
 
 
 class LlmStructuredOutputType(Enum):
@@ -30,11 +28,31 @@ class LlmStructuredOutputSettings(BaseModel):
     Settings for structured output of large language models for using tools like function calling and creating instances of pydantic models.
 
     Attributes:
-        output_type (Optional[LlmStructuredOutputType]): Defines the type of structured output.
+        output_type (LlmStructuredOutputType): Defines the type of structured output.
         function_tools (Optional[List[LlamaCppFunctionTool]]): Tools to enable function calling.
-        pydantic_models (Optional[List[BaseModel]]): List of pydantic models for structured data output.
-    Methods:
+        pydantic_models (Optional[List[type[BaseModel]]]): List of pydantic models for structured data output.
+        add_thoughts_and_reasoning_field (Optional[bool]): Add thoughts and reasoning field to function calling. Defaults to False.
+        thoughts_and_reasoning_field_name (Optional[str]): Field name for the thoughts and reasoning field. Defaults to "thoughts_and_reasoning".
+        function_calling_name_field_name (Optional[str]): Name of the JSON field for the name of the used function. Defaults to "function".
+        function_calling_content (Optional[str]): Name of the JSON field for the arguments of the used function. Defaults to "arguments".
+        output_model_name_field_name (Optional[str]): Name of the JSON field for the name of the used pydantic model. Defaults to "model".
+        output_model_attributes_field_name (Optional[str]): Name of the JSON field for the fields of the pydantic model. Defaults to "fields".
 
+    Methods:
+        from_llama_cpp_function_tools: Create settings from a list of LlamaCppFunctionTools with a specific output type.
+        from_pydantic_models: Create settings from a list of Pydantic models with a specific output type.
+        from_open_ai_tools: Create settings from OpenAI tools for structured outputs.
+        from_functions: Create settings from a list of callable functions with a specific output type.
+        from_llama_index_tools: Create settings from a list of llama-index tools with a specific output type.
+        to_openai_tools: Return a list of OpenAI tools.
+        add_llama_cpp_function_tool: Add a LlamaCppFunctionTool to the settings.
+        add_pydantic_model: Add a Pydantic model to the settings, ensuring it matches the specified output type.
+        add_open_ai_tool: Add an OpenAI tool to the settings, ensuring it matches the specified output type.
+        add_function_tool: Add a callable function to the settings, ensuring it matches the specified output type.
+        add_llama_index_tool: Add a llama-index tool, like QueryEngineTool, to the settings, ensuring it matches the specified output type.
+        get_llm_documentation: Generate documentation for the models and tools configured within the settings, based on the output type.
+        get_gbnf_grammar: Generate a GBNF grammar for tools configured within the settings, based on the output type.
+        get_json_schema: Generate a JSON schema for the tools configured within the settings, based on the output type.
     """
 
     output_type: Optional[LlmStructuredOutputType] = Field(
@@ -58,29 +76,29 @@ class LlmStructuredOutputSettings(BaseModel):
                                                     description="Name of the JSON field for the arguments of the used function.")
 
     output_model_name_field_name: Optional[str] = Field("model",
-                                                 description="Name of the JSON field for the name of the used pydantic model.")
+                                                        description="Name of the JSON field for the name of the used pydantic model.")
     output_model_attributes_field_name: Optional[str] = Field("fields",
-                                                   description="Name of the JSON field for the fields of the pydantic model.")
+                                                              description="Name of the JSON field for the fields of the pydantic model.")
 
     class Config:
         arbitrary_types_allowed = True
 
     @staticmethod
     def from_llama_cpp_function_tools(
-            llama_cpp_function_tools: List[LlamaCppFunctionTool], parallel_function_calling: bool = False
+            llama_cpp_function_tools: List[LlamaCppFunctionTool], allow_parallel_function_calling: bool = False
     ):
         """
-        Create settings from a list of LlamaCppFunctionTools with a specific output type. Has to be either LlmOutputType.function_call or LlmOutputType.parallel_function_call.
+        Create settings from a list of LlamaCppFunctionTools with a specific output type.
 
         Args:
             llama_cpp_function_tools (List[LlamaCppFunctionTool]): List of function tools.
-            output_type (LlmStructuredOutputType): Desired output type. Has to be either LlmOutputType.function_call or LlmOutputType.parallel_function_call.
+            allow_parallel_function_calling (bool): Whether to enable parallel function calling. Defaults to False.
 
         Returns:
             LlmStructuredOutputSettings: Configured settings object.
         """
         return LlmStructuredOutputSettings(
-            output_type=LlmStructuredOutputType.function_calling if not parallel_function_calling else LlmStructuredOutputType.parallel_function_calling,
+            output_type=LlmStructuredOutputType.function_calling if not allow_parallel_function_calling else LlmStructuredOutputType.parallel_function_calling,
             function_tools=llama_cpp_function_tools
         )
 
@@ -124,14 +142,31 @@ class LlmStructuredOutputSettings(BaseModel):
 
     @staticmethod
     def from_open_ai_tools(
-            tools: List[Tuple[Dict[str, Any], Callable]], parallel_function_calling: bool = False
+            tools: List[Tuple[Dict[str, Any], Callable]], allow_parallel_function_calling: bool = False
     ):
         """
-        Create settings from OpenAI tools for structured outputs. Has to be either LlmOutputType.function_call or LlmOutputType.parallel_function_call.
+        Create settings from OpenAI tools for structured outputs.
 
         Args:
             tools (List[Tuple[Dict[str, Any], Callable]]): List of OpenAI tools defined by a schema and associated function.
-            output_type (LlmStructuredOutputType): Desired output type. Has to be either LlmOutputType.function_call or LlmOutputType.parallel_function_call.
+            allow_parallel_function_calling (bool): Whether to enable parallel function calling. Defaults to False.
+
+        Returns:
+            LlmStructuredOutputSettings: Configured settings object.
+        """
+        return LlmStructuredOutputSettings(
+            output_type=LlmStructuredOutputType.parallel_function_calling if allow_parallel_function_calling else LlmStructuredOutputType.function_calling,
+            function_tools=[LlamaCppFunctionTool(model) for model in tools],
+        )
+
+    @staticmethod
+    def from_functions(tools: List[Callable], allow_parallel_function_calling: bool = False):
+        """
+        Create settings from a list of llama-index tools with a specific output type.
+
+        Args:
+            tools (list): List of llama-index tools.
+            allow_parallel_function_calling (bool): Whether to enable parallel function calling. Defaults to False.
 
         Returns:
             LlmStructuredOutputSettings: Configured settings object.
@@ -140,52 +175,18 @@ class LlmStructuredOutputSettings(BaseModel):
             NotImplementedError: If the specified output type is not supported for tools.
         """
         return LlmStructuredOutputSettings(
-            output_type=LlmStructuredOutputType.parallel_function_calling if parallel_function_calling else LlmStructuredOutputType.function_calling,
+            output_type=LlmStructuredOutputType.parallel_function_calling if allow_parallel_function_calling else LlmStructuredOutputType.function_calling,
             function_tools=[LlamaCppFunctionTool(model) for model in tools],
         )
 
     @staticmethod
-    def from_functions(tools: List[Callable], output_type: LlmStructuredOutputType):
-        """
-        Create settings from a list of callable functions with a specific output type. Has to be either LlmOutputType.function_call or LlmOutputType.parallel_function_call.
-
-        Args:
-            tools (List[Callable]): List of callable functions.
-            output_type (LlmStructuredOutputType): Desired output type. Has to be either LlmOutputType.function_call or LlmOutputType.parallel_function_call.
-
-        Returns:
-            LlmStructuredOutputSettings: Configured settings object.
-
-        Raises:
-            NotImplementedError: If the specified output type is not supported for tools.
-        """
-        if output_type is LlmStructuredOutputType.no_structured_output:
-            raise NotImplementedError(
-                "LlmOutputType: no_structured_output not supported for structured output and function calling!"
-            )
-        elif output_type is LlmStructuredOutputType.function_calling:
-            return LlmStructuredOutputSettings(
-                output_type=LlmStructuredOutputType.function_calling,
-                function_tools=[LlamaCppFunctionTool(model) for model in tools],
-            )
-        elif output_type is LlmStructuredOutputType.parallel_function_calling:
-            return LlmStructuredOutputSettings(
-                output_type=LlmStructuredOutputType.parallel_function_calling,
-                function_tools=[LlamaCppFunctionTool(model) for model in tools],
-            )
-        else:
-            raise NotImplementedError(
-                f"LlmOutputType: {output_type.value} not supported for tools!"
-            )
-
-    @staticmethod
-    def from_llama_index_tools(tools: list, output_type: LlmStructuredOutputType):
+    def from_llama_index_tools(tools: list, allow_parallel_function_calling: bool = False):
         """
         Create settings from a list of llama-index tools with a specific output type. Has to be either LlmOutputType.function_call or LlmOutputType.parallel_function_call.
 
         Args:
             tools (list): List of llama-index tools.
-            output_type (LlmStructuredOutputType): Desired output type. Has to be either LlmOutputType.function_call or LlmOutputType.parallel_function_call.
+            allow_parallel_function_calling (bool): Whether to enable parallel function calling. Defaults to False.
 
         Returns:
             LlmStructuredOutputSettings: Configured settings object.
@@ -193,28 +194,12 @@ class LlmStructuredOutputSettings(BaseModel):
         Raises:
             NotImplementedError: If the specified output type is not supported for tools.
         """
-        if output_type is LlmStructuredOutputType.no_structured_output:
-            raise NotImplementedError(
-                "LlmOutputType: no_structured_output not supported for structured output and function calling!"
-            )
-        elif output_type is LlmStructuredOutputType.function_calling:
-            return LlmStructuredOutputSettings(
-                output_type=LlmStructuredOutputType.function_calling,
-                function_tools=[
-                    LlamaCppFunctionTool.from_llama_index_tool(model) for model in tools
-                ],
-            )
-        elif output_type is LlmStructuredOutputType.parallel_function_calling:
-            return LlmStructuredOutputSettings(
-                output_type=LlmStructuredOutputType.parallel_function_calling,
-                function_tools=[
-                    LlamaCppFunctionTool.from_llama_index_tool(model) for model in tools
-                ],
-            )
-        else:
-            raise NotImplementedError(
-                f"LlmOutputType: {output_type.value} not supported for tools!"
-            )
+        return LlmStructuredOutputSettings(
+            output_type=LlmStructuredOutputType.parallel_function_calling if allow_parallel_function_calling else LlmStructuredOutputType.function_calling,
+            function_tools=[
+                LlamaCppFunctionTool.from_llama_index_tool(model) for model in tools
+            ],
+        )
 
     def to_openai_tools(self):
         """
@@ -401,11 +386,11 @@ class LlmStructuredOutputSettings(BaseModel):
                 list_of_outputs=False,
                 add_inner_thoughts=self.add_thoughts_and_reasoning_field,
                 outer_object_name=(
-                            self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
-                            self.output_model_name_field_name),
+                    self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                    self.output_model_name_field_name),
                 outer_object_content=(
-                            self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
-                            self.output_model_attributes_field_name),
+                    self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
+                    self.output_model_attributes_field_name),
                 inner_thought_field_name=self.thoughts_and_reasoning_field_name,
                 allow_only_inner_thoughts=False,
                 add_request_heartbeat=False,
@@ -416,11 +401,11 @@ class LlmStructuredOutputSettings(BaseModel):
                 list_of_outputs=True,
                 add_inner_thoughts=self.add_thoughts_and_reasoning_field,
                 outer_object_name=(
-                            self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
-                             self.output_model_name_field_name),
+                    self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                    self.output_model_name_field_name),
                 outer_object_content=(
-                            self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
-                            self.output_model_attributes_field_name),
+                    self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
+                    self.output_model_attributes_field_name),
                 inner_thought_field_name=(self.thoughts_and_reasoning_field_name),
                 allow_only_inner_thoughts=False,
                 add_request_heartbeat=False,
@@ -431,11 +416,11 @@ class LlmStructuredOutputSettings(BaseModel):
                 list_of_outputs=False,
                 add_inner_thoughts=self.add_thoughts_and_reasoning_field,
                 outer_object_name=(
-                            self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
-                            self.function_calling_name_field_name),
+                    self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                    self.function_calling_name_field_name),
                 outer_object_content=(
-                            self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
-                            self.function_calling_content),
+                    self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
+                    self.function_calling_content),
                 inner_thought_field_name=self.thoughts_and_reasoning_field_name,
                 allow_only_inner_thoughts=False,
                 add_request_heartbeat=False,
@@ -447,11 +432,11 @@ class LlmStructuredOutputSettings(BaseModel):
                 list_of_outputs=True,
                 add_inner_thoughts=self.add_thoughts_and_reasoning_field,
                 outer_object_name=(
-                            self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
-                            self.function_calling_name_field_name),
+                    self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                    self.function_calling_name_field_name),
                 outer_object_content=(
-                            self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
-                            self.function_calling_content),
+                    self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
+                    self.function_calling_content),
                 inner_thought_field_name=self.thoughts_and_reasoning_field_name,
                 allow_only_inner_thoughts=False,
                 add_request_heartbeat=False,
@@ -477,11 +462,11 @@ class LlmStructuredOutputSettings(BaseModel):
                 self.pydantic_models,
                 allow_list=False,
                 outer_object_name=(
-                            "001_" + self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
-                            "002_" + self.output_model_name_field_name),
+                        "001_" + self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                        "002_" + self.output_model_name_field_name),
                 outer_object_properties_name=(
-                            "002_" + self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
-                            "003_" + self.output_model_attributes_field_name),
+                        "002_" + self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
+                        "003_" + self.output_model_attributes_field_name),
                 inner_thoughts_name=("001_" + self.thoughts_and_reasoning_field_name),
                 add_inner_thoughts=self.add_thoughts_and_reasoning_field,
             )
@@ -490,11 +475,11 @@ class LlmStructuredOutputSettings(BaseModel):
                 self.pydantic_models,
                 allow_list=True,
                 outer_object_name=(
-                            "001_" + self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
-                            "002_" + self.output_model_name_field_name),
+                        "001_" + self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                        "002_" + self.output_model_name_field_name),
                 outer_object_properties_name=(
-                            "002_" + self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
-                            "003_" + self.output_model_attributes_field_name),
+                        "002_" + self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
+                        "003_" + self.output_model_attributes_field_name),
                 inner_thoughts_name=("001_" + self.thoughts_and_reasoning_field_name),
                 add_inner_thoughts=self.add_thoughts_and_reasoning_field,
             )
@@ -503,11 +488,11 @@ class LlmStructuredOutputSettings(BaseModel):
                 [tool.model for tool in self.function_tools],
                 allow_list=False,
                 outer_object_name=(
-                            "001_" + self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
-                            "002_" + self.function_calling_name_field_name),
+                        "001_" + self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                        "002_" + self.function_calling_name_field_name),
                 outer_object_properties_name=(
-                            "002_" + self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
-                            "003_" + self.function_calling_content),
+                        "002_" + self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
+                        "003_" + self.function_calling_content),
                 inner_thoughts_name=("001_" + self.thoughts_and_reasoning_field_name),
                 add_inner_thoughts=self.add_thoughts_and_reasoning_field,
             )
@@ -516,11 +501,11 @@ class LlmStructuredOutputSettings(BaseModel):
                 [tool.model for tool in self.function_tools],
                 allow_list=True,
                 outer_object_name=(
-                            "001_" + self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
-                            "002_" + self.function_calling_name_field_name),
+                        "001_" + self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                        "002_" + self.function_calling_name_field_name),
                 outer_object_properties_name=(
-                            "002_" + self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
-                            "003_" + self.function_calling_content),
+                        "002_" + self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
+                        "003_" + self.function_calling_content),
                 inner_thoughts_name=("001_" + self.thoughts_and_reasoning_field_name),
                 add_inner_thoughts=self.add_thoughts_and_reasoning_field,
             )

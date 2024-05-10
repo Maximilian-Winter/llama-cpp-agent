@@ -180,6 +180,8 @@ class LlamaCppAgent:
             structured_output_settings = LlmStructuredOutputSettings(output_type=LlmStructuredOutputType.no_structured_output)
         if llm_samplings_settings is None:
             llm_samplings_settings = self.provider.get_provider_default_settings()
+        else:
+            llm_samplings_settings = copy(llm_samplings_settings)
 
         if llm_samplings_settings.get_additional_stop_sequences() is not None:
             llm_samplings_settings.add_additional_stop_sequences(self.messages_formatter.DEFAULT_STOP_SEQUENCES)
@@ -207,17 +209,7 @@ class LlamaCppAgent:
                 if print_output:
                     print("")
                 self.last_response = full_response
-                if structured_output_settings.output_type is LlmStructuredOutputType.function_calling or structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling:
-                    inner_thoughts = "thoughts_and_reasoning" if isinstance(self.provider, LlamaCppServerProvider ) else "thoughts_and_reasoning" if isinstance(self.provider, LlamaCppPythonProvider ) else "001_thoughts_and_reasoning"
-                    tool_root = "function" if isinstance(self.provider, LlamaCppServerProvider ) else "function" if isinstance(self.provider, LlamaCppPythonProvider ) else "002_function" if structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling else "001_function"
-                    tool_content = "arguments" if isinstance(self.provider, LlamaCppServerProvider ) else "arguments" if isinstance(self.provider, LlamaCppPythonProvider ) else "003_arguments" if structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling else "002_arguments"
-
-                    function_tool_registry = self.get_function_tool_registry(structured_output_settings.function_tools, inner_thoughts_field_name=inner_thoughts,
-                                                                             allow_parallel_function_calling=True if structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling else False, tool_root=tool_root, tool_rule_content=tool_content, add_inner_thoughts=structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling)
-                    full_response = function_tool_registry.handle_function_call(
-                        full_response
-                    )
-                return full_response if full_response else None
+                return self.handle_structured_output(full_response, structured_output_settings, llm_samplings_settings)
             else:
                 full_response = ""
                 text = completion["choices"][0]["text"]
@@ -225,17 +217,7 @@ class LlamaCppAgent:
                 if print_output:
                     print(full_response)
                 self.last_response = full_response
-                if structured_output_settings.output_type is LlmStructuredOutputType.function_calling or structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling:
-                    inner_thoughts = "thoughts_and_reasoning" if isinstance(self.provider, LlamaCppServerProvider ) else "thoughts_and_reasoning" if isinstance(self.provider, LlamaCppPythonProvider ) else "001_thoughts_and_reasoning"
-                    tool_root = "function" if isinstance(self.provider, LlamaCppServerProvider ) else "function" if isinstance(self.provider, LlamaCppPythonProvider ) else "002_function" if structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling else "001_function"
-                    tool_content = "arguments" if isinstance(self.provider, LlamaCppServerProvider ) else "arguments" if isinstance(self.provider, LlamaCppPythonProvider ) else "003_arguments" if structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling else "002_arguments"
-
-                    function_tool_registry = self.get_function_tool_registry(structured_output_settings.function_tools, inner_thoughts_field_name=inner_thoughts,
-                                                                             allow_parallel_function_calling=True if structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling else False, tool_root=tool_root, tool_rule_content=tool_content, add_inner_thoughts=structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling)
-                    full_response = function_tool_registry.handle_function_call(
-                        full_response
-                    )
-                return full_response if full_response else None
+                return self.handle_structured_output(full_response, structured_output_settings, llm_samplings_settings)
         return "Error: No model loaded!"
 
     def get_chat_response(
@@ -279,6 +261,8 @@ class LlamaCppAgent:
             structured_output_settings = LlmStructuredOutputSettings(output_type=LlmStructuredOutputType.no_structured_output)
         if llm_samplings_settings is None:
             llm_samplings_settings = self.provider.get_provider_default_settings()
+        else:
+            llm_samplings_settings = copy(llm_samplings_settings)
 
         completion, response_role = self.get_response_role_and_completion(
             system_prompt=system_prompt,
@@ -318,17 +302,7 @@ class LlamaCppAgent:
                             "content": full_response,
                         },
                     )
-                if structured_output_settings.output_type is LlmStructuredOutputType.function_calling or structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling:
-                    inner_thoughts = "thoughts_and_reasoning" if isinstance(self.provider, LlamaCppServerProvider ) else "thoughts_and_reasoning" if isinstance(self.provider, LlamaCppPythonProvider ) else "001_thoughts_and_reasoning"
-                    tool_root = "function" if isinstance(self.provider, LlamaCppServerProvider ) else "function" if isinstance(self.provider, LlamaCppPythonProvider ) else "002_function" if structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling else "001_function"
-                    tool_content = "arguments" if isinstance(self.provider, LlamaCppServerProvider ) else "arguments" if isinstance(self.provider, LlamaCppPythonProvider ) else "003_arguments" if structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling else "002_arguments"
-
-                    function_tool_registry = self.get_function_tool_registry(structured_output_settings.function_tools, inner_thoughts_field_name=inner_thoughts,
-                                                                             allow_parallel_function_calling=True if structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling else False, tool_root=tool_root, tool_rule_content=tool_content, add_inner_thoughts=structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling)
-                    full_response = function_tool_registry.handle_function_call(
-                        full_response
-                    )
-                return full_response if full_response else None
+                return self.handle_structured_output(full_response, structured_output_settings, llm_samplings_settings)
             else:
                 text = completion["choices"][0]["text"]
                 if print_output:
@@ -341,17 +315,7 @@ class LlamaCppAgent:
                             "content": text,
                         },
                     )
-                if structured_output_settings.output_type is LlmStructuredOutputType.function_calling or structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling:
-                    inner_thoughts = "thoughts_and_reasoning" if isinstance(self.provider, LlamaCppServerProvider ) else "thoughts_and_reasoning" if isinstance(self.provider, LlamaCppPythonProvider ) else "001_thoughts_and_reasoning"
-                    tool_root = "function" if isinstance(self.provider, LlamaCppServerProvider ) else "function" if isinstance(self.provider, LlamaCppPythonProvider ) else "002_function" if structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling else "001_function"
-                    tool_content = "arguments" if isinstance(self.provider, LlamaCppServerProvider ) else "arguments" if isinstance(self.provider, LlamaCppPythonProvider ) else "003_arguments" if structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling else "002_arguments"
-
-                    function_tool_registry = self.get_function_tool_registry(structured_output_settings.function_tools, inner_thoughts_field_name=inner_thoughts,
-                                                                             allow_parallel_function_calling=True if structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling else False, tool_root=tool_root, tool_rule_content=tool_content, add_inner_thoughts=structured_output_settings.add_thoughts_and_reasoning_field_to_function_calling)
-                    text = function_tool_registry.handle_function_call(
-                        text
-                    )
-                return text if text else None
+                return self.handle_structured_output(text, structured_output_settings, llm_samplings_settings)
         return "Error: No model loaded!"
 
     def get_text_completion(
@@ -364,6 +328,8 @@ class LlamaCppAgent:
             structured_output_settings = LlmStructuredOutputSettings(output_type=LlmStructuredOutputType.no_structured_output)
         if llm_samplings_settings is None:
             llm_samplings_settings = self.provider.get_provider_default_settings()
+        else:
+            llm_samplings_settings = copy(llm_samplings_settings)
         return self.provider.create_completion(prompt, structured_output_settings, llm_samplings_settings)
 
     def get_response_role_and_completion(
@@ -378,6 +344,7 @@ class LlamaCppAgent:
             structured_output_settings: LlmStructuredOutputSettings = None,
             k_last_messages: int = 0,
     ):
+
         if system_prompt is None:
             system_prompt = self.system_prompt
         messages = [
@@ -415,13 +382,55 @@ class LlamaCppAgent:
         if self.debug_output:
             print(prompt, end="")
 
+        if structured_output_settings is None:
+            structured_output_settings = LlmStructuredOutputSettings(output_type=LlmStructuredOutputType.no_structured_output)
+        if llm_samplings_settings is None:
+            llm_samplings_settings = self.provider.get_provider_default_settings()
+        else:
+            llm_samplings_settings = copy(llm_samplings_settings)
+
         if llm_samplings_settings.get_additional_stop_sequences() is not None:
             llm_samplings_settings.add_additional_stop_sequences(self.messages_formatter.DEFAULT_STOP_SEQUENCES)
 
         return self.provider.create_completion(prompt, structured_output_settings, llm_samplings_settings), response_role
 
+    def handle_structured_output(self, llm_output: str, structured_output_settings: LlmStructuredOutputSettings, llm_sampling_settings: LlmSamplingSettings):
+        if structured_output_settings.output_type is LlmStructuredOutputType.function_calling or structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling:
+            inner_thoughts = structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("001_" + structured_output_settings.thoughts_and_reasoning_field_name)
+            tool_root = structured_output_settings.function_calling_name_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.function_calling_name_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("002_" + structured_output_settings.function_calling_name_field_name) if structured_output_settings.add_thoughts_and_reasoning_field else ("001_" + structured_output_settings.function_calling_name_field_name)
+            tool_content = structured_output_settings.function_calling_content if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.function_calling_content if isinstance(self.provider, LlamaCppPythonProvider ) else  ("003_" + structured_output_settings.function_calling_content) if structured_output_settings.add_thoughts_and_reasoning_field else ("002_" + structured_output_settings.function_calling_content)
 
+            function_tool_registry = self.get_function_tool_registry(structured_output_settings.function_tools, inner_thoughts_field_name=inner_thoughts,
+                                                                     allow_parallel_function_calling=True if structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling else False, tool_root=tool_root, tool_rule_content=tool_content, add_inner_thoughts=structured_output_settings.add_thoughts_and_reasoning_field)
 
+            return function_tool_registry.handle_function_call(
+                llm_output
+            )
+        elif structured_output_settings.output_type == LlmStructuredOutputType.object_instance:
+            inner_thoughts = structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("001_" + structured_output_settings.thoughts_and_reasoning_field_name)
+            model_name_field = structured_output_settings.output_model_name_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.output_model_name_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("002_" + structured_output_settings.output_model_name_field_name) if structured_output_settings.add_thoughts_and_reasoning_field else ("001_" + structured_output_settings.output_model_name_field_name)
+            model_attributes_field = structured_output_settings.output_model_attributes_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.output_model_attributes_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else  ("003_" + structured_output_settings.output_model_attributes_field_name) if structured_output_settings.add_thoughts_and_reasoning_field else ("002_" + structured_output_settings.output_model_attributes_field_name)
+            output = json.loads(llm_output)
+            model_name = output[model_name_field]
+            model_attributes = output[model_attributes_field]
+            for model in structured_output_settings.pydantic_models:
+                if model_name == model.__name__:
+                    return model(**model_attributes)
+
+        elif structured_output_settings.output_type == LlmStructuredOutputType.list_of_objects:
+            inner_thoughts = structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("001_" + structured_output_settings.thoughts_and_reasoning_field_name)
+            model_name_field = structured_output_settings.output_model_name_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.output_model_name_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("002_" + structured_output_settings.output_model_name_field_name) if structured_output_settings.add_thoughts_and_reasoning_field else ("001_" + structured_output_settings.output_model_name_field_name)
+            model_attributes_field = structured_output_settings.output_model_attributes_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.output_model_attributes_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else  ("003_" + structured_output_settings.output_model_attributes_field_name) if structured_output_settings.add_thoughts_and_reasoning_field else ("002_" + structured_output_settings.output_model_attributes_field_name)
+            output = json.loads(llm_output)
+            models = []
+            for out in output:
+                for model in structured_output_settings.pydantic_models:
+                    model_name = out[model_name_field]
+                    model_attributes = out[model_attributes_field]
+                    if model_name == model.__name__:
+                        models.append(model(**model_attributes))
+            return models
+        return llm_output
 
     def remove_last_k_chat_messages(self, k: int):
         """

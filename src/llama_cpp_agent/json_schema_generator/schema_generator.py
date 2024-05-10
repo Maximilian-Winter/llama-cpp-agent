@@ -57,7 +57,7 @@ def custom_json_schema(model: BaseModel):
                     if isclass(item_type) and issubclass(item_type, BaseModel):
                         prop["items"] = refine_schema(item_type.schema(), item_type)
                     elif item_type is Any:
-                        prop["items"] = {"type": ["array", "boolean", "number", "null", "object", "string"]}
+                        prop["items"] = {'type': 'object', 'anyOf': [ {'type': 'boolean'}, {'type': 'number'}, {'type': 'null'}, {'type': 'string'}]}
                     else:
                         origin = get_origin(item_type)
                         if origin is Union:
@@ -112,6 +112,7 @@ def custom_json_schema(model: BaseModel):
         ]
         if "$defs" in schema:
             schema.pop("$defs")
+
         return schema
 
     return refine_schema(model.schema(), model)
@@ -123,7 +124,46 @@ def generate_list(
     outer_object_properties_name=None,
     add_inner_thoughts: bool = False,
     inner_thoughts_name: str = "thoughts_and_reasoning",
+    min_items: int = 1,
+    max_items: int = 1000,
 ):
+    if max_items == 1:
+        list_of_models = []
+        for model in models:
+            schema = custom_json_schema(model)
+            if outer_object_name is not None and outer_object_properties_name is not None:
+                function_name_object = {"enum": [model.__name__], "type": "string"}
+                model_schema_object = schema
+                if add_inner_thoughts:
+                    # Create a wrapper object that contains the function name and the model schema
+                    wrapper_object = {
+                        "type": "object",
+                        "properties": {
+                            inner_thoughts_name: {"type": "string"},
+                            outer_object_name: function_name_object,
+                            outer_object_properties_name: model_schema_object,
+                        },
+                        "required": [
+                            inner_thoughts_name,
+                            outer_object_name,
+                            outer_object_properties_name,
+                        ],
+                    }
+                else:
+                    # Create a wrapper object that contains the function name and the model schema
+                    wrapper_object = {
+                        "type": "object",
+                        "properties": {
+                            outer_object_name: function_name_object,
+                            outer_object_properties_name: model_schema_object,
+                        },
+                        "required": [
+                            outer_object_name,
+                            outer_object_properties_name,
+                        ],
+                    }
+                list_of_models.append(wrapper_object)
+        return {"type": "object", "anyOf": list_of_models}
     list_object = {"type": "array", "items": {"type": "object", "anyOf": []}}
 
     for model in models:
@@ -139,14 +179,14 @@ def generate_list(
                 wrapper_object = {
                     "type": "object",
                     "properties": {
-                        "001_" + inner_thoughts_name: {"type": "string"},
-                        "002_" + outer_object_name: function_name_object,
-                        "003_" + outer_object_properties_name: model_schema_object,
+                        inner_thoughts_name: {"type": "string"},
+                        outer_object_name: function_name_object,
+                        outer_object_properties_name: model_schema_object,
                     },
                     "required": [
-                        "001_" + inner_thoughts_name,
-                        "002_" + outer_object_name,
-                        "003_" + outer_object_properties_name,
+                        inner_thoughts_name,
+                        outer_object_name,
+                        outer_object_properties_name,
                     ],
                 }
             else:
@@ -154,12 +194,12 @@ def generate_list(
                 wrapper_object = {
                     "type": "object",
                     "properties": {
-                        "001_" + outer_object_name: function_name_object,
-                        "002_" + outer_object_properties_name: model_schema_object,
+                        outer_object_name: function_name_object,
+                        outer_object_properties_name: model_schema_object,
                     },
                     "required": [
-                        "001_" + outer_object_name,
-                        "002_" + outer_object_properties_name,
+                        outer_object_name,
+                        outer_object_properties_name,
                     ],
                 }
 
@@ -167,8 +207,7 @@ def generate_list(
         else:
             outer_object = schema
         list_object["items"]["anyOf"].append(outer_object)
-        list_object["minItems"] = 1
-        list_object["maxItems"] = 10
+        list_object["minItems"] = min_items
 
     return list_object
 
@@ -181,12 +220,22 @@ def generate_json_schemas(
     add_inner_thoughts: bool = False,
     inner_thoughts_name: str = "thoughts_and_reasoning",
 ):
-    model_schema_list = generate_list(
-        models,
-        outer_object_name,
-        outer_object_properties_name,
-        add_inner_thoughts,
-        inner_thoughts_name,
-    )
-
+    if allow_list:
+        model_schema_list = generate_list(
+            models,
+            outer_object_name,
+            outer_object_properties_name,
+            add_inner_thoughts,
+            inner_thoughts_name,
+        )
+    else:
+        model_schema_list = generate_list(
+            models,
+            outer_object_name,
+            outer_object_properties_name,
+            add_inner_thoughts,
+            inner_thoughts_name,
+            max_items=1
+        )
+    print(model_schema_list)
     return model_schema_list

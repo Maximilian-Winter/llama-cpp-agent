@@ -1,11 +1,7 @@
-import json
-from abc import ABC, abstractmethod
-from copy import copy
-from dataclasses import dataclass
-from enum import Enum
-from typing import Dict, List, Union, Optional, Any, Callable, Tuple
 
-import requests
+from enum import Enum
+from typing import Dict, List, Optional, Any, Callable, Tuple
+
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
@@ -49,8 +45,21 @@ class LlmStructuredOutputSettings(BaseModel):
     pydantic_models: Optional[List[type[BaseModel]]] = Field(
         None, description="List of pydantic models for structured output"
     )
-    add_thoughts_and_reasoning_field_to_function_calling: Optional[bool] = Field(False,
-                                                                                 description="Add thoughts and reasoning field to function calling")
+    add_thoughts_and_reasoning_field: Optional[bool] = Field(False,
+                                                             description="Add thoughts and reasoning field to function calling")
+
+    thoughts_and_reasoning_field_name: Optional[str] = Field("thoughts_and_reasoning",
+                                                             description="Field name for the thoughts and reasoning field")
+
+    function_calling_name_field_name: Optional[str] = Field("function",
+                                                            description="Name of the JSON field for the name of the used function.")
+    function_calling_content: Optional[str] = Field("arguments",
+                                                    description="Name of the JSON field for the arguments of the used function.")
+
+    output_model_name_field_name: Optional[str] = Field("model",
+                                                 description="Name of the JSON field for the name of the used pydantic model.")
+    output_model_attributes_field_name: Optional[str] = Field("fields",
+                                                   description="Name of the JSON field for the fields of the pydantic model.")
 
     class Config:
         arbitrary_types_allowed = True
@@ -70,7 +79,8 @@ class LlmStructuredOutputSettings(BaseModel):
             LlmStructuredOutputSettings: Configured settings object.
         """
         return LlmStructuredOutputSettings(
-            output_type=LlmStructuredOutputType.function_calling if not parallel_function_calling else LlmStructuredOutputType.parallel_function_calling, function_tools=llama_cpp_function_tools
+            output_type=LlmStructuredOutputType.function_calling if not parallel_function_calling else LlmStructuredOutputType.parallel_function_calling,
+            function_tools=llama_cpp_function_tools
         )
 
     @staticmethod
@@ -386,6 +396,7 @@ class LlmStructuredOutputSettings(BaseModel):
         Raises:
             NotImplementedError: If no structured output is specified.
         """
+
         if self.output_type == LlmStructuredOutputType.no_structured_output:
             raise NotImplementedError(
                 "LlmOutputType: no_structured_output not supported for structured output and function calling!"
@@ -394,7 +405,14 @@ class LlmStructuredOutputSettings(BaseModel):
             return generate_gbnf_grammar_from_pydantic_models(
                 self.pydantic_models,
                 list_of_outputs=False,
-                add_inner_thoughts=self.add_thoughts_and_reasoning_field_to_function_calling,
+                add_inner_thoughts=self.add_thoughts_and_reasoning_field,
+                outer_object_name=(
+                            self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                            self.output_model_name_field_name),
+                outer_object_content=(
+                            self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
+                            self.output_model_attributes_field_name),
+                inner_thought_field_name=self.thoughts_and_reasoning_field_name,
                 allow_only_inner_thoughts=False,
                 add_request_heartbeat=False,
             )
@@ -402,7 +420,14 @@ class LlmStructuredOutputSettings(BaseModel):
             return generate_gbnf_grammar_from_pydantic_models(
                 self.pydantic_models,
                 list_of_outputs=True,
-                add_inner_thoughts=self.add_thoughts_and_reasoning_field_to_function_calling,
+                add_inner_thoughts=self.add_thoughts_and_reasoning_field,
+                outer_object_name=(
+                            self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                             self.output_model_name_field_name),
+                outer_object_content=(
+                            self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
+                            self.output_model_attributes_field_name),
+                inner_thought_field_name=(self.thoughts_and_reasoning_field_name),
                 allow_only_inner_thoughts=False,
                 add_request_heartbeat=False,
             )
@@ -410,21 +435,32 @@ class LlmStructuredOutputSettings(BaseModel):
             return generate_gbnf_grammar_from_pydantic_models(
                 [tool.model for tool in self.function_tools],
                 list_of_outputs=False,
-                add_inner_thoughts=self.add_thoughts_and_reasoning_field_to_function_calling,
+                add_inner_thoughts=self.add_thoughts_and_reasoning_field,
+                outer_object_name=(
+                            self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                            self.function_calling_name_field_name),
+                outer_object_content=(
+                            self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
+                            self.function_calling_content),
+                inner_thought_field_name=self.thoughts_and_reasoning_field_name,
                 allow_only_inner_thoughts=False,
                 add_request_heartbeat=False,
-                outer_object_name="function",
-                outer_object_content="arguments"
+
             )
         elif self.output_type == LlmStructuredOutputType.parallel_function_calling:
             return generate_gbnf_grammar_from_pydantic_models(
                 [tool.model for tool in self.function_tools],
                 list_of_outputs=True,
-                add_inner_thoughts=self.add_thoughts_and_reasoning_field_to_function_calling,
+                add_inner_thoughts=self.add_thoughts_and_reasoning_field,
+                outer_object_name=(
+                            self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                            self.function_calling_name_field_name),
+                outer_object_content=(
+                            self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
+                            self.function_calling_content),
+                inner_thought_field_name=self.thoughts_and_reasoning_field_name,
                 allow_only_inner_thoughts=False,
                 add_request_heartbeat=False,
-                outer_object_name="function",
-                outer_object_content="arguments"
             )
 
     def get_json_schema(self):
@@ -437,6 +473,7 @@ class LlmStructuredOutputSettings(BaseModel):
         Raises:
             NotImplementedError: If no structured output is specified.
         """
+
         if self.output_type == LlmStructuredOutputType.no_structured_output:
             raise NotImplementedError(
                 "LlmOutputType: no_structured_output not supported for structured output and function calling!"
@@ -445,31 +482,51 @@ class LlmStructuredOutputSettings(BaseModel):
             return generate_json_schemas(
                 self.pydantic_models,
                 allow_list=False,
-                outer_object_name="model",
-                outer_object_properties_name="fields",
-                add_inner_thoughts=self.add_thoughts_and_reasoning_field_to_function_calling,
+                outer_object_name=(
+                            "001_" + self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                            "002_" + self.output_model_name_field_name),
+                outer_object_properties_name=(
+                            "002_" + self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
+                            "003_" + self.output_model_attributes_field_name),
+                inner_thoughts_name=("001_" + self.thoughts_and_reasoning_field_name),
+                add_inner_thoughts=self.add_thoughts_and_reasoning_field,
             )
         elif self.output_type == LlmStructuredOutputType.list_of_objects:
             return generate_json_schemas(
                 self.pydantic_models,
                 allow_list=True,
-                outer_object_name="model",
-                outer_object_properties_name="fields",
-                add_inner_thoughts=self.add_thoughts_and_reasoning_field_to_function_calling,
+                outer_object_name=(
+                            "001_" + self.output_model_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                            "002_" + self.output_model_name_field_name),
+                outer_object_properties_name=(
+                            "002_" + self.output_model_attributes_field_name) if not self.add_thoughts_and_reasoning_field else (
+                            "003_" + self.output_model_attributes_field_name),
+                inner_thoughts_name=("001_" + self.thoughts_and_reasoning_field_name),
+                add_inner_thoughts=self.add_thoughts_and_reasoning_field,
             )
         elif self.output_type is LlmStructuredOutputType.function_calling:
             return generate_json_schemas(
                 [tool.model for tool in self.function_tools],
                 allow_list=False,
-                outer_object_name="function",
-                outer_object_properties_name="arguments",
-                add_inner_thoughts=self.add_thoughts_and_reasoning_field_to_function_calling,
+                outer_object_name=(
+                            "001_" + self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                            "002_" + self.function_calling_name_field_name),
+                outer_object_properties_name=(
+                            "002_" + self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
+                            "003_" + self.function_calling_content),
+                inner_thoughts_name=("001_" + self.thoughts_and_reasoning_field_name),
+                add_inner_thoughts=self.add_thoughts_and_reasoning_field,
             )
         elif self.output_type is LlmStructuredOutputType.parallel_function_calling:
             return generate_json_schemas(
                 [tool.model for tool in self.function_tools],
                 allow_list=True,
-                outer_object_name="function",
-                outer_object_properties_name="arguments",
-                add_inner_thoughts=self.add_thoughts_and_reasoning_field_to_function_calling,
+                outer_object_name=(
+                            "001_" + self.function_calling_name_field_name) if not self.add_thoughts_and_reasoning_field else (
+                            "002_" + self.function_calling_name_field_name),
+                outer_object_properties_name=(
+                            "002_" + self.function_calling_content) if not self.add_thoughts_and_reasoning_field else (
+                            "003_" + self.function_calling_content),
+                inner_thoughts_name=("001_" + self.thoughts_and_reasoning_field_name),
+                add_inner_thoughts=self.add_thoughts_and_reasoning_field,
             )

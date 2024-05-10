@@ -176,6 +176,7 @@ class FunctionCallingAgent:
             allow_inner_thoughts_only=False,
             allow_parallel_function_calling=allow_parallel_function_calling,
         )
+        self.allow_parallel_function_calling = allow_parallel_function_calling
         self.without_grammar_mode = False
         self.without_grammar_mode_function = []
         self.prompt_suffix = ""
@@ -360,7 +361,7 @@ Choose the appropriate function based on the task you want to perform. Provide y
         result = self.llama_cpp_agent.get_chat_response(
             system_prompt=self.system_prompt,
             streaming_callback=self.streaming_callback,
-            structured_output_settings=LlmStructuredOutputSettings.from_llama_cpp_function_tools(self.llama_cpp_tools, output_type=LlmStructuredOutputType.parallel_function_calling),
+            structured_output_settings=LlmStructuredOutputSettings.from_llama_cpp_function_tools(self.llama_cpp_tools, self.allow_parallel_function_calling),
             llm_samplings_settings=llm_sampling_settings
         )
         if without_grammar_mode:

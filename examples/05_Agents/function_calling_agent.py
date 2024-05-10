@@ -12,7 +12,9 @@ from llama_cpp_agent.llm_settings import LlamaLLMGenerationSettings
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
 
-model = LlamaCppServerProvider("http://127.0.0.1:8080")
+from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+
+model = TGIServerProvider("http://localhost:8080")
 
 
 def get_current_datetime(output_format: Optional[str] = None):
@@ -87,7 +89,7 @@ open_ai_tool_spec = {
                 },
                 "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
             },
-            "required": ["location"],
+            "required": ["location", "unit"],
         },
     },
 }

@@ -1,7 +1,7 @@
 from inspect import isclass
 from pydantic import BaseModel, Field
 from enum import Enum
-from typing import Union, get_origin, get_args, List, Set, Dict
+from typing import Union, get_origin, get_args, List, Set, Dict, Any
 from types import NoneType
 
 from llama_cpp_agent.llm_documentation import generate_text_documentation
@@ -29,7 +29,8 @@ def custom_json_schema(model: BaseModel):
 
                 # Handle Enums
                 if isclass(field.annotation) and issubclass(field.annotation, Enum):
-                    prop.pop("allOf")
+                    if "allOf" in prop:
+                        prop.pop("allOf")
                     prop["enum"] = [e.value for e in field.annotation]
                     prop["type"] = get_type_str(
                         type(next(iter(field.annotation)).value)
@@ -55,6 +56,8 @@ def custom_json_schema(model: BaseModel):
                     item_type = get_args(field.annotation)[0]
                     if isclass(item_type) and issubclass(item_type, BaseModel):
                         prop["items"] = refine_schema(item_type.schema(), item_type)
+                    elif item_type is Any:
+                        prop["items"] = {"type": ["array", "boolean", "number", "null", "object", "string"]}
                     else:
                         origin = get_origin(item_type)
                         if origin is Union:
@@ -78,6 +81,8 @@ def custom_json_schema(model: BaseModel):
                             if type_str:
                                 prop["items"] = {"type": type_str}
 
+
+
                 # Handle dictionaries
                 elif origin is dict:
                     key_type, value_type = get_args(field.annotation)
@@ -98,6 +103,7 @@ def custom_json_schema(model: BaseModel):
                     prop.update(
                         refine_schema(field.annotation.schema(), field.annotation)
                     )
+
 
         schema["title"] = model.__name__
         schema["description"] = model.__doc__.strip() if model.__doc__ else ""
@@ -175,15 +181,12 @@ def generate_json_schemas(
     add_inner_thoughts: bool = False,
     inner_thoughts_name: str = "thoughts_and_reasoning",
 ):
-    if allow_list:
-        model_schema_list = generate_list(
-            models,
-            outer_object_name,
-            outer_object_properties_name,
-            add_inner_thoughts,
-            inner_thoughts_name,
-        )
-    else:
-        model_schema_list = [custom_json_schema(model) for model in models]
+    model_schema_list = generate_list(
+        models,
+        outer_object_name,
+        outer_object_properties_name,
+        add_inner_thoughts,
+        inner_thoughts_name,
+    )
 
     return model_schema_list

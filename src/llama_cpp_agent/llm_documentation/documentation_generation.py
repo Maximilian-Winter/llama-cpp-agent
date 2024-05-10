@@ -209,6 +209,7 @@ def generate_text_documentation(
     model_prefix="Model",
     fields_prefix="Fields",
     documentation_with_field_description=True,
+    ordered_json_mode=False,
 ) -> str:
     """
     Generate markdown documentation for a list of Pydantic models.
@@ -247,6 +248,7 @@ def generate_text_documentation(
         else:
             documentation += f"  Fields:\n"
         if isclass(model) and issubclass(model, BaseModel):
+            count = 1
             for name, field_type in model.__annotations__.items():
                 # if name == "markdown_code_block":
                 #    continue
@@ -285,11 +287,13 @@ def generate_text_documentation(
                 if isclass(field_type) and issubclass(field_type, BaseModel):
                     pyd_models.append((field_type, False))
                 documentation += generate_field_text(
-                    name,
+                    name if not ordered_json_mode else "{:03}".format(count) + "_" + name,
                     field_type,
                     model,
-                    documentation_with_field_description=documentation_with_field_description,
+                    documentation_with_field_description=documentation_with_field_description
+
                 )
+                count += 1
             if add_prefix:
                 if documentation.endswith(f"{fields_prefix}:\n"):
                     documentation += "    none\n"
@@ -315,7 +319,7 @@ def generate_field_text(
     field_type: type[Any],
     model: type[BaseModel],
     depth=1,
-    documentation_with_field_description=True,
+    documentation_with_field_description=True
 ) -> str:
     """
     Generate markdown documentation for a Pydantic model field.

@@ -160,6 +160,7 @@ class LlamaCppPythonProvider(LlmProvider):
             prompt: str,
             structured_output_settings: LlmStructuredOutputSettings,
             settings: LlamaCppPythonSamplingSettings,
+            bos_token: str
     ):
         grammar = None
         if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
@@ -181,6 +182,7 @@ class LlamaCppPythonProvider(LlmProvider):
             messages: List[Dict[str, str]],
             structured_output_settings: LlmStructuredOutputSettings,
             settings: LlamaCppPythonSamplingSettings,
+            bos_token: str
     ):
         grammar = None
         if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:

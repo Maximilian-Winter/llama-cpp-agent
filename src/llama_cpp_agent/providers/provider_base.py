@@ -113,6 +113,7 @@ class LlmProvider(ABC):
             prompt: str,
             structured_output_settings: LlmStructuredOutputSettings,
             settings: LlmSamplingSettings,
+            bos_token: str
     ):
         """Create a completion request with the LLM provider and returns the result."""
         pass
@@ -123,6 +124,7 @@ class LlmProvider(ABC):
             messages: List[Dict[str, str]],
             structured_output_settings: LlmStructuredOutputSettings,
             settings: LlmSamplingSettings,
+            bos_token: str
     ):
         """Create a chat completion request with the LLM provider and returns the result."""
         pass

@@ -3,14 +3,12 @@ import datetime
 from enum import Enum
 from typing import Union, Optional
 
-from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
-from llama_cpp_agent.llm_settings import LlamaLLMGenerationSettings
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
+
 
 from llama_cpp_agent.providers.tgi_server import TGIServerProvider
 
@@ -126,7 +124,7 @@ function_call_agent = FunctionCallingAgent(
     send_message_to_user_callback=send_message_to_user_callback,
     # Set to true to allow parallel function calling
     allow_parallel_function_calling=True,
-    messages_formatter_type=MessagesFormatterType.MIXTRAL,
+    messages_formatter_type=MessagesFormatterType.CHATML,
     debug_output=True)
 
 user_input = '''Get the date and time in '%d-%m-%Y %H:%M' format. Get the current weather in celsius in London, New York and at the North Pole. Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.'''

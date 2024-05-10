@@ -170,13 +170,11 @@ class FunctionCallingAgent:
                 LlamaCppFunctionTool(write_text_file, agent=self)
             )
 
-        self.tool_registry = LlamaCppAgent.get_function_tool_registry(
-            self.llama_cpp_tools,
-            add_inner_thoughts=True,
-            allow_inner_thoughts_only=False,
-            allow_parallel_function_calling=allow_parallel_function_calling,
-        )
+
         self.allow_parallel_function_calling = allow_parallel_function_calling
+
+        self.structured_output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(self.llama_cpp_tools, self.allow_parallel_function_calling)
+
         self.without_grammar_mode = False
         self.without_grammar_mode_function = []
         self.prompt_suffix = ""
@@ -184,8 +182,7 @@ class FunctionCallingAgent:
             self.system_prompt = system_prompt
         else:
             # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
-            self.system_prompt = (
-                """You are Funky, an AI assistant that calls functions to perform tasks.
+            self.system_prompt = """"You are Funky, an AI assistant that calls functions to perform tasks.
 
 To call functions, you respond with a JSON object containing three fields:
 "thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
@@ -198,9 +195,7 @@ After performing a function call, you will receive a response containing the ret
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
 Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
 
-"""
-                + self.tool_registry.get_documentation().strip()
-            )
+""" + self.structured_output_settings.get_llm_documentation(llama_llm).strip()
         self.llama_cpp_agent = LlamaCppAgent(
             llama_llm,
             debug_output=debug_output,
@@ -361,7 +356,7 @@ Choose the appropriate function based on the task you want to perform. Provide y
         result = self.llama_cpp_agent.get_chat_response(
             system_prompt=self.system_prompt,
             streaming_callback=self.streaming_callback,
-            structured_output_settings=LlmStructuredOutputSettings.from_llama_cpp_function_tools(self.llama_cpp_tools, self.allow_parallel_function_calling),
+            structured_output_settings=self.structured_output_settings,
             llm_samplings_settings=llm_sampling_settings
         )
         if without_grammar_mode:

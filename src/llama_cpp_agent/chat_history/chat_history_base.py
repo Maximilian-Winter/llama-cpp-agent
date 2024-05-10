@@ -3,11 +3,7 @@ from abc import abstractmethod, ABC
 from enum import Enum
 from typing import List, Dict
 
-from pydantic import parse_obj_as
-
-from llama_cpp_agent.chat_history.messages import ChatMessage, UserMessage, Roles, SystemMessage, \
-    convert_messages_to_list_of_dictionaries, AssistantMessage
-from llama_cpp_agent.providers.provider_base import LlmProvider
+from llama_cpp_agent.chat_history.messages import ChatMessage
 
 
 class ChatHistory(ABC):

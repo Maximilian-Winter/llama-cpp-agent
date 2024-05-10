@@ -178,6 +178,7 @@ class MessagesFormatter:
         FUNCTION_PROMPT_START: str = "",
         FUNCTION_PROMPT_END: str = "",
         STRIP_PROMPT: bool = True,
+        BOS_TOKEN: str = "<s>"
     ):
         """
         Initializes a new MessagesFormatter object.
@@ -212,6 +213,10 @@ class MessagesFormatter:
         self.FUNCTION_PROMPT_END = FUNCTION_PROMPT_END
         self.USE_USER_ROLE_FUNCTION_CALL_RESULT = USE_USER_ROLE_FUNCTION_CALL_RESULT
         self.STRIP_PROMPT = STRIP_PROMPT
+        self.BOS_TOKEN = BOS_TOKEN
+
+    def get_bos_token(self):
+        return self.BOS_TOKEN
 
     def format_messages(
         self,

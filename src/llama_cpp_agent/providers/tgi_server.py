@@ -39,10 +39,10 @@ class TGIServerSamplingSettings(LlmSamplingSettings):
         return LlmProviderId.tgi_server
 
     def get_additional_stop_sequences(self) -> Union[List[str], None]:
-        return None
+        return self.stop
 
     def add_additional_stop_sequences(self, sequences: List[str]):
-        pass
+        self.stop.extend(sequences)
     def is_streaming(self):
         return self.stream
     def save(self, file_path: str):
@@ -120,6 +120,7 @@ class TGIServerProvider(LlmProvider):
             prompt: str,
             structured_output_settings: LlmStructuredOutputSettings,
             settings: TGIServerSamplingSettings,
+            bos_token: str
     ):
         if self.api_key is not None:
             headers = {
@@ -130,8 +131,8 @@ class TGIServerProvider(LlmProvider):
             headers = {"Content-Type": "application/json"}
 
         settings_dict = copy(settings.as_dict())
-
-        data = {"parameters": settings_dict, "inputs": prompt}
+        print(bos_token + prompt)
+        data = {"parameters": settings_dict, "inputs": bos_token + prompt}
         grammar = None
         if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
             grammar = structured_output_settings.get_json_schema()
@@ -156,6 +157,7 @@ class TGIServerProvider(LlmProvider):
             messages: List[Dict[str, str]],
             structured_output_settings: LlmStructuredOutputSettings,
             settings: TGIServerSamplingSettings,
+            bos_token: str
     ):
         if self.api_key is not None:
             headers = {
@@ -164,7 +166,7 @@ class TGIServerProvider(LlmProvider):
             }
         else:
             headers = {"Content-Type": "application/json"}
-
+        messages[0]["content"] = bos_token + messages[0]["content"]
         data = copy(settings.as_dict())
         data["messages"] = messages
         data["model"] = "tgi"

@@ -7,9 +7,9 @@ from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
-from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
+from llama_cpp_agent.providers.tgi_server import TGIServerProvider
 
-model = LlamaCppServerProvider("http://127.0.0.1:8080")
+provider = TGIServerProvider("http://localhost:8080")
 
 
 # Simple pydantic calculator tool for the agent that can add, subtract, multiply, and divide.
@@ -20,6 +20,7 @@ class MathOperation(Enum):
     DIVIDE = "divide"
 
 
+# The Pydantic Calculator tool needs a run which executes the tool.
 class Calculator(BaseModel):
     """
     Perform a math operation on two numbers.
@@ -27,15 +28,11 @@ class Calculator(BaseModel):
 
     number_one: Union[int, float] = Field(
         ...,
-        description="First number.",
-        max_precision=5,
-        min_precision=2,
+        description="First number."
     )
     number_two: Union[int, float] = Field(
         ...,
-        description="Second number.",
-        max_precision=5,
-        min_precision=2,
+        description="Second number."
     )
     operation: MathOperation = Field(..., description="Math operation to perform.")
 
@@ -51,14 +48,16 @@ class Calculator(BaseModel):
         else:
             raise ValueError("Unknown operation.")
 
+
 # Create a list of function call tools.
 function_tools = [LlamaCppFunctionTool(Calculator)]
 
-output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(function_tools, output_type=LlmStructuredOutputType.function_calling)
+output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(function_tools,
+                                                                            parallel_function_calling=True)
 llama_cpp_agent = LlamaCppAgent(
-    model,
+    provider,
     debug_output=False,
-    system_prompt=f"You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n{output_settings.get_llm_documentation()}",
+    system_prompt=f"You are an advanced AI, tasked to assist the user by calling functions in JSON format.\n\n\n{output_settings.get_llm_documentation(provider)}",
     predefined_messages_formatter_type=MessagesFormatterType.CHATML,
 )
 

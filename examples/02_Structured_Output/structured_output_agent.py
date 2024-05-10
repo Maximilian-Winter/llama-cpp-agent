@@ -3,14 +3,13 @@
 from enum import Enum
 from typing import List
 
-from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
-
-model = LlamaCppServerProvider("http://127.0.0.1:8080")
 from llama_cpp_agent.structured_output_agent import StructuredOutputAgent
+from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+
+model = TGIServerProvider("http://localhost:8080")
 
 
 # Example enum for our output model
@@ -35,7 +34,7 @@ class Book(BaseModel):
 
 structured_output_agent = StructuredOutputAgent(
     model, debug_output=True,
-    messages_formatter_type=MessagesFormatterType.PHI_3
+    messages_formatter_type=MessagesFormatterType.CHATML
 )
 
 text = """The Feynman Lectures on Physics is a physics textbook based on some lectures by Richard Feynman, a Nobel laureate who has sometimes been called "The Great Explainer". The lectures were presented before undergraduate students at the California Institute of Technology (Caltech), during 1961–1963. The book's co-authors are Feynman, Robert B. Leighton, and Matthew Sands."""

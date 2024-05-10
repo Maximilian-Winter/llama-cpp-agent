@@ -171,7 +171,7 @@ class StructuredOutputAgent:
         output_settings = LlmStructuredOutputSettings.from_pydantic_models([model], output_type=LlmStructuredOutputType.object_instance)
 
         system_prompt = self.system_prompt_template.generate_prompt(
-            {"documentation": output_settings.get_llm_documentation()}
+            {"documentation": output_settings.get_llm_documentation(self.llama_cpp_agent.provider).strip()}
         )
         if data == "":
             prompt = "Create a random JSON response based on the response model."
@@ -186,4 +186,4 @@ class StructuredOutputAgent:
             structured_output_settings=output_settings,
             llm_samplings_settings=llm_sampling_settings
         )
-        return extract_object_from_response(response, model)
+        return response

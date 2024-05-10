@@ -7,9 +7,9 @@ from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
-from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
+from llama_cpp_agent.providers.tgi_server import TGIServerProvider
 
-model = LlamaCppServerProvider("http://127.0.0.1:8080")
+provider = TGIServerProvider("http://localhost:8080")
 
 
 # Simple calculator tool for the agent that can add, subtract, multiply, and divide.
@@ -56,12 +56,12 @@ class Calculator(BaseModel):
 function_tools = [LlamaCppFunctionTool(Calculator)]
 
 
-output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(function_tools, output_type=LlmStructuredOutputType.parallel_function_calling)
+output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(function_tools, parallel_function_calling=True)
 
 llama_cpp_agent = LlamaCppAgent(
-    model,
+    provider,
     debug_output=False,
-    system_prompt=f"You are an advanced AI, tasked to assist the user by calling functions in JSON format. You can also perform parallel function calls.\n\n\n{output_settings.get_llm_documentation()}",
+    system_prompt=f"You are an advanced AI, tasked to assist the user by calling functions in JSON format. You can also perform parallel function calls.\n\n\n{output_settings.get_llm_documentation(provider)}",
     predefined_messages_formatter_type=MessagesFormatterType.CHATML,
 )
 

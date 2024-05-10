@@ -1,9 +1,11 @@
 import json
+import re
 from copy import copy
 from dataclasses import dataclass
 from typing import List, Dict, Literal, Callable, Union, Generator
 
 from llama_cpp import Llama, LlamaGrammar
+from pydantic import BaseModel
 
 from .chat_history.basic_chat_history import BasicChatHistory
 from .chat_history.chat_history_base import ChatHistory
@@ -16,6 +18,7 @@ from .messages_formatter import (
     MessagesFormatter,
 )
 from .function_calling import LlamaCppFunctionTool, LlamaCppFunctionToolRegistry
+from .output_parser import parse_json_response
 from .providers.llama_cpp_python import LlamaCppPythonProvider
 from .providers.llama_cpp_server import LlamaCppServerProvider
 from .providers.provider_base import LlmProvider, LlmSamplingSettings
@@ -169,7 +172,7 @@ class LlamaCppAgent:
             llm_samplings_settings: LlmSamplingSettings = None,
             streaming_callback: Callable[[StreamingResponse], None] = None,
             print_output: bool = False,
-    ):
+    ) -> Union[str, List[dict], BaseModel]:
         """ """
 
         if self.debug_output:
@@ -177,7 +180,8 @@ class LlamaCppAgent:
                 print(prompt, end="")
 
         if structured_output_settings is None:
-            structured_output_settings = LlmStructuredOutputSettings(output_type=LlmStructuredOutputType.no_structured_output)
+            structured_output_settings = LlmStructuredOutputSettings(
+                output_type=LlmStructuredOutputType.no_structured_output)
         if llm_samplings_settings is None:
             llm_samplings_settings = self.provider.get_provider_default_settings()
         else:
@@ -232,10 +236,10 @@ class LlamaCppAgent:
             structured_output_settings: LlmStructuredOutputSettings = None,
             llm_samplings_settings: LlmSamplingSettings = None,
             streaming_callback: Callable[[StreamingResponse], None] = None,
-            print_output: bool = True,
+            print_output: bool = False,
             k_last_messages: int = 0,
 
-    ):
+    ) -> Union[str, List[dict], BaseModel]:
         """
         Gets a chat response based on the input message and context.
 
@@ -258,7 +262,8 @@ class LlamaCppAgent:
             list[dict]|str: The generated chat response.
         """
         if structured_output_settings is None:
-            structured_output_settings = LlmStructuredOutputSettings(output_type=LlmStructuredOutputType.no_structured_output)
+            structured_output_settings = LlmStructuredOutputSettings(
+                output_type=LlmStructuredOutputType.no_structured_output)
         if llm_samplings_settings is None:
             llm_samplings_settings = self.provider.get_provider_default_settings()
         else:
@@ -325,12 +330,13 @@ class LlamaCppAgent:
             llm_samplings_settings: LlmSamplingSettings = None
     ):
         if structured_output_settings is None:
-            structured_output_settings = LlmStructuredOutputSettings(output_type=LlmStructuredOutputType.no_structured_output)
+            structured_output_settings = LlmStructuredOutputSettings(
+                output_type=LlmStructuredOutputType.no_structured_output)
         if llm_samplings_settings is None:
             llm_samplings_settings = self.provider.get_provider_default_settings()
         else:
             llm_samplings_settings = copy(llm_samplings_settings)
-        return self.provider.create_completion(prompt, structured_output_settings, llm_samplings_settings)
+        return self.provider.create_completion(prompt, structured_output_settings, llm_samplings_settings, self.messages_formatter.BOS_TOKEN)
 
     def get_response_role_and_completion(
             self,
@@ -383,7 +389,8 @@ class LlamaCppAgent:
             print(prompt, end="")
 
         if structured_output_settings is None:
-            structured_output_settings = LlmStructuredOutputSettings(output_type=LlmStructuredOutputType.no_structured_output)
+            structured_output_settings = LlmStructuredOutputSettings(
+                output_type=LlmStructuredOutputType.no_structured_output)
         if llm_samplings_settings is None:
             llm_samplings_settings = self.provider.get_provider_default_settings()
         else:
@@ -392,41 +399,42 @@ class LlamaCppAgent:
         if llm_samplings_settings.get_additional_stop_sequences() is not None:
             llm_samplings_settings.add_additional_stop_sequences(self.messages_formatter.DEFAULT_STOP_SEQUENCES)
 
-        return self.provider.create_completion(prompt, structured_output_settings, llm_samplings_settings), response_role
+        return self.provider.create_completion(prompt, structured_output_settings,
+                                               llm_samplings_settings, self.messages_formatter.BOS_TOKEN), response_role
 
-    def handle_structured_output(self, llm_output: str, structured_output_settings: LlmStructuredOutputSettings, llm_sampling_settings: LlmSamplingSettings):
+    def handle_structured_output(self, llm_output: str, structured_output_settings: LlmStructuredOutputSettings,
+                                 llm_sampling_settings: LlmSamplingSettings):
         if structured_output_settings.output_type is LlmStructuredOutputType.function_calling or structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling:
-            inner_thoughts = structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("001_" + structured_output_settings.thoughts_and_reasoning_field_name)
-            tool_root = structured_output_settings.function_calling_name_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.function_calling_name_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("002_" + structured_output_settings.function_calling_name_field_name) if structured_output_settings.add_thoughts_and_reasoning_field else ("001_" + structured_output_settings.function_calling_name_field_name)
-            tool_content = structured_output_settings.function_calling_content if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.function_calling_content if isinstance(self.provider, LlamaCppPythonProvider ) else  ("003_" + structured_output_settings.function_calling_content) if structured_output_settings.add_thoughts_and_reasoning_field else ("002_" + structured_output_settings.function_calling_content)
 
-            function_tool_registry = self.get_function_tool_registry(structured_output_settings.function_tools, inner_thoughts_field_name=inner_thoughts,
-                                                                     allow_parallel_function_calling=True if structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling else False, tool_root=tool_root, tool_rule_content=tool_content, add_inner_thoughts=structured_output_settings.add_thoughts_and_reasoning_field)
+            function_tool_registry = self.get_function_tool_registry(structured_output_settings.function_tools,
+                                                                     inner_thoughts_field_name=structured_output_settings.thoughts_and_reasoning_field_name,
+                                                                     allow_parallel_function_calling=True if structured_output_settings.output_type is LlmStructuredOutputType.parallel_function_calling else False,
+                                                                     tool_root=structured_output_settings.function_calling_name_field_name,
+                                                                     tool_rule_content=structured_output_settings.function_calling_content,
+                                                                     add_inner_thoughts=structured_output_settings.add_thoughts_and_reasoning_field)
+            output = parse_json_response(llm_output)
+            output = self.clean_keys(output)
 
             return function_tool_registry.handle_function_call(
-                llm_output
+                output
             )
         elif structured_output_settings.output_type == LlmStructuredOutputType.object_instance:
-            inner_thoughts = structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("001_" + structured_output_settings.thoughts_and_reasoning_field_name)
-            model_name_field = structured_output_settings.output_model_name_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.output_model_name_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("002_" + structured_output_settings.output_model_name_field_name) if structured_output_settings.add_thoughts_and_reasoning_field else ("001_" + structured_output_settings.output_model_name_field_name)
-            model_attributes_field = structured_output_settings.output_model_attributes_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.output_model_attributes_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else  ("003_" + structured_output_settings.output_model_attributes_field_name) if structured_output_settings.add_thoughts_and_reasoning_field else ("002_" + structured_output_settings.output_model_attributes_field_name)
             output = json.loads(llm_output)
-            model_name = output[model_name_field]
-            model_attributes = output[model_attributes_field]
+            output = self.clean_keys(output)
+            model_name = output[structured_output_settings.output_model_name_field_name]
+            model_attributes = output[structured_output_settings.output_model_attributes_field_name]
             for model in structured_output_settings.pydantic_models:
                 if model_name == model.__name__:
                     return model(**model_attributes)
 
         elif structured_output_settings.output_type == LlmStructuredOutputType.list_of_objects:
-            inner_thoughts = structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.thoughts_and_reasoning_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("001_" + structured_output_settings.thoughts_and_reasoning_field_name)
-            model_name_field = structured_output_settings.output_model_name_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.output_model_name_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else ("002_" + structured_output_settings.output_model_name_field_name) if structured_output_settings.add_thoughts_and_reasoning_field else ("001_" + structured_output_settings.output_model_name_field_name)
-            model_attributes_field = structured_output_settings.output_model_attributes_field_name if isinstance(self.provider, LlamaCppServerProvider ) else structured_output_settings.output_model_attributes_field_name if isinstance(self.provider, LlamaCppPythonProvider ) else  ("003_" + structured_output_settings.output_model_attributes_field_name) if structured_output_settings.add_thoughts_and_reasoning_field else ("002_" + structured_output_settings.output_model_attributes_field_name)
             output = json.loads(llm_output)
+            output = self.clean_keys(output)
             models = []
             for out in output:
                 for model in structured_output_settings.pydantic_models:
-                    model_name = out[model_name_field]
-                    model_attributes = out[model_attributes_field]
+                    model_name = out[structured_output_settings.output_model_name_field_name]
+                    model_attributes = out[structured_output_settings.output_model_attributes_field_name]
                     if model_name == model.__name__:
                         models.append(model(**model_attributes))
             return models
@@ -479,3 +487,19 @@ class LlamaCppAgent:
             loaded_messages = json.load(file)
             self.messages.extend(loaded_messages)
 
+    def clean_keys(self, data):
+        if isinstance(data, dict):
+            # Create a new dictionary with modified keys
+            new_dict = {}
+            for key, value in data.items():
+                # Remove the leading 'XXX_' from keys
+                new_key = re.sub(r'^\d{3}_', '', key)
+                # Recursively clean nested dictionaries and lists
+                new_dict[new_key] = self.clean_keys(value)
+            return new_dict
+        elif isinstance(data, list):
+            # Process each item in the list
+            return [self.clean_keys(item) for item in data]
+        else:
+            # Return the item as is if it's not a dict or list
+            return data

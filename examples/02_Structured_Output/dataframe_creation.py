@@ -11,8 +11,7 @@ from llama_cpp_agent.output_parser import extract_object_from_response
 
 from llama_cpp_agent.providers.tgi_server import TGIServerProvider
 
-model = TGIServerProvider("http://localhost:8080")
-
+provider = TGIServerProvider("http://localhost:8080")
 
 
 class RowData(BaseModel):
@@ -58,18 +57,19 @@ class Database(BaseModel):
     )
 
 
-output_settings = LlmStructuredOutputSettings.from_pydantic_models([Database], output_type=LlmStructuredOutputType.object_instance)
+output_settings = LlmStructuredOutputSettings.from_pydantic_models([Database],
+                                                                   output_type=LlmStructuredOutputType.object_instance)
 
-llama_cpp_agent = LlamaCppAgent(model, debug_output=True,
+llama_cpp_agent = LlamaCppAgent(provider, debug_output=True,
                                 system_prompt="""You are an advanced AI assistant, responding in JSON format.
 
-Available JSON response models:\n\n""" + output_settings.get_llm_documentation() + """""",
-                                predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL)
+Available JSON response models:\n\n""" + output_settings.get_llm_documentation(provider).strip(),
+                                predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
 
 def dataframe(data: str) -> Database:
     prompt = data
-    parameters = model.get_provider_default_settings()
+    parameters = provider.get_provider_default_settings()
     parameters.do_sample = True
     parameters.temperature = 0.1
     response = llama_cpp_agent.get_chat_response(message=prompt, structured_output_settings=output_settings)

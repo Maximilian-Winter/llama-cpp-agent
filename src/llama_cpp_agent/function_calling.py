@@ -412,18 +412,18 @@ class LlamaCppFunctionToolRegistry:
         """
         return self.grammar_documentation
 
-    def handle_function_call(self, function_call_response: str):
+    def handle_function_call(self, function_call_response: dict):
         """
         Handle a function call response and return the output.
 
         Args:
-            function_call_response (str): The function call response.
+            function_call_response (dict): The function call response.
 
         Returns:
             str: The output of the function call or an error message.
         """
         try:
-            function_call = parse_json_response(function_call_response)
+            function_call = function_call_response
             if function_call is None:
                 return "Error: Invalid function call response."
             if not self.allow_parallel_function_calling:

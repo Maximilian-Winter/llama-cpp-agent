@@ -1,5 +1,4 @@
 import datetime
-import json
 
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -8,10 +7,10 @@ from enum import Enum
 
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.hermes_2_pro_agent import Hermes2ProAgent
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.llm_prompt_template import PromptTemplate
-from llama_cpp_agent.mixtral_8x22b_agent import Mixtral8x22BAgent
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
+
+from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+
+provider = TGIServerProvider("http://localhost:8080")
 
 
 def get_current_datetime(output_format: Optional[str] = None):
@@ -104,11 +103,8 @@ current_datetime_function_tool = LlamaCppFunctionTool(get_current_datetime)
 # For OpenAI tool definitions, we pass a OpenAI function definition with actual function in a tuple to the LlamaCppFunctionTool constructor.
 get_weather_function_tool = LlamaCppFunctionTool((open_ai_tool_definition, get_current_weather))
 
-model = LlamaCppEndpointSettings(
-    "http://localhost:8080/completion"
-)
 
-agent = Hermes2ProAgent(model=model, debug_output=True)
+agent = Hermes2ProAgent(model=provider, debug_output=True)
 
 
 result = agent.get_response("Get the date and time in '%d-%m-%Y %H:%M' format.", temperature=0.35, tools=[current_datetime_function_tool])

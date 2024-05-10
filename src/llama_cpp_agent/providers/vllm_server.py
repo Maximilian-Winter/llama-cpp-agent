@@ -115,6 +115,7 @@ class VLLMServerProvider(LlmProvider):
             prompt: str,
             structured_output_settings: LlmStructuredOutputSettings,
             settings: VLLMServerSamplingSettings,
+            bos_token: str
     ):
         grammar = None
         if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
@@ -155,6 +156,7 @@ class VLLMServerProvider(LlmProvider):
             messages: List[Dict[str, str]],
             structured_output_settings: LlmStructuredOutputSettings,
             settings: VLLMServerSamplingSettings,
+            bos_token: str
     ):
         grammar = None
         if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:

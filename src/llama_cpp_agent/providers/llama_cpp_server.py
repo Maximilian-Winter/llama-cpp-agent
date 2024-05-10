@@ -190,6 +190,7 @@ class LlamaCppServerProvider(LlmProvider):
             prompt: str,
             structured_output_settings: LlmStructuredOutputSettings,
             settings: LlamaCppSamplingSettings,
+            bos_token: str
     ):
         if self.api_key is not None:
             headers = {
@@ -221,6 +222,7 @@ class LlamaCppServerProvider(LlmProvider):
             messages: List[Dict[str, str]],
             structured_output_settings: LlmStructuredOutputSettings,
             settings: LlamaCppSamplingSettings,
+            bos_token: str
     ):
         if self.api_key is not None:
             headers = {

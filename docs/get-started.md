@@ -1,10 +1,41 @@
-# Get Started
+# Get Started with llama-cpp-agent
 
-## Define the provider
-llama-cpp-agent is compatible with the llama.cpp server, llama-cpp-python and its server, the TGI server, and the vllm OpenAI server.
+Welcome to the llama-cpp-agent framework! This guide will help you set up and start interacting with Large Language Models (LLMs) using our framework. Whether you're looking to engage in seamless conversations, execute function calls, or generate structured outputs, this document will guide you through the setup and basic operations.
 
-You can create a new provider by importing the corresponding class. Then you instantiate an object of the class and pass the needed parameters as below.
+# Table of Contents
 
+1. [Get Started with llama-cpp-agent](#get-started-with-llama-cpp-agent)
+    - [Welcome](#get-started-with-llama-cpp-agent)
+2. [Installation](#installation)
+    - [Install via pip](#installation)
+3. [Setting Up Providers](#setting-up-providers)
+    - [llama-cpp-python provider](#llama-cpp-python-provider)
+    - [llama.cpp server provider](#llamacpp-server-provider)
+    - [text-generation-inference (TGI) server provider](#text-generation-inference-tgi-server-provider)
+    - [vllm OpenAI compatible server provider](#vllm-openai-compatible-server-provider)
+4. [Define the agent](#define-the-agent)
+    - [Create agent](#create-agent)
+    - [Customize agent](#customize-agent)
+5. [Talk to the agent](#talk-to-the-agent)
+    - [Get chat response](#talk-to-the-agent)
+    - [Sampling parameters](#sampling-parameters)
+6. [Let the agent use tools](#let-the-agent-use-tools)
+    - [Define function tool](#let-the-agent-use-tools)
+    - [Using the FunctionCallingAgent class](#using-the-functioncallingagent-class)
+7. [Let the agent generate objects](#let-the-agent-generate-objects)
+    - [Generate a book entry dataset](#let-the-agent-generate-objects)
+    - [Using the StructuredOutputAgent](#using-the-structuredoutputagent)
+
+
+## Installation
+
+Before you begin, ensure that you have Python installed on your system. You can install the llama-cpp-agent framework and its dependencies through pip:
+
+```bash
+pip install llama-cpp-agent
+```
+
+## Setting Up Providers
 ### llama-cpp-python provider
 ```python
 # Import the Llama class of llama-cpp-python and the LlamaCppPythonProvider of llama-cpp-agent

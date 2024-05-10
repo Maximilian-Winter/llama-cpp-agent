@@ -9,9 +9,9 @@ from pydantic import BaseModel, Field
 from llama_cpp_agent.llm_agent import LlamaCppAgent
 from llama_cpp_agent.output_parser import extract_object_from_response
 
-from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
+from llama_cpp_agent.providers.tgi_server import TGIServerProvider
 
-model = LlamaCppServerProvider("http://127.0.0.1:8080")
+model = TGIServerProvider("http://localhost:8080")
 
 
 
@@ -61,17 +61,19 @@ class Database(BaseModel):
 output_settings = LlmStructuredOutputSettings.from_pydantic_models([Database], output_type=LlmStructuredOutputType.object_instance)
 
 llama_cpp_agent = LlamaCppAgent(model, debug_output=True,
-                                system_prompt="You are an advanced AI assistant, responding in JSON format. \n\nAvailable JSON response models:\n\n" + output_settings.get_llm_documentation() + """""",
-                                predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+                                system_prompt="""You are an advanced AI assistant, responding in JSON format.
+
+Available JSON response models:\n\n""" + output_settings.get_llm_documentation() + """""",
+                                predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL)
 
 
 def dataframe(data: str) -> Database:
     prompt = data
-
+    parameters = model.get_provider_default_settings()
+    parameters.do_sample = True
+    parameters.temperature = 0.1
     response = llama_cpp_agent.get_chat_response(message=prompt, structured_output_settings=output_settings)
-
-    database = extract_object_from_response(response, Database)
-    return database
+    return response
 
 
 dfs = dataframe(

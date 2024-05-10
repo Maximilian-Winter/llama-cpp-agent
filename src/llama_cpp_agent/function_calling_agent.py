@@ -306,7 +306,8 @@ Choose the appropriate function based on the task you want to perform. Provide y
         return self.__dict__
 
     def generate_response(
-        self, message: str, llm_sampling_settings: LlmSamplingSettings = None
+        self, message: str, llm_sampling_settings: LlmSamplingSettings = None,
+        structured_output_settings: LlmStructuredOutputSettings = None
     ):
         self.llama_cpp_agent.add_message(role="user", message=message)
 
@@ -348,7 +349,7 @@ Choose the appropriate function based on the task you want to perform. Provide y
             )
         return result
 
-    def intern_get_response(self, llm_sampling_settings: List[str] = None):
+    def intern_get_response(self, llm_sampling_settings: List[str] = None, structured_output_settings: LlmStructuredOutputSettings = None):
         without_grammar_mode = False
         if self.without_grammar_mode:
             without_grammar_mode = True
@@ -356,7 +357,7 @@ Choose the appropriate function based on the task you want to perform. Provide y
         result = self.llama_cpp_agent.get_chat_response(
             system_prompt=self.system_prompt,
             streaming_callback=self.streaming_callback,
-            structured_output_settings=self.structured_output_settings,
+            structured_output_settings=self.structured_output_settings if structured_output_settings is None else structured_output_settings,
             llm_samplings_settings=llm_sampling_settings
         )
         if without_grammar_mode:

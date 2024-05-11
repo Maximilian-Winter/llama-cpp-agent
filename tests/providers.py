@@ -1,17 +1,18 @@
 import datetime
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
+from llama_cpp_agent import LlamaCppAgent
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
+from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.providers.llama_cpp_server import LlmProviderId, LlamaCppServerProvider
 from llama_cpp_agent.providers.tgi_server import LlmProviderId, TGIServerProvider
 from llama_cpp_agent.providers.vllm_server import LlmProviderId, VLLMServerProvider
 from llama_cpp_agent.providers.llama_cpp_python import LlmProviderId, LlamaCppPythonProvider
-
 
 if __name__ == "__main__":
     test_endpoint = LlmProviderId.tgi_server
@@ -163,3 +164,97 @@ Solve the following calculation: 42 * 42. [/INST]"""
     sampling_settings_test.max_tokens = 256
     test = provider.create_completion(prompt_test, structured_output_settings=settings, settings=sampling_settings_test)
     print(test["choices"][0]["text"])
+
+    agent = LlamaCppAgent(
+        provider,
+        debug_output=True,
+        system_prompt="You are a helpful assistant.",
+        predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL,
+    )
+
+    settings = provider.get_provider_default_settings()
+    settings.stream = True
+    settings.max_new_tokens = 512
+    settings.temperature = 0.65
+    settings.do_sample = True
+
+    agent.get_chat_response("Hello!", llm_samplings_settings=settings)
+
+
+    # An enum for the book category
+    class Category(Enum):
+        """
+        The category of the book.
+        """
+
+        Fiction = "Fiction"
+        NonFiction = "Non-Fiction"
+
+
+    # The class representing the database entry we want to generate.
+    class Book(BaseModel):
+        """
+        Represents an entry about a book.
+        """
+
+        title: str = Field(..., description="Title of the book.")
+        author: str = Field(..., description="Author of the book.")
+        published_year: int = Field(..., description="Publishing year of the book.")
+        keywords: List[str] = Field(..., description="A list of keywords.")
+        category: Category = Field(..., description="Category of the book.")
+        summary: str = Field(..., description="Summary of the book.")
+
+
+    # We create an instance of the LlmStructuredOutputSettings class by calling its from_pydantic_models method and specify the output type.
+    output_settings = LlmStructuredOutputSettings.from_pydantic_models([Book],
+                                                                       output_type=LlmStructuredOutputType.list_of_objects)
+
+    # We define the input information for the agent.
+    text = """The Feynman Lectures on Physics is a physics textbook based on some lectures by Richard Feynman, a Nobel laureate who has sometimes been called "The Great Explainer". The lectures were presented before undergraduate students at the California Institute of Technology (Caltech), during 1961–1963. The book's co-authors are Feynman, Robert B. Leighton, and Matthew Sands."""
+
+    agent.get_chat_response(text, llm_samplings_settings=settings, structured_output_settings=output_settings)
+
+    # Simple pydantic calculator tool for the agent that can add, subtract, multiply, and divide.
+    class MathOperation(Enum):
+        ADD = "add"
+        SUBTRACT = "subtract"
+        MULTIPLY = "multiply"
+        DIVIDE = "divide"
+
+
+    class Calculator(BaseModel):
+        """
+        Perform a math operation on two numbers.
+        """
+
+        number_one: Union[int, float] = Field(
+            ...,
+            description="First number."
+        )
+        number_two: Union[int, float] = Field(
+            ...,
+            description="Second number."
+        )
+        operation: MathOperation = Field(..., description="Math operation to perform.")
+
+        def run(self):
+            if self.operation == MathOperation.ADD:
+                return self.number_one + self.number_two
+            elif self.operation == MathOperation.SUBTRACT:
+                return self.number_one - self.number_two
+            elif self.operation == MathOperation.MULTIPLY:
+                return self.number_one * self.number_two
+            elif self.operation == MathOperation.DIVIDE:
+                return self.number_one / self.number_two
+            else:
+                raise ValueError("Unknown operation.")
+
+    # Create a list of function call tools.
+    function_tools = [LlamaCppFunctionTool(Calculator)]
+
+    output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(function_tools, allow_parallel_function_calling=True)
+
+    user_input = "What is 42 + 42?"
+
+    agent.get_chat_response(user_input, llm_samplings_settings=settings, structured_output_settings=output_settings)
+

@@ -131,7 +131,7 @@ class LlamaCppAgent:
             print_output (bool): Whether to print the output.
 
         Returns:
-            Union[str, List[dict], BaseModel, Generator[Any, Any, str | BaseModel | list[BaseModel]]: The generated chat response. A string message, a list of function calls, an object from structured output or a generator for the response
+            Union[str, List[dict], BaseModel, Generator[Any, Any, str | BaseModel | list[BaseModel]]: The generated response. A string message, a list of function calls, an object from structured output or a generator for the response
         """
 
         if self.debug_output:

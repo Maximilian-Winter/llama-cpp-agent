@@ -13,7 +13,6 @@ from llama_cpp_agent.providers.tgi_server import TGIServerProvider
 provider = TGIServerProvider("http://localhost:8080")
 
 
-
 # An enum for the book category
 class Category(Enum):
     """
@@ -22,6 +21,7 @@ class Category(Enum):
 
     Fiction = "Fiction"
     NonFiction = "Non-Fiction"
+
 
 # The class representing the database entry we want to generate.
 class Book(BaseModel):
@@ -38,12 +38,14 @@ class Book(BaseModel):
 
 
 # We create an instance of the LlmStructuredOutputSettings class by calling its from_pydantic_models method and specify the output type.
-output_settings = LlmStructuredOutputSettings.from_pydantic_models([Book], output_type=LlmStructuredOutputType.list_of_objects)
+output_settings = LlmStructuredOutputSettings.from_pydantic_models([Book],
+                                                                   output_type=LlmStructuredOutputType.list_of_objects)
 
 # We are creating the agent with a custom system prompt including information about the dataset entry and its structure.
 llama_cpp_agent = LlamaCppAgent(
     provider,
-    system_prompt="You are an advanced AI, tasked to create JSON database entries for books.\n\n\n" + output_settings.get_llm_documentation(provider),
+    system_prompt="You are an advanced AI, tasked to create JSON database entries for books.\n\n\n" + output_settings.get_llm_documentation(
+        provider),
 )
 
 # We define the input information for the agent.

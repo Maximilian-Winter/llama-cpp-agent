@@ -5,9 +5,15 @@ from typing import List, Dict, Union
 
 from llama_cpp import Llama, LlamaGrammar
 
-from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
-from llama_cpp_agent.providers.provider_base import LlmProvider, LlmProviderId, \
-    LlmSamplingSettings
+from llama_cpp_agent.llm_output_settings import (
+    LlmStructuredOutputSettings,
+    LlmStructuredOutputType,
+)
+from llama_cpp_agent.providers.provider_base import (
+    LlmProvider,
+    LlmProviderId,
+    LlmSamplingSettings,
+)
 
 
 @dataclass
@@ -92,7 +98,6 @@ class LlamaCppPythonSamplingSettings(LlmSamplingSettings):
     def is_streaming(self):
         return self.stream
 
-
     @staticmethod
     def load_from_dict(settings: dict) -> "LlamaCppPythonSamplingSettings":
         """
@@ -117,11 +122,7 @@ class LlamaCppPythonSamplingSettings(LlmSamplingSettings):
 
 
 class LlamaCppPythonProvider(LlmProvider):
-
-    def __init__(
-            self,
-            llama_model: Llama
-    ):
+    def __init__(self, llama_model: Llama):
         self.llama_model = llama_model
         self.grammar_cache = {}
 
@@ -132,14 +133,17 @@ class LlamaCppPythonProvider(LlmProvider):
         return LlamaCppPythonSamplingSettings()
 
     def create_completion(
-            self,
-            prompt: str,
-            structured_output_settings: LlmStructuredOutputSettings,
-            settings: LlamaCppPythonSamplingSettings,
-            bos_token: str
+        self,
+        prompt: str,
+        structured_output_settings: LlmStructuredOutputSettings,
+        settings: LlamaCppPythonSamplingSettings,
+        bos_token: str,
     ):
         grammar = None
-        if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
+        if (
+            structured_output_settings.output_type
+            != LlmStructuredOutputType.no_structured_output
+        ):
             grammar = structured_output_settings.get_gbnf_grammar()
             if grammar in self.grammar_cache:
                 grammar = self.grammar_cache[grammar]
@@ -149,19 +153,26 @@ class LlamaCppPythonProvider(LlmProvider):
 
         settings_dictionary = copy(settings.as_dict())
 
-        settings_dictionary["stop"] = settings_dictionary.pop("additional_stop_sequences")
+        settings_dictionary["stop"] = settings_dictionary.pop(
+            "additional_stop_sequences"
+        )
 
-        return self.llama_model.create_completion(prompt, grammar=grammar, **settings_dictionary)
+        return self.llama_model.create_completion(
+            prompt, grammar=grammar, **settings_dictionary
+        )
 
     def create_chat_completion(
-            self,
-            messages: List[Dict[str, str]],
-            structured_output_settings: LlmStructuredOutputSettings,
-            settings: LlamaCppPythonSamplingSettings,
-            bos_token: str
+        self,
+        messages: List[Dict[str, str]],
+        structured_output_settings: LlmStructuredOutputSettings,
+        settings: LlamaCppPythonSamplingSettings,
+        bos_token: str,
     ):
         grammar = None
-        if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
+        if (
+            structured_output_settings.output_type
+            != LlmStructuredOutputType.no_structured_output
+        ):
             grammar = structured_output_settings.get_gbnf_grammar()
             if grammar in self.grammar_cache:
                 grammar = self.grammar_cache[grammar]
@@ -172,7 +183,9 @@ class LlamaCppPythonProvider(LlmProvider):
         settings_dictionary["max_tokens"] = settings_dictionary.pop("n_predict")
         settings_dictionary["stop"] = settings_dictionary.pop("stop_sequences")
 
-        return self.llama_model.create_chat_completion(messages, grammar=grammar, **settings_dictionary)
+        return self.llama_model.create_chat_completion(
+            messages, grammar=grammar, **settings_dictionary
+        )
 
     def tokenize(self, prompt: str) -> list[int]:
         return self.llama_model.tokenize(prompt.encode("utf-8"))

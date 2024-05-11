@@ -178,7 +178,7 @@ class MessagesFormatter:
         FUNCTION_PROMPT_START: str = "",
         FUNCTION_PROMPT_END: str = "",
         STRIP_PROMPT: bool = True,
-        BOS_TOKEN: str = "<s>"
+        BOS_TOKEN: str = "<s>",
     ):
         """
         Initializes a new MessagesFormatter object.

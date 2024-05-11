@@ -11,7 +11,8 @@ class ChatHistory(ABC):
     def get_chat_messages(self) -> List[Dict[str, str]]:
         pass
 
-    def add_message(self, message: ChatMessage):
+    @abstractmethod
+    def add_message(self, message: Dict[str, str]):
         pass
 
 

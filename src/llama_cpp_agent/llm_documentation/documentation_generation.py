@@ -205,7 +205,7 @@ def format_json_example(example: dict[str, Any], depth: int) -> str:
 
 
 def generate_text_documentation(
-    pydantic_models: list[type[BaseModel]],
+    pydantic_models: list[BaseModel],
     model_prefix="Model",
     fields_prefix="Fields",
     documentation_with_field_description=True,
@@ -219,7 +219,7 @@ def generate_text_documentation(
         model_prefix (str): Prefix for the model section.
         fields_prefix (str): Prefix for the fields section.
         documentation_with_field_description (bool): Include field descriptions in the documentation.
-
+        ordered_json_mode (bool): Add ordering prefix for JSON schemas
     Returns:
         str: Generated text documentation.
     """
@@ -287,11 +287,12 @@ def generate_text_documentation(
                 if isclass(field_type) and issubclass(field_type, BaseModel):
                     pyd_models.append((field_type, False))
                 documentation += generate_field_text(
-                    name if not ordered_json_mode else "{:03}".format(count) + "_" + name,
+                    name
+                    if not ordered_json_mode
+                    else "{:03}".format(count) + "_" + name,
                     field_type,
                     model,
-                    documentation_with_field_description=documentation_with_field_description
-
+                    documentation_with_field_description=documentation_with_field_description,
                 )
                 count += 1
             if add_prefix:
@@ -319,7 +320,7 @@ def generate_field_text(
     field_type: type[Any],
     model: type[BaseModel],
     depth=1,
-    documentation_with_field_description=True
+    documentation_with_field_description=True,
 ) -> str:
     """
     Generate markdown documentation for a Pydantic model field.

@@ -3,8 +3,15 @@ from copy import copy
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Union
 
-from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
-from llama_cpp_agent.providers.provider_base import LlmProvider, LlmProviderId, LlmSamplingSettings
+from llama_cpp_agent.llm_output_settings import (
+    LlmStructuredOutputSettings,
+    LlmStructuredOutputType,
+)
+from llama_cpp_agent.providers.provider_base import (
+    LlmProvider,
+    LlmProviderId,
+    LlmSamplingSettings,
+)
 
 
 @dataclass
@@ -66,14 +73,9 @@ class VLLMServerSamplingSettings(LlmSamplingSettings):
 
 
 class VLLMServerProvider(LlmProvider):
-
-    def __init__(
-            self,
-            base_url: str,
-            model: str,
-            api_key: str = None
-    ):
+    def __init__(self, base_url: str, model: str, api_key: str = None):
         from openai import OpenAI
+
         self.client = OpenAI(
             base_url=base_url,
             api_key=api_key,
@@ -87,14 +89,17 @@ class VLLMServerProvider(LlmProvider):
         return VLLMServerSamplingSettings()
 
     def create_completion(
-            self,
-            prompt: str,
-            structured_output_settings: LlmStructuredOutputSettings,
-            settings: VLLMServerSamplingSettings,
-            bos_token: str
+        self,
+        prompt: str,
+        structured_output_settings: LlmStructuredOutputSettings,
+        settings: VLLMServerSamplingSettings,
+        bos_token: str,
     ):
         grammar = None
-        if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
+        if (
+            structured_output_settings.output_type
+            != LlmStructuredOutputType.no_structured_output
+        ):
             grammar = structured_output_settings.get_json_schema()
         top_p = settings.top_p
         stream = settings.stream
@@ -110,9 +115,15 @@ class VLLMServerProvider(LlmProvider):
             settings_dict["guided_json"] = grammar
 
         if settings.stream:
-            result = self.client.completions.create(prompt=prompt, model=self.model, extra_body=settings_dict,
-                                                    top_p=top_p, stream=stream, temperature=temperature,
-                                                    max_tokens=max_tokens)
+            result = self.client.completions.create(
+                prompt=prompt,
+                model=self.model,
+                extra_body=settings_dict,
+                top_p=top_p,
+                stream=stream,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
 
             def generate_chunks():
                 for chunk in result:
@@ -121,21 +132,29 @@ class VLLMServerProvider(LlmProvider):
 
             return generate_chunks()
         else:
-
-            result = self.client.completions.create(prompt=prompt, model=self.model, extra_body=settings_dict,
-                                                    top_p=top_p, stream=stream, temperature=temperature,
-                                                    max_tokens=max_tokens)
+            result = self.client.completions.create(
+                prompt=prompt,
+                model=self.model,
+                extra_body=settings_dict,
+                top_p=top_p,
+                stream=stream,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
             return {"choices": [{"text": result.choices[0].text}]}
 
     def create_chat_completion(
-            self,
-            messages: List[Dict[str, str]],
-            structured_output_settings: LlmStructuredOutputSettings,
-            settings: VLLMServerSamplingSettings,
-            bos_token: str
+        self,
+        messages: List[Dict[str, str]],
+        structured_output_settings: LlmStructuredOutputSettings,
+        settings: VLLMServerSamplingSettings,
+        bos_token: str,
     ):
         grammar = None
-        if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
+        if (
+            structured_output_settings.output_type
+            != LlmStructuredOutputType.no_structured_output
+        ):
             grammar = structured_output_settings.get_json_schema()
 
         top_p = settings.top_p
@@ -152,9 +171,15 @@ class VLLMServerProvider(LlmProvider):
             settings_dict["guided_json"] = grammar
 
         if settings.stream:
-            result = self.client.chat.completions.create(messages=messages, model=self.model, extra_body=settings_dict,
-                                                         top_p=top_p, stream=stream, temperature=temperature,
-                                                         max_tokens=max_tokens)
+            result = self.client.chat.completions.create(
+                messages=messages,
+                model=self.model,
+                extra_body=settings_dict,
+                top_p=top_p,
+                stream=stream,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
 
             def generate_chunks():
                 for chunk in result:
@@ -163,10 +188,15 @@ class VLLMServerProvider(LlmProvider):
 
             return generate_chunks()
         else:
-
-            result = self.client.chat.completions.create(messages=messages, model=self.model, extra_body=settings_dict,
-                                                         top_p=top_p, stream=stream, temperature=temperature,
-                                                         max_tokens=max_tokens)
+            result = self.client.chat.completions.create(
+                messages=messages,
+                model=self.model,
+                extra_body=settings_dict,
+                top_p=top_p,
+                stream=stream,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
             return {"choices": [{"text": result.choices[0].message.content}]}
 
     def tokenize(self, prompt: str) -> list[int]:

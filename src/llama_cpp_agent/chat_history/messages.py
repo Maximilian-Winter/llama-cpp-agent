@@ -69,7 +69,7 @@ ChatMessage = Annotated[
 
 # Function to convert messages to list of dictionary format
 def convert_messages_to_list_of_dictionaries(
-        messages: List[ChatMessage],
+    messages: List[ChatMessage],
 ) -> List[Dict[str, str]]:
     """
     Converts a list of messages to a list of dictionaries.
@@ -102,4 +102,3 @@ def convert_messages_to_list_of_dictionaries(
         msg_dict = {"role": message.role.value, "content": content}
         result.append(msg_dict)
     return result
-

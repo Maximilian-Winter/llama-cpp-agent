@@ -5,13 +5,18 @@ from typing import List, Dict
 from pydantic import parse_obj_as
 
 from llama_cpp_agent.chat_history.chat_history_base import ChatMessageStore, ChatHistory
-from llama_cpp_agent.chat_history.messages import ChatMessage, UserMessage, AssistantMessage, SystemMessage, Roles, \
-    convert_messages_to_list_of_dictionaries
+from llama_cpp_agent.chat_history.messages import (
+    ChatMessage,
+    UserMessage,
+    AssistantMessage,
+    SystemMessage,
+    Roles,
+    convert_messages_to_list_of_dictionaries,
+)
 from llama_cpp_agent.providers.provider_base import LlmProvider
 
 
 class BasicChatMessageStore(ChatMessageStore):
-
     def __init__(self, messages: List[ChatMessage] = None):
         if messages is None:
             messages = []
@@ -74,11 +79,11 @@ class BasicChatHistoryStrategy(Enum):
 
 class BasicChatHistory(ChatHistory):
     def __init__(
-            self,
-            chat_history_strategy: BasicChatHistoryStrategy = BasicChatHistoryStrategy.last_k_messages,
-            k: int = 10,
-            llm_provider: LlmProvider = None,
-            message_store: ChatMessageStore = None,
+        self,
+        chat_history_strategy: BasicChatHistoryStrategy = BasicChatHistoryStrategy.last_k_messages,
+        k: int = 10,
+        llm_provider: LlmProvider = None,
+        message_store: ChatMessageStore = None,
     ):
         if message_store is None:
             message_store = BasicChatMessageStore()
@@ -87,8 +92,8 @@ class BasicChatHistory(ChatHistory):
         self.strategy = chat_history_strategy
         self.llm_provider = llm_provider
         if (
-                chat_history_strategy == BasicChatHistoryStrategy.last_k_tokens
-                and llm_provider is None
+            chat_history_strategy == BasicChatHistoryStrategy.last_k_tokens
+            and llm_provider is None
         ):
             raise Exception(
                 "Please pass a LLM provider to BasicChatHistory when using last k tokens as memory strategy!"
@@ -123,3 +128,8 @@ class BasicChatHistory(ChatHistory):
                 selected_messages.append(sys_message)
             return list(reversed(selected_messages))
         return []
+
+    def add_message(self, message: Dict[str, str]):
+        self.message_store.add_message(
+            ChatMessage(role=message["role"], content=message["content"])
+        )

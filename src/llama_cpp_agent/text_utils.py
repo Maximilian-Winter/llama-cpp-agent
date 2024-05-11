@@ -1,5 +1,6 @@
 import re
 
+
 class TextChunker:
     def __init__(self, text, chunk_size, overlap=0):
         """
@@ -36,9 +37,6 @@ class TextChunker:
                     "Overlap must be less than chunk size to prevent infinite loops."
                 )
         return chunks
-
-
-
 
 
 class RecursiveCharacterTextSplitter:

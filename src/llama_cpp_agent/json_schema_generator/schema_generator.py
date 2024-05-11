@@ -46,7 +46,9 @@ def custom_json_schema(model: BaseModel):
                         if sub_type is NoneType:
                             new_anyof.append({"type": type_str})
                         elif isclass(sub_type) and issubclass(sub_type, BaseModel):
-                            new_anyof.append(refine_schema(sub_type.schema(), sub_type, index + 1))
+                            new_anyof.append(
+                                refine_schema(sub_type.schema(), sub_type, index + 1)
+                            )
                         elif type_str:
                             new_anyof.append({"type": type_str})
                     prop["anyOf"] = new_anyof
@@ -55,9 +57,19 @@ def custom_json_schema(model: BaseModel):
                 elif origin in [list, set]:
                     item_type = get_args(field.annotation)[0]
                     if isclass(item_type) and issubclass(item_type, BaseModel):
-                        prop["items"] = refine_schema(item_type.schema(), item_type, index + 1)
+                        prop["items"] = refine_schema(
+                            item_type.schema(), item_type, index + 1
+                        )
                     elif item_type is Any:
-                        prop["items"] = {'type': 'object', 'anyOf': [ {'type': 'boolean'}, {'type': 'number'}, {'type': 'null'}, {'type': 'string'}]}
+                        prop["items"] = {
+                            "type": "object",
+                            "anyOf": [
+                                {"type": "boolean"},
+                                {"type": "number"},
+                                {"type": "null"},
+                                {"type": "string"},
+                            ],
+                        }
                     else:
                         origin = get_origin(item_type)
                         if origin is Union:
@@ -71,7 +83,9 @@ def custom_json_schema(model: BaseModel):
                                     sub_type, BaseModel
                                 ):
                                     new_anyof.append(
-                                        refine_schema(sub_type.schema(), sub_type, index + 1)
+                                        refine_schema(
+                                            sub_type.schema(), sub_type, index + 1
+                                        )
                                     )
                                 elif type_str:
                                     new_anyof.append({"type": type_str})
@@ -82,7 +96,6 @@ def custom_json_schema(model: BaseModel):
                                 prop["items"] = {"type": type_str}
 
                     prop["minItems"] = 1
-
 
                 # Handle dictionaries
                 elif origin is dict:
@@ -102,7 +115,9 @@ def custom_json_schema(model: BaseModel):
                     field.annotation, BaseModel
                 ):
                     prop.update(
-                        refine_schema(field.annotation.schema(), field.annotation, index + 1)
+                        refine_schema(
+                            field.annotation.schema(), field.annotation, index + 1
+                        )
                     )
 
         new_schema = None
@@ -114,13 +129,19 @@ def custom_json_schema(model: BaseModel):
                     continue
                 else:
                     if "required" in prop:
-                        new_schema["required"] = ["{:03}".format(count) + "_" + name for name in prop["required"]]
+                        new_schema["required"] = [
+                            "{:03}".format(count) + "_" + name
+                            for name in prop["required"]
+                        ]
                     else:
                         new_schema["{:03}".format(count) + "_" + name] = prop
                     count += 1
             schema["properties"] = new_schema
             if "required" in schema:
-                schema["required"] = ["{:03}".format(idx + 1) + "_" + name for idx, name in enumerate(schema["required"])]
+                schema["required"] = [
+                    "{:03}".format(idx + 1) + "_" + name
+                    for idx, name in enumerate(schema["required"])
+                ]
         schema["title"] = model.__name__
         schema["description"] = model.__doc__.strip() if model.__doc__ else ""
 
@@ -144,7 +165,10 @@ def generate_list(
         list_of_models = []
         for model in models:
             schema = custom_json_schema(model)
-            if outer_object_name is not None and outer_object_properties_name is not None:
+            if (
+                outer_object_name is not None
+                and outer_object_properties_name is not None
+            ):
                 function_name_object = {"enum": [model.__name__], "type": "string"}
                 model_schema_object = schema
                 if add_inner_thoughts:
@@ -248,6 +272,6 @@ def generate_json_schemas(
             outer_object_properties_name,
             add_inner_thoughts,
             inner_thoughts_name,
-            max_items=1
+            max_items=1,
         )
     return model_schema_list

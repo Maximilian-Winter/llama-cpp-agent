@@ -660,7 +660,7 @@ def generate_gbnf_grammar(
 
 
 def generate_gbnf_grammar_from_pydantic_models(
-    models: list[type[BaseModel]],
+    models: list[BaseModel],
     outer_object_name: str | None = None,
     outer_object_content: str | None = None,
     list_of_outputs: bool = False,

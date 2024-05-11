@@ -5,8 +5,15 @@ from typing import List, Dict, Union
 
 import requests
 
-from llama_cpp_agent.llm_output_settings import LlmStructuredOutputType, LlmStructuredOutputSettings
-from llama_cpp_agent.providers.provider_base import LlmProviderId, LlmProvider, LlmSamplingSettings
+from llama_cpp_agent.llm_output_settings import (
+    LlmStructuredOutputType,
+    LlmStructuredOutputSettings,
+)
+from llama_cpp_agent.providers.provider_base import (
+    LlmProviderId,
+    LlmProvider,
+    LlmSamplingSettings,
+)
 
 
 @dataclass
@@ -103,6 +110,7 @@ class LlamaCppSamplingSettings(LlmSamplingSettings):
         if self.additional_stop_sequences is None:
             self.additional_stop_sequences = []
         self.additional_stop_sequences.extend(sequences)
+
     def is_streaming(self):
         return self.stream
 
@@ -130,23 +138,22 @@ class LlamaCppSamplingSettings(LlmSamplingSettings):
 
 
 class LlamaCppServerProvider(LlmProvider):
-
     def __init__(
-            self,
-            server_address: str,
-            api_key: str = None,
-            llama_cpp_python_server: bool = False,
+        self,
+        server_address: str,
+        api_key: str = None,
+        llama_cpp_python_server: bool = False,
     ):
         self.server_address = server_address
         if llama_cpp_python_server:
             self.server_completion_endpoint = (
-                    self.server_address + "/v1/engines/copilot-codex/completions"
+                self.server_address + "/v1/engines/copilot-codex/completions"
             )
         else:
             self.server_completion_endpoint = self.server_address + "/completion"
 
         self.server_chat_completion_endpoint = (
-                self.server_address + "/v1/chat/completions"
+            self.server_address + "/v1/chat/completions"
         )
         if llama_cpp_python_server:
             self.server_tokenize_endpoint = self.server_address + "/extras/tokenize"
@@ -162,11 +169,11 @@ class LlamaCppServerProvider(LlmProvider):
         return LlamaCppSamplingSettings()
 
     def create_completion(
-            self,
-            prompt: str,
-            structured_output_settings: LlmStructuredOutputSettings,
-            settings: LlamaCppSamplingSettings,
-            bos_token: str
+        self,
+        prompt: str,
+        structured_output_settings: LlmStructuredOutputSettings,
+        settings: LlamaCppSamplingSettings,
+        bos_token: str,
     ):
         if self.api_key is not None:
             headers = {
@@ -194,11 +201,11 @@ class LlamaCppServerProvider(LlmProvider):
         return returned_data
 
     def create_chat_completion(
-            self,
-            messages: List[Dict[str, str]],
-            structured_output_settings: LlmStructuredOutputSettings,
-            settings: LlamaCppSamplingSettings,
-            bos_token: str
+        self,
+        messages: List[Dict[str, str]],
+        structured_output_settings: LlmStructuredOutputSettings,
+        settings: LlamaCppSamplingSettings,
+        bos_token: str,
     ):
         if self.api_key is not None:
             headers = {
@@ -272,7 +279,9 @@ class LlamaCppServerProvider(LlmProvider):
                             returned_data = new_data
                         else:
                             if "choices" not in new_data:
-                                returned_data = {"choices": [{"text": new_data["content"]}]}
+                                returned_data = {
+                                    "choices": [{"text": new_data["content"]}]
+                                }
                             else:
                                 returned_data = new_data
                         yield returned_data
@@ -283,18 +292,31 @@ class LlamaCppServerProvider(LlmProvider):
 
         return generate_text_chunks()
 
-    def prepare_generation_settings(self, settings_dictionary: dict,
-                                    structured_output_settings: LlmStructuredOutputSettings) -> dict:
-        if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
-            settings_dictionary["grammar"] = structured_output_settings.get_gbnf_grammar()
+    def prepare_generation_settings(
+        self,
+        settings_dictionary: dict,
+        structured_output_settings: LlmStructuredOutputSettings,
+    ) -> dict:
+        if (
+            structured_output_settings.output_type
+            != LlmStructuredOutputType.no_structured_output
+        ):
+            settings_dictionary[
+                "grammar"
+            ] = structured_output_settings.get_gbnf_grammar()
         if not self.llama_cpp_python_server:
             settings_dictionary["mirostat"] = settings_dictionary.pop("mirostat_mode")
         if self.llama_cpp_python_server:
             settings_dictionary["max_tokens"] = settings_dictionary.pop("n_predict")
 
-        settings_dictionary["stop"] = settings_dictionary.pop("additional_stop_sequences")
+        settings_dictionary["stop"] = settings_dictionary.pop(
+            "additional_stop_sequences"
+        )
         if not self.llama_cpp_python_server:
-            if "samplers" not in settings_dictionary or settings_dictionary["samplers"] is None:
+            if (
+                "samplers" not in settings_dictionary
+                or settings_dictionary["samplers"] is None
+            ):
                 settings_dictionary["samplers"] = [
                     "top_k",
                     "tfs_z",

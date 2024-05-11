@@ -21,7 +21,7 @@ class EventMemoryManager:
             event_type=event_type,
             timestamp=datetime.datetime.now(),
             content=content,
-            metadata=json.dumps(metadata),
+            event_keywords=json.dumps(metadata),
         )
         self.event_queue.append(new_event)
 

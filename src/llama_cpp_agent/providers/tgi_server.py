@@ -5,8 +5,15 @@ from typing import List, Optional, Dict, Union
 
 import requests
 
-from llama_cpp_agent.llm_output_settings import LlmStructuredOutputType, LlmStructuredOutputSettings
-from llama_cpp_agent.providers.provider_base import LlmProviderId, LlmProvider, LlmSamplingSettings
+from llama_cpp_agent.llm_output_settings import (
+    LlmStructuredOutputType,
+    LlmStructuredOutputSettings,
+)
+from llama_cpp_agent.providers.provider_base import (
+    LlmProviderId,
+    LlmProvider,
+    LlmSamplingSettings,
+)
 
 
 @dataclass
@@ -15,23 +22,33 @@ class TGIServerSamplingSettings(LlmSamplingSettings):
     TGIServerSamplingSettings dataclass
     """
 
-    best_of: Optional[int] = field(default=None, metadata={'minimum': 0})
+    best_of: Optional[int] = field(default=None, metadata={"minimum": 0})
     decoder_input_details: bool = False
     details: bool = True
     do_sample: bool = False
-    frequency_penalty: Optional[float] = field(default=None, metadata={'exclusiveMinimum': -2})
+    frequency_penalty: Optional[float] = field(
+        default=None, metadata={"exclusiveMinimum": -2}
+    )
     grammar: Optional[dict] = None
-    max_new_tokens: Optional[int] = field(default=None, metadata={'minimum': 0})
-    repetition_penalty: Optional[float] = field(default=None, metadata={'exclusiveMinimum': 0})
+    max_new_tokens: Optional[int] = field(default=None, metadata={"minimum": 0})
+    repetition_penalty: Optional[float] = field(
+        default=None, metadata={"exclusiveMinimum": 0}
+    )
     return_full_text: Optional[bool] = field(default=None)
-    seed: Optional[int] = field(default=None, metadata={'minimum': 0})
+    seed: Optional[int] = field(default=None, metadata={"minimum": 0})
     stop: Optional[List[str]] = field(default_factory=list)
-    temperature: Optional[float] = field(default=None, metadata={'exclusiveMinimum': 0})
-    top_k: Optional[int] = field(default=None, metadata={'exclusiveMinimum': 0})
-    top_n_tokens: Optional[int] = field(default=None, metadata={'minimum': 0, 'exclusiveMinimum': 0})
-    top_p: Optional[float] = field(default=None, metadata={'maximum': 1, 'exclusiveMinimum': 0})
-    truncate: Optional[int] = field(default=None, metadata={'minimum': 0})
-    typical_p: Optional[float] = field(default=None, metadata={'maximum': 1, 'exclusiveMinimum': 0})
+    temperature: Optional[float] = field(default=None, metadata={"exclusiveMinimum": 0})
+    top_k: Optional[int] = field(default=None, metadata={"exclusiveMinimum": 0})
+    top_n_tokens: Optional[int] = field(
+        default=None, metadata={"minimum": 0, "exclusiveMinimum": 0}
+    )
+    top_p: Optional[float] = field(
+        default=None, metadata={"maximum": 1, "exclusiveMinimum": 0}
+    )
+    truncate: Optional[int] = field(default=None, metadata={"minimum": 0})
+    typical_p: Optional[float] = field(
+        default=None, metadata={"maximum": 1, "exclusiveMinimum": 0}
+    )
     watermark: bool = False
     stream: bool = False
 
@@ -71,17 +88,14 @@ class TGIServerSamplingSettings(LlmSamplingSettings):
 
 
 class TGIServerProvider(LlmProvider):
-
-    def __init__(
-            self,
-            server_address: str,
-            api_key: str = None
-    ):
+    def __init__(self, server_address: str, api_key: str = None):
         self.server_address = server_address
         self.server_completion_endpoint = self.server_address + "/generate"
-        self.server_streaming_completion_endpoint = self.server_address + "/generate_stream"
+        self.server_streaming_completion_endpoint = (
+            self.server_address + "/generate_stream"
+        )
         self.server_chat_completion_endpoint = (
-                self.server_address + "/v1/chat/completions"
+            self.server_address + "/v1/chat/completions"
         )
         self.server_tokenize_endpoint = self.server_address + "/tokenize"
         self.api_key = api_key
@@ -93,11 +107,11 @@ class TGIServerProvider(LlmProvider):
         return TGIServerSamplingSettings()
 
     def create_completion(
-            self,
-            prompt: str,
-            structured_output_settings: LlmStructuredOutputSettings,
-            settings: TGIServerSamplingSettings,
-            bos_token: str
+        self,
+        prompt: str,
+        structured_output_settings: LlmStructuredOutputSettings,
+        settings: TGIServerSamplingSettings,
+        bos_token: str,
     ):
         if self.api_key is not None:
             headers = {
@@ -111,7 +125,10 @@ class TGIServerProvider(LlmProvider):
 
         data = {"parameters": settings_dict, "inputs": bos_token + prompt}
         grammar = None
-        if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
+        if (
+            structured_output_settings.output_type
+            != LlmStructuredOutputType.no_structured_output
+        ):
             grammar = structured_output_settings.get_json_schema()
 
         if grammar is not None:
@@ -130,11 +147,11 @@ class TGIServerProvider(LlmProvider):
         return returned_data
 
     def create_chat_completion(
-            self,
-            messages: List[Dict[str, str]],
-            structured_output_settings: LlmStructuredOutputSettings,
-            settings: TGIServerSamplingSettings,
-            bos_token: str
+        self,
+        messages: List[Dict[str, str]],
+        structured_output_settings: LlmStructuredOutputSettings,
+        settings: TGIServerSamplingSettings,
+        bos_token: str,
     ):
         if self.api_key is not None:
             headers = {
@@ -148,7 +165,10 @@ class TGIServerProvider(LlmProvider):
         data["messages"] = messages
         data["model"] = "tgi"
         grammar = None
-        if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
+        if (
+            structured_output_settings.output_type
+            != LlmStructuredOutputType.no_structured_output
+        ):
             grammar = structured_output_settings.get_json_schema()
 
         if grammar is not None:
@@ -203,12 +223,23 @@ class TGIServerProvider(LlmProvider):
                     if chunk:
                         decoded_chunk += chunk.decode("utf-8")
                         new_data = json.loads(decoded_chunk.replace("data:", ""))
-                        if "token" in new_data and (new_data["token"]["text"] is not None):
-                            returned_data = {"choices": [{"text": new_data["token"]["text"]}]}
+                        if "token" in new_data and (
+                            new_data["token"]["text"] is not None
+                        ):
+                            returned_data = {
+                                "choices": [{"text": new_data["token"]["text"]}]
+                            }
                             yield returned_data
-                        elif "choices" in new_data and (new_data["choices"][0]["delta"] is not None) and (
-                                "content" in new_data["choices"][0]["delta"]):
-                            returned_data = {"choices": [{"text": new_data["choices"][0]["delta"]["content"]}]}
+                        elif (
+                            "choices" in new_data
+                            and (new_data["choices"][0]["delta"] is not None)
+                            and ("content" in new_data["choices"][0]["delta"])
+                        ):
+                            returned_data = {
+                                "choices": [
+                                    {"text": new_data["choices"][0]["delta"]["content"]}
+                                ]
+                            }
                             yield returned_data
                         decoded_chunk = ""
 

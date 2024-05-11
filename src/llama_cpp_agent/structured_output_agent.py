@@ -157,7 +157,12 @@ class StructuredOutputAgent:
         """
         return self.__dict__
 
-    def create_object(self, model: Type[BaseModel], data: str = "", llm_sampling_settings: LlmSamplingSettings = None) -> object:
+    def create_object(
+        self,
+        model: Type[BaseModel],
+        data: str = "",
+        llm_sampling_settings: LlmSamplingSettings = None,
+    ) -> object:
         """
         Creates an object of the given model from the given data.
 
@@ -168,10 +173,16 @@ class StructuredOutputAgent:
         Returns:
             object: The created object.
         """
-        output_settings = LlmStructuredOutputSettings.from_pydantic_models([model], output_type=LlmStructuredOutputType.object_instance)
+        output_settings = LlmStructuredOutputSettings.from_pydantic_models(
+            [model], output_type=LlmStructuredOutputType.object_instance
+        )
 
         system_prompt = self.system_prompt_template.generate_prompt(
-            {"documentation": output_settings.get_llm_documentation(self.llama_cpp_agent.provider).strip()}
+            {
+                "documentation": output_settings.get_llm_documentation(
+                    self.llama_cpp_agent.provider
+                ).strip()
+            }
         )
         if data == "":
             prompt = "Create a random JSON response based on the response model."
@@ -184,6 +195,6 @@ class StructuredOutputAgent:
             add_message_to_chat_history=False,
             streaming_callback=self.streaming_callback,
             structured_output_settings=output_settings,
-            llm_samplings_settings=llm_sampling_settings
+            llm_samplings_settings=llm_sampling_settings,
         )
         return response

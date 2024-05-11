@@ -140,27 +140,25 @@ class LlamaCppFunctionTool:
     """
 
     def __init__(
-            self,
-            function_tool: Union[
-                Type[BaseModel], Callable, Tuple[Dict[str, Any], Callable]
-            ],
-            add_params_to_result=False,
-            has_markdown_code_block=False,
-            has_triple_quoted_string=False,
-            markdown_code_block_field_name=None,
-            triple_quoted_string_field_name=None,
-            add_outer_request_heartbeat_field=True,
-            **additional_parameters,
+        self,
+        function_tool: Union[BaseModel, Callable, Tuple[Dict[str, Any], Callable]],
+        add_params_to_result=False,
+        has_markdown_code_block=False,
+        has_triple_quoted_string=False,
+        markdown_code_block_field_name=None,
+        triple_quoted_string_field_name=None,
+        add_outer_request_heartbeat_field=True,
+        **additional_parameters,
     ):
         # Determine the type of function_tool and set up the appropriate handling
         if isinstance(function_tool, type) and issubclass(function_tool, BaseModel):
             # Handle BaseModel subclass
             self.model = function_tool  # instantiate the model if needed
         elif (
-                isinstance(function_tool, tuple)
-                and len(function_tool) == 2
-                and isinstance(function_tool[0], dict)
-                and callable(function_tool[1])
+            isinstance(function_tool, tuple)
+            and len(function_tool) == 2
+            and isinstance(function_tool[0], dict)
+            and callable(function_tool[1])
         ):
             # Handle OpenAI functions
             models = create_dynamic_models_from_dictionaries([function_tool[0]])
@@ -183,7 +181,7 @@ class LlamaCppFunctionTool:
 
     @staticmethod
     def from_pydantic_model_and_callable(
-            pydantic_model: BaseModel, tool_function: Callable
+        pydantic_model: BaseModel, tool_function: Callable
     ):
         """
         Converts an OpenAI tool schema and a callable function into a LlamaCppFunctionTool
@@ -252,320 +250,3 @@ class LlamaCppFunctionTool:
             BaseModel: An instance of the Pydantic model.
         """
         return self.model(**kwargs)
-
-
-class LlamaCppFunctionToolRegistry:
-    """
-    Registry for managing LlamaCppFunctionTool instances and generating GBNF grammar.
-
-    Methods:
-        register_function_tool(function_tool: LlamaCppFunctionTool): Register a function tool.
-        get_function_tool(function_name: str): Get a registered function tool by name.
-        finalize(): Finalize the registry, generating the GBNF grammar and documentation.
-        get_grammar() -> LlamaGrammar: Get the generated GBNF grammar.
-        get_documentation() -> str: Get the documentation for the generated GBNF grammar.
-        handle_function_call(function_call_response: str): Handle a function call response and return the output.
-
-    Attributes:
-        tool_root (str): Root element for the GBNF grammar.
-        tool_rule_content (str): Content rule for the GBNF grammar.
-        model_prefix (str): Prefix for documentation of function models.
-        fields_prefix (str): Prefix for documentation of function parameter fields.
-        function_tools (dict): Dictionary of registered LlamaCppFunctionTool instances.
-        function_tools_containing_field_string (dict): Dictionary of registered function tools with extra markdown block or extra triple quoted strings.
-        grammar (LlamaGrammar): Generated LlamaGrammar instance.
-        grammar_documentation (str): Documentation for the generated GBNF grammar.
-        gbnf_grammar (str): Generated GBNF grammar as a string.
-        allow_parallel_function_calling (bool): Flag indicating whether to allow parallel function calling.
-        add_inner_thoughts (bool): Flag indicating whether to add inner thoughts to the GBNF grammar.
-        allow_inner_thoughts_only (bool): Flag indicating whether to allow only inner thoughts in the GBNF grammar.
-        add_request_heartbeat (bool): Flag indicating whether to add a request heartbeat field to the GBNF grammar.
-        inner_thoughts_field_name (str): Field name for inner thoughts in the GBNF grammar.
-        request_heartbeat_field_name (str): Field name for request heartbeat in the GBNF grammar.
-
-    """
-
-    def __init__(
-            self,
-            allow_parallel_function_calling,
-            add_inner_thoughts=True,
-            allow_inner_thoughts_only=True,
-            add_request_heartbeat=True,
-            tool_root="function",
-            tool_rule_content="arguments",
-            model_prefix="function",
-            fields_prefix="parameters",
-            inner_thoughts_field_name="thoughts_and_reasoning",
-            request_heartbeat_field_name="request_heartbeat",
-            add_tool_root_content_to_all_results=True,
-    ):
-        """
-        Initialize the LlamaCppFunctionToolRegistry.
-
-        Args:
-            allow_parallel_function_calling (bool): Flag indicating whether to allow parallel function calling.
-            add_inner_thoughts (bool): Flag indicating whether to add inner thoughts to the GBNF grammar.
-            allow_inner_thoughts_only (bool): Flag indicating whether to allow only inner thoughts in the GBNF grammar.
-            add_request_heartbeat (bool): Flag indicating whether to add a request heartbeat field to the GBNF grammar.
-            tool_root (str): Root element for the GBNF grammar.
-            tool_rule_content (str): Content rule for the GBNF grammar.
-            model_prefix (str): Prefix for documentation of function models.
-            fields_prefix (str): Prefix for documentation of function parameter fields.
-            inner_thoughts_field_name (str): Field name for inner thoughts in the GBNF grammar.
-            request_heartbeat_field_name (str): Field name for request heartbeat in the GBNF grammar.
-        """
-        self.tool_root = tool_root
-        self.tool_rule_content = tool_rule_content
-
-        self.model_prefix = model_prefix
-        self.fields_prefix = fields_prefix
-        self.function_tools = {}
-        self.function_tools_containing_field_string = {}
-        self.grammar = None
-        self.grammar_documentation = None
-        self.gbnf_grammar = None
-        self.allow_parallel_function_calling = allow_parallel_function_calling
-        self.add_inner_thoughts = add_inner_thoughts
-        self.allow_inner_thoughts_only = allow_inner_thoughts_only
-        self.add_request_heartbeat = add_request_heartbeat
-        self.inner_thoughts_field_name = inner_thoughts_field_name
-        self.request_heartbeat_field_name = request_heartbeat_field_name
-        self.add_tool_root_content_to_all_results = add_tool_root_content_to_all_results
-
-    def register_function_tool(self, function_tool: LlamaCppFunctionTool):
-        """
-        Register a function tool in the registry.
-
-        Args:
-            function_tool (LlamaCppFunctionTool): The function tool to register.
-        """
-        function_name = function_tool.model.__name__
-        if function_tool.look_for_field_string:
-            self.function_tools_containing_field_string[function_name] = function_tool
-        else:
-            self.function_tools[function_name] = function_tool
-
-    def get_function_tool(self, function_name: str):
-        """
-        Get a registered function tool by name.
-
-        Args:
-            function_name (str): The name of the function tool.
-
-        Returns:
-            LlamaCppFunctionTool: The registered function tool, or None if not found.
-        """
-        if function_name in self.function_tools:
-            return self.function_tools[function_name]
-        elif function_name in self.function_tools_containing_field_string:
-            return self.function_tools_containing_field_string[function_name]
-        else:
-            return None
-
-    def finalize(self):
-        """
-        Finalize the registry, generating the GBNF grammar and documentation.
-        """
-        pydantic_function_models = []
-        request_heartbeat_list = []
-        for function_tool in self.function_tools.values():
-            pydantic_function_models.append(function_tool.model)
-            if function_tool.add_outer_request_heartbeat_field:
-                request_heartbeat_list.append(function_tool.model.__name__)
-        for function_tool in self.function_tools_containing_field_string.values():
-            pydantic_function_models.append(function_tool.model)
-
-        gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation(
-            pydantic_function_models,
-            self.tool_root,
-            self.tool_rule_content,
-            self.model_prefix,
-            self.fields_prefix,
-            self.allow_parallel_function_calling,
-            inner_thoughts_field_name=self.inner_thoughts_field_name,
-            request_heartbeat_field_name=self.request_heartbeat_field_name,
-            add_inner_thoughts=self.add_inner_thoughts,
-            allow_only_inner_thoughts=self.allow_inner_thoughts_only,
-            add_request_heartbeat=self.add_request_heartbeat,
-            request_heartbeat_models=request_heartbeat_list,
-        )
-
-        self.grammar = LlamaGrammar.from_string(gbnf_grammar, verbose=False)
-        self.grammar_documentation = documentation
-        self.gbnf_grammar = gbnf_grammar
-
-    def get_grammar(self):
-        """
-        Get the generated LlamaGrammar instance.
-
-        Returns:
-           LlamaGrammar: The LlamaGrammar instance.
-        """
-        return self.grammar
-
-    def get_documentation(self):
-        """
-        Get the documentation for the provided functions for the LLM as guidance.
-
-        Returns:
-            str: The documentation for the provided functions for the LLM as guidance.
-        """
-        return self.grammar_documentation
-
-    def handle_function_call(self, function_call_response: dict):
-        """
-        Handle a function call response and return the output.
-
-        Args:
-            function_call_response (dict): The function call response.
-
-        Returns:
-            str: The output of the function call or an error message.
-        """
-        try:
-            function_call = function_call_response
-            if function_call is None:
-                return "Error: Invalid function call response."
-            if not self.allow_parallel_function_calling:
-                output = self.intern_function_call(function_call)
-            else:
-                output = self.intern_parallel_function_call(function_call)
-
-            return output
-
-        except AttributeError as e:
-            return f"Error: {e}"
-
-    def intern_function_call(self, function_call: dict):
-        """
-        Internal method to handle a function call and return the output.
-
-        Args:
-            function_call (dict): The function call dictionary.
-        Returns:
-            str: The output of the function call or an error message.
-        """
-        if self.tool_root in function_call:
-            function_tool = self.function_tools[function_call[self.tool_root]]
-            if self.tool_root in function_call:
-                cls = function_tool.model
-                call_parameters = function_call[self.tool_rule_content]
-                call = cls(**call_parameters)
-                output = call.run(**function_tool.additional_parameters)
-                if (
-                        function_tool.add_params_to_result
-                        or self.add_tool_root_content_to_all_results
-                ):
-                    if self.add_request_heartbeat:
-                        return [
-                            {
-                                "function": function_tool.model.__name__,
-                                "params": call_parameters,
-                                "return_value": output,
-                                "request_heartbeat": (
-                                    function_call["request_heartbeat"]
-                                    if "request_heartbeat" in function_call
-                                    else None
-                                ),
-                            }
-                        ]
-                    return [
-                        {
-                            "function": function_tool.model.__name__,
-                            "params": call_parameters,
-                            "return_value": output,
-                            "request_heartbeat": None,
-                        }
-                    ]
-                else:
-                    if self.add_request_heartbeat:
-                        return [
-                            {
-                                "function": function_tool.model.__name__,
-                                "return_value": output,
-                                "request_heartbeat": (
-                                    function_call["request_heartbeat"]
-                                    if "request_heartbeat" in function_call
-                                    else None
-                                ),
-                            }
-                        ]
-                    return [
-                        {
-                            "function": function_tool.model.__name__,
-                            "return_value": output,
-                            "request_heartbeat": None,
-                        }
-                    ]
-
-    def intern_parallel_function_call(
-            self, function_calls: List[dict], with_markdown_code_block=False
-    ):
-        """
-        Internal method to handle a function call and return the output.
-
-        Args:
-            function_calls List[dict]: The function call dictionary.
-            with_markdown_code_block (bool): Flag indicating whether the response contains a markdown code block.
-
-        Returns:
-            str: The output of the function call or an error message.
-        """
-        result = []
-        for function_call in function_calls:
-            if self.tool_root in function_call:
-                function_tool = self.function_tools[function_call[self.tool_root]]
-                try:
-                    cls = function_tool.model
-                    call_parameters = function_call[self.tool_rule_content]
-                    call = cls(**call_parameters)
-                    output = call.run(**function_tool.additional_parameters)
-                    if (
-                            function_tool.add_params_to_result
-                            or self.add_tool_root_content_to_all_results
-                    ):
-                        if self.add_request_heartbeat:
-                            result.append(
-                                {
-                                    "function": function_tool.model.__name__,
-                                    "params": call_parameters,
-                                    "return_value": output,
-                                    "request_heartbeat": (
-                                        function_call["request_heartbeat"]
-                                        if "request_heartbeat" in function_call
-                                        else None
-                                    ),
-                                }
-                            )
-                        else:
-                            result.append(
-                                {
-                                    "function": function_tool.model.__name__,
-                                    "params": call_parameters,
-                                    "return_value": output,
-                                }
-                            )
-                    else:
-                        if self.add_request_heartbeat:
-                            result.append(
-                                {
-                                    "function": function_tool.model.__name__,
-                                    "return_value": output,
-                                    "request_heartbeat": (
-                                        function_call["request_heartbeat"]
-                                        if "request_heartbeat" in function_call
-                                        else None
-                                    ),
-                                }
-                            )
-                        else:
-                            result.append(
-                                {
-                                    "function": function_tool.model.__name__,
-                                    "return_value": output,
-                                }
-                            )
-                except AttributeError as e:
-                    return f"Error: {e}"
-
-        return result

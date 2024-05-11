@@ -43,7 +43,7 @@ class AgentChainElement:
         postprocessor: Callable[[str, str, dict, str], str] = None,
         add_prompt_to_chat_history: bool = False,
         add_response_to_chat_history: bool = False,
-        llm_sampling_settings: LlmSamplingSettings = None
+        llm_sampling_settings: LlmSamplingSettings = None,
     ):
         """
         Constructs an instance of the AgentChainElement class.
@@ -73,8 +73,8 @@ class AgentChainElement:
         self.postprocessor = postprocessor
         self.function_tool_registry = None
         if tools is not None:
-            self.structured_output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools(
-                tools
+            self.structured_output_settings = (
+                LlmStructuredOutputSettings.from_llama_cpp_function_tools(tools)
             )
         self.llm_sampling_settings = llm_sampling_settings
 
@@ -140,7 +140,7 @@ class AgentChain:
                 structured_output_settings=chain_element.structured_output_settings,
                 add_response_to_chat_history=chain_element.add_response_to_chat_history,
                 add_message_to_chat_history=chain_element.add_prompt_to_chat_history,
-                llm_samplings_settings=chain_element.llm_sampling_settings
+                llm_samplings_settings=chain_element.llm_sampling_settings,
             )
             if chain_element.function_tool_registry is not None:
                 outputs[chain_element.output_identifier] = outputs[
@@ -232,8 +232,7 @@ class MapChain:
         for item in items_to_map:
             additional_fields[self.item_identifier] = item
             result, result_dic = self.map_chain.run_chain(
-                user_message=user_message,
-                additional_fields=additional_fields
+                user_message=user_message, additional_fields=additional_fields
             )
             results.append(result_dic[self.map_chain.chain[-1].output_identifier])
         additional_fields[self.map_output_identifier] = "\n\n".join(results)

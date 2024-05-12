@@ -138,7 +138,7 @@ To let the agent use tools and call function, we need to pass an instance of the
 
 The llama-cpp-agent framework supports python functions as tools, pydantic tools, llama-index tools and OpenAI function schemas together with a function as tools.
 
-Below we will use a python function as a tool. It is important that the docstring of the function includes a general description of the function and includes all arguments. These information can be used to generate a documentation for the llm on how to use these functions.
+Below we will use a python function as a tool. It is important that the docstring of the function includes a general description of the function and includes all arguments. These information will be used to generate a documentation for the llm on how to use these functions.
 
 ```python
 # Import the LlmStructuredOutputSettings
@@ -166,7 +166,7 @@ output_settings = LlmStructuredOutputSettings.from_functions([calculate_a_to_the
 llama_cpp_agent = LlamaCppAgent(
     provider,
     debug_output=True,
-    system_prompt=f"You are an advanced AI, tasked to assist the user by calling functions in JSON format. The following are the available functions and their parameters and types:\n\n{output_settings.get_llm_documentation(provider)}",
+    system_prompt=f"You are an advanced AI, tasked to assist the user by calling functions in JSON format.",
     predefined_messages_formatter_type=MessagesFormatterType.CHATML,
 )
 
@@ -323,7 +323,7 @@ output_settings = LlmStructuredOutputSettings.from_pydantic_models([Book], outpu
 # We are creating the agent with a custom system prompt including information about the dataset entry and its structure.
 llama_cpp_agent = LlamaCppAgent(
     provider,
-    system_prompt="You are an advanced AI, tasked to create JSON database entries for books.\n\n\n" + output_settings.get_llm_documentation(provider),
+    system_prompt="You are an advanced AI, tasked to create JSON database entries for books.",
 )
 
 # We define the input information for the agent.

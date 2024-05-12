@@ -2,6 +2,25 @@
 
 <img src="https://github.com/Maximilian-Winter/llama-cpp-agent/blob/db41b3184ebc902f50edbd3d27f7a3a1128b7d7d/logo/logo_orange.png" alt="llama-cpp-agent logo" width="400"/>
 
+## Introduction
+The llama-cpp-agent framework is a tool designed to simplify interactions with Large Language Models (LLMs). It provides an interface for chatting with LLMs, executing function calls, generating structured output, performing retrieval augmented generation, and processing text using agentic chains with tools. 
+
+The framework uses guided sampling to constrain the model output to the user defined structures. This way also models not fine-tuned to do function calling and JSON output will be able to do it.
+
+The framework is compatible with the llama.cpp server, llama-cpp-python and its server, and with TGI and vllm servers.
+
+## Key Features
+- **Simple Chat Interface**: Engage in seamless conversations with LLMs.
+- **Structured Output**: Generate structured output (objects) from LLMs.
+- **Single and Parallel Function Calling**: Execute functions using LLMs.
+- **RAG - Retrieval Augmented Generation**: Perform retrieval augmented generation with colbert reranking.
+- **Agent Chains**: Process text using agent chains with tools, supporting Conversational, Sequential, and Mapping Chains.
+- **Guided Sampling**: Allows most 7B LLMs to do function calling and structured output. Thanks to grammars and JSON schema generation for guided sampling.
+- **Multiple Providers**: Works with llama-cpp-python, llama.cpp server, TGI server and vllm server as provider!
+- **Compatibility**: Works with python functions, pydantic tools, llama-index tools, and OpenAI tool schemas.
+- **Flexibility**: Suitable for various applications, from casual chatting to specific function executions.
+
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Key Features](#key-features)
@@ -25,23 +44,7 @@
 - [License](#license)
 - [FAQ](#faq)
 
-## Introduction
-The llama-cpp-agent framework is a tool designed to simplify interactions with Large Language Models (LLMs). It provides an interface for chatting with LLMs, executing function calls, generating structured output, performing retrieval augmented generation, and processing text using agentic chains with tools. 
 
-The framework uses guided sampling to constrain the model output to the user defined structures. This way also models not fine-tuned to do function calling and JSON output will be able to do it.
-
-The framework is compatible with the llama.cpp server, llama-cpp-python and its server, and with TGI and vllm servers.
-
-## Key Features
-- **Simple Chat Interface**: Engage in seamless conversations with LLMs.
-- **Structured Output**: Generate structured output (objects) from LLMs.
-- **Single and Parallel Function Calling**: Execute functions using LLMs.
-- **RAG - Retrieval Augmented Generation**: Perform retrieval augmented generation with colbert reranking.
-- **Agent Chains**: Process text using agent chains with tools, supporting Conversational, Sequential, and Mapping Chains.
-- **Guided Sampling**: Allows most 7B LLMs to do function calling and structured output. Thanks to grammars and JSON schema generation for guided sampling.
-- **Multiple Providers**: Works with llama-cpp-python, llama.cpp server, TGI server and vllm server as provider!
-- **Compatibility**: Works with python functions, pydantic tools, llama-index tools, and OpenAI tool schemas.
-- **Flexibility**: Suitable for various applications, from casual chatting to specific function executions.
 
 ## Installation
 Install the llama-cpp-agent framework using pip:

@@ -40,7 +40,7 @@ pip install llama-cpp-agent
 ```python
 # Import the Llama class of llama-cpp-python and the LlamaCppPythonProvider of llama-cpp-agent
 from llama_cpp import Llama
-from llama_cpp_agent.providers.llama_cpp_python import LlamaCppPythonProvider
+from llama_cpp_agent.providers import LlamaCppPythonProvider
 
 # Create an instance of the Llama class and load the model
 llama_model = Llama(r"C:\gguf-models\mistral-7b-instruct-v0.2.Q6_K.gguf", n_batch=1024, n_threads=10, n_gpu_layers=40)
@@ -52,7 +52,7 @@ provider = LlamaCppPythonProvider(llama_model)
 ### llama.cpp server provider
 ```python
 # Import the LlamaCppServerProvider of llama-cpp-agent
-from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
+from llama_cpp_agent.providers import LlamaCppServerProvider
 
 # Create the provider by passing the server URL to the LlamaCppServerProvider class, you can also pass an API key for authentication and a flag to use a llama-cpp-python server.
 provider = LlamaCppServerProvider("http://127.0.0.1:8080")
@@ -61,7 +61,7 @@ provider = LlamaCppServerProvider("http://127.0.0.1:8080")
 ### text-generation-inference (TGI) server provider
 ```python
 # Import the TGIServerProvider of llama-cpp-agent
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent.providers import TGIServerProvider
 
 # Create the provider by passing the server URL to the TGIServerProvider class, you can also pass an API key for authentication.
 provider = TGIServerProvider("http://localhost:8080")
@@ -70,7 +70,7 @@ provider = TGIServerProvider("http://localhost:8080")
 ### vllm OpenAI compatible server provider
 ```python
 # Import the VLLMServerProvider of llama-cpp-agent
-from llama_cpp_agent.providers.vllm_server import VLLMServerProvider
+from llama_cpp_agent.providers import VLLMServerProvider
 
 # Create the provider by passing the server URL and the used model to the VLLMServerProvider class, you can also pass an API key for authentication.
 provider = VLLMServerProvider("http://localhost:8000/v1", "TheBloke/Llama-2-7b-Chat-AWQ", "token-abc123")
@@ -82,7 +82,7 @@ The next step is to define and create the agent. You simply have to pass the pro
 ### Create agent
 ```python
 # Import the LlamaCppAgent class of the framework
-from llama_cpp_agent.llm_agent import LlamaCppAgent
+from llama_cpp_agent import LlamaCppAgent
 
 # Create the provider like in the previous step.
 provider = ...
@@ -97,8 +97,8 @@ We can also change the chat formatter and the system message like showed below.
 
 ```python
 # Import the LlamaCppAgent of the framework and the predefined chat message formatter.
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
+from llama_cpp_agent import LlamaCppAgent
+from llama_cpp_agent import MessagesFormatterType
 # Create the provider like in the previous step.
 provider = ...
 
@@ -205,10 +205,10 @@ from typing import Union
 
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.function_calling import LlamaCppFunctionTool
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent import FunctionCallingAgent
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent import LlamaCppFunctionTool
+from llama_cpp_agent.providers import TGIServerProvider
 
 # Set up the provider
 provider = TGIServerProvider("http://localhost:8080")
@@ -284,10 +284,10 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.llm_agent import LlamaCppAgent
+from llama_cpp_agent import LlamaCppAgent
 
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent.providers import TGIServerProvider
 
 # Create the provider.
 provider = TGIServerProvider("http://localhost:8080")
@@ -351,9 +351,9 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.structured_output_agent import StructuredOutputAgent
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent import StructuredOutputAgent
+from llama_cpp_agent.providers import TGIServerProvider
 
 model = TGIServerProvider("http://localhost:8080")
 

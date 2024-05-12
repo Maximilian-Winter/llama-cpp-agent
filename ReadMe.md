@@ -39,6 +39,7 @@ The framework is compatible with the llama.cpp server, llama-cpp-python and its 
 - **RAG - Retrieval Augmented Generation**: Perform retrieval augmented generation with colbert reranking.
 - **Agent Chains**: Process text using agent chains with tools, supporting Conversational, Sequential, and Mapping Chains.
 - **Compatibility**: Works with python functions, pydantic tools, llama-index tools, and OpenAI tool schemas.
+- **Multiple Providers**: Works with llama-cpp-python, llama.cpp server, TGI server and vllm server as provider!
 - **Flexibility**: Suitable for various applications, from casual chatting to specific function executions.
 
 ## Installation

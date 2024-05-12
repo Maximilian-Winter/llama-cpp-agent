@@ -2,13 +2,12 @@
 from llama_cpp_agent import AgentChainElement, AgentChain
 from llama_cpp_agent import LlamaCppAgent
 from llama_cpp_agent import MessagesFormatterType
-from llama_cpp_agent.providers import LlamaCppServerProvider
+from llama_cpp_agent.providers import TGIServerProvider
 
-model = LlamaCppServerProvider("http://127.0.0.1:8080")
+model = TGIServerProvider("http://127.0.0.1:8080")
 
 agent = LlamaCppAgent(
     model,
-    debug_output=True,
     system_prompt="",
     predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
 )

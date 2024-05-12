@@ -3,11 +3,21 @@
 # Example that uses the FunctionCallingAgent class to use llama_index tools and query engines.
 
 # Import necessary classes of llama-cpp-agent
-from llama_cpp_agent.function_calling import LlamaCppFunctionTool
-from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings, LlamaCppGenerationSettings
+# Example that uses the FunctionCallingAgent class to use llama_index tools and query engines. This is based on a llama-index example
 
+# To get the PDFs used in this example:
+# mkdir -p 'data/10k/'
+# wget 'https://raw.githubusercontent.com/run-llama/llama_index/main/docs/docs/examples/data/10k/uber_2021.pdf' -O 'data/10k/uber_2021.pdf'
+# wget 'https://raw.githubusercontent.com/run-llama/llama_index/main/docs/docs/examples/data/10k/lyft_2021.pdf' -O 'data/10k/lyft_2021.pdf'
+
+
+# Import necessary classes of llama-cpp-agent
+from llama_cpp_agent import LlamaCppFunctionTool
+from llama_cpp_agent import FunctionCallingAgent
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent.providers import TGIServerProvider
+
+model = TGIServerProvider("http://127.0.0.1:8080")
 # Code taken from llama-index example to create a query engine for asking questions
 # https://docs.llamaindex.ai/en/stable/examples/agent/react_agent_with_query_engine/
 
@@ -15,8 +25,7 @@ from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpoi
 from llama_index.core import (
     SimpleDirectoryReader,
     VectorStoreIndex,
-    StorageContext,
-    load_index_from_storage, Settings,
+    Settings,
 )
 from llama_index.core.tools import QueryEngineTool, ToolMetadata
 
@@ -65,10 +74,6 @@ query_engine_tools = [
     ),
 ]
 
-# Initialize the llama-cpp-agent LLM and the generation parameters.
-generation_settings = LlamaCppGenerationSettings(temperature=0.45, top_p=1.0, top_k=0, stream=True)
-main_model = LlamaCppEndpointSettings("http://localhost:8080/completion")
-
 # Creating LlamaCppFunctionTool instances out of the llama-index query engine tools.
 # We pass the llama-index query engine tools to the from_llama_index_tool function of the LlamaCppFunctionTool class and create the llama-cpp-agent tools.
 lyft_query_engine_tool = LlamaCppFunctionTool.from_llama_index_tool(query_engine_tools[0])
@@ -77,28 +82,23 @@ uber_query_engine_tool = LlamaCppFunctionTool.from_llama_index_tool(query_engine
 
 
 function_call_agent = FunctionCallingAgent(
-    main_model,
-    llama_generation_settings=generation_settings,
+    model,
     # Pass the LlamaCppFunctionTool instances as a list to the agent.
     llama_cpp_function_tools=[lyft_query_engine_tool, uber_query_engine_tool],
-    allow_parallel_function_calling=True,
-    messages_formatter_type=MessagesFormatterType.CHATML,
-    debug_output=True)
+    allow_parallel_function_calling=False,
+    messages_formatter_type=MessagesFormatterType.CHATML)
+
+settings = model.get_provider_default_settings()
+settings.max_new_tokens = 512
+settings.temperature = 0.65
+settings.do_sample = True
 
 user_input = "What was Lyft's revenue growth in 2021?"
-function_call_agent.generate_response(user_input)
+function_call_agent.generate_response(user_input, llm_sampling_settings=settings)
+
 
 ```
 Example Output:
 ```text
-[
-  {
-    "thoughts_and_reasoning": "The user has asked for Lyft's revenue growth in the year 2021. Based on the context information provided by the 'lyft_10k' function call, we can determine that Lyft's revenue increased by 36% in 2021 compared to the previous year.",
-    "function": "send_message",
-    "parameters": {
-      "content": "Lyft's revenue grew by 36% in the year 2021."
-    }
-  }
-]
 Lyft's revenue grew by 36% in the year 2021.
 ```

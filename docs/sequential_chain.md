@@ -2,16 +2,15 @@
 This example demonstrates how to create a complete product launch campaign with help of a sequential chain.
 ```python
 # Example: Product Launch Campaign (Product Description, USP, Target Audience, Marketing Channels, Ad Copy, Landing Page, Email Campaign, Social Media Posts, Press Release, and Performance Metrics)
-from llama_cpp_agent.chain import AgentChainElement, AgentChain
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
+from llama_cpp_agent import AgentChainElement, AgentChain
+from llama_cpp_agent import LlamaCppAgent
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent.providers import LlamaCppServerProvider
 
-model = LlamaCppEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080/completion")
+model = LlamaCppServerProvider("http://127.0.0.1:8080")
 
 agent = LlamaCppAgent(
     model,
-    debug_output=True,
     system_prompt="",
     predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
 )

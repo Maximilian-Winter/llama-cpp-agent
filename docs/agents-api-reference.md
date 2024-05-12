@@ -1,10 +1,14 @@
 ---
-title: API Reference
+title: Agents Reference
 ---
 
 ## Agents
 
 ::: llama_cpp_agent.llm_agent
+
+## Structured Output Settings
+
+::: llama_cpp_agent.llm_output_settings.settings
 
 ### Function Calling Agent    
 

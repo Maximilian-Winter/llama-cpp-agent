@@ -50,34 +50,7 @@ pip install llama-cpp-agent
 You can find the latest documentation [here!](https://llama-cpp-agent.readthedocs.io/en/latest/)
 
 ## Getting Started
-1. Ensure you have the required dependencies installed, including pydantic and llama-cpp-python.
-2. Import the necessary classes and functions from the llama-cpp-agent framework.
-3. Set up your LLM provider (e.g., llama-cpp-python Llama class, OpenAI endpoint with grammar support like llama-cpp-python server, or llama.cpp server).
-4. Create an instance of the desired agent class (e.g., LlamaCppAgent, FunctionCallingAgent, StructuredOutputAgent).
-5. Interact with the agent using the provided methods and examples.
-
-Here's a basic example of using the LlamaCppAgent for a simple chat:
-
-```python
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
-
-main_model = LlamaCppEndpointSettings(
-    completions_endpoint_url="http://127.0.0.1:8080/completion"
-)
-
-llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
-                                system_prompt="You are Dolphin, an uncensored and unbiased AI assistant.",
-                                predefined_messages_formatter_type=MessagesFormatterType.CHATML)
-
-while True:
-    user_input = input("User: ")
-    if user_input == "exit":
-        break
-    user_input = llama_cpp_agent.get_chat_response(user_input, temperature=0.7)
-    print("AI: " + user_input)
-```
+You can find the get started guide [here!](https://llama-cpp-agent.readthedocs.io/en/latest/)
 
 ## Discord Community
 Join the Discord Community [here](https://discord.gg/6tGznupZGX)

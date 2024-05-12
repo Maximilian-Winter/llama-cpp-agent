@@ -3,43 +3,31 @@ This example shows how to use the FunctionCallingAgent for function calling with
 
 ```python
 # Example that uses the FunctionCallingAgent class to create a function calling agent.
-import json
+import datetime
 from enum import Enum
-from typing import Union, Any
+from typing import Union, Optional
 
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.llm_settings import LlamaLLMSettings, LlamaLLMGenerationSettings
+from llama_cpp_agent import LlamaCppFunctionTool
+from llama_cpp_agent import FunctionCallingAgent
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent.providers import TGIServerProvider
 
-from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
+model = TGIServerProvider("http://localhost:8080")
 
 
-# llama-cpp-agent supports type hinted function definitions for function calling.
-# Write to file function that can be used by the agent. Docstring will be used in system prompt.
-def write_to_file(chain_of_thought: str, file_path: str, file_content: str):
+# Simple tool for the agent, to get the current date and time in a specific format.
+def get_current_datetime(output_format: Optional[str] = None):
     """
-    Write file to the user filesystem.
-    :param chain_of_thought: Your chain of thought while writing the file.
-    :param file_path: The file path includes the filename and file ending.
-    :param file_content: The actual content to write.
-    """
-    print(chain_of_thought)
-    with open(file_path, mode="w", encoding="utf-8") as file:
-        file.write(file_content)
-    return f"File {file_path} successfully written."
+    Get the current date and time in the given format.
 
-
-# Read file function that can be used by the agent. Docstring will be used in system prompt.
-def read_file(file_path: str):
+    Args:
+         output_format: formatting string for the date and time, defaults to '%Y-%m-%d %H:%M:%S'
     """
-    Read file from the user filesystem.
-    :param file_path: The file path includes the filename and file ending.
-    :return: File content.
-    """
-    output = ""
-    with open(file_path, mode="r", encoding="utf-8") as file:
-        output = file.read()
-    return f"Content of file '{file_path}':\n\n{output}"
+    if output_format is None:
+        output_format = '%Y-%m-%d %H:%M:%S'
+    return datetime.datetime.now().strftime(output_format)
 
 
 # Enum for the calculator tool.
@@ -50,15 +38,14 @@ class MathOperation(Enum):
     DIVIDE = "divide"
 
 
-# llama-cpp-agent also supports "Instructor" library like function definitions as Pydantic models for function calling.
 # Simple pydantic calculator tool for the agent that can add, subtract, multiply, and divide. Docstring and description of fields will be used in system prompt.
-class Calculator(BaseModel):
+class calculator(BaseModel):
     """
     Perform a math operation on two numbers.
     """
-    number_one: Any = Field(..., description="First number.")
+    number_one: Union[int, float] = Field(..., description="First number.")
     operation: MathOperation = Field(..., description="Math operation to perform.")
-    number_two: Any = Field(..., description="Second number.")
+    number_two: Union[int, float] = Field(..., description="Second number.")
 
     def run(self):
         if self.operation == MathOperation.ADD:
@@ -74,73 +61,64 @@ class Calculator(BaseModel):
 
 
 # Example function based on an OpenAI example.
-# llama-cpp-agent also supports OpenAI like dictionaries for function definition.
+# llama-cpp-agent supports OpenAI like schemas for function definition.
 def get_current_weather(location, unit):
     """Get the current weather in a given location"""
     if "London" in location:
-        return json.dumps({"location": "London", "temperature": "42", "unit": unit.value})
+        return f"Weather in {location}: {22}° {unit.value}"
     elif "New York" in location:
-        return json.dumps({"location": "New York", "temperature": "24", "unit": unit.value})
+        return f"Weather in {location}: {24}° {unit.value}"
     elif "North Pole" in location:
-        return json.dumps({"location": "North Pole", "temperature": "-42", "unit": unit.value})
+        return f"Weather in {location}: {-42}° {unit.value}"
     else:
-        return json.dumps({"location": location, "temperature": "unknown"})
+        return f"Weather in {location}: unknown"
 
 
 # Here is a function definition in OpenAI style
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "get_current_weather",
-            "description": "Get the current weather in a given location",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "The city and state, e.g. San Francisco, CA",
-                    },
-                    "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+open_ai_tool_spec = {
+    "type": "function",
+    "function": {
+        "name": "get_current_weather",
+        "description": "Get the current weather in a given location",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "type": "string",
+                    "description": "The city and state, e.g. San Francisco, CA",
                 },
-                "required": ["location"],
+                "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
             },
+            "required": ["location", "unit"],
         },
-    }
-]
-# To make the OpenAI function callable for the function calling agent we need a list with actual function in it:
-tool_functions = [get_current_weather]
+    },
+}
 
 
 # Callback for receiving messages for the user.
 def send_message_to_user_callback(message: str):
     print(message)
 
+# First we create the calculator tool.
+calculator_function_tool = LlamaCppFunctionTool(calculator)
 
-generation_settings = LlamaLLMGenerationSettings(temperature=0.65, top_p=0.5, tfs_z=0.975)
+# Next we create the current datetime tool.
+current_datetime_function_tool = LlamaCppFunctionTool(get_current_datetime)
 
-# Can be saved and loaded like that:
-# generation_settings.save("generation_settings.json")
-# generation_settings = LlamaLLMGenerationSettings.load_from_file("generation_settings.json")
+# The from_openai_tool function of the LlamaCppFunctionTool class converts an OpenAI tool schema and a callable function into a LlamaCppFunctionTool
+get_weather_function_tool = LlamaCppFunctionTool.from_openai_tool(open_ai_tool_spec, get_current_weather)
 
+# Create the function calling agent. We are passing the provider, the tool list, send message to user callback and the chat message formatter. Also, we allow parallel function calling.
 function_call_agent = FunctionCallingAgent(
-    # Can be lama-cpp-python Llama class, llama_cpp_agent.llm_settings.LlamaLLMSettings class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerLLMSettings.
-    LlamaLLMSettings.load_from_file("openhermes-2.5-mistral-7b.Q8_0.json"),
-    # llama_cpp_agent.llm_settings.LlamaLLMGenerationSettings  class or llama_cpp_agent.providers.llama_cpp_server_provider.LlamaCppServerGenerationSettings.
-    llama_generation_settings=generation_settings,
-    # A tuple of the OpenAI style function definitions and the actual functions
-    open_ai_functions=(tools, tool_functions),
-    # Just a list of type hinted functions for normal Python functions
-    python_functions=[write_to_file, read_file],
-    # Just a list of pydantic types
-    pydantic_functions=[Calculator],
-    # Callback for receiving messages for the user.
-    send_message_to_user_callback=send_message_to_user_callback, debug_output=True)
+    model,
+    llama_cpp_function_tools=[calculator_function_tool, current_datetime_function_tool, get_weather_function_tool],
+    send_message_to_user_callback=send_message_to_user_callback,
+    allow_parallel_function_calling=True,
+    messages_formatter_type=MessagesFormatterType.CHATML)
 
-while True:
-    user_input = input(">")
-    function_call_agent.generate_response(user_input)
-    function_call_agent.save("function_calling_agent.json")
+user_input = '''Get the date and time in '%d-%m-%Y %H:%M' format. Get the current weather in celsius in London, New York and at the North Pole. Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.'''
+function_call_agent.generate_response(user_input)
+
 
 
 
@@ -150,44 +128,14 @@ Example Input 1
 What is 42 * 42?
 ```
 Example output 1
-```json
-
-{
-  "function": "calculator",
-  "function-parameters": {
-    "number_one": 42,
-    "operation": "multiply",
-    "number_two": 42
-  }
-}
-{
-  "function": "send-message-to-user",
-  "function-parameters": {
-    "message": "Function Call Result: 1764"
-  }
-}
-Function Call Result: 1764
+```text
+The result of 42 * 42 is 1764.
 ```
 Example Input 2
 ```text
 What is the current weather in London celsius?
 ```
 Example output 2
-```json
-
-{
-  "function": "get-current-weather",
-  "function-parameters": {
-    "location": "London",
-    "unit": "celsius"
-  }
-}
-{
-  "function": "send-message-to-user",
-  "function-parameters": {
-    "message": "The current temperature in London is 42 degrees Celsius."
-  }
-}
-
-The current temperature in London is 42 degrees Celsius.
+```text
+The current weather in London is 22° celsius.
 ```

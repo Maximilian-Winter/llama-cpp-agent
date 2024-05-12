@@ -1,26 +1,26 @@
 ### Mapping Chain Example
 This example demonstrates how to create a mapping chain to summarize 3 articles into one summary.
 ```python
-from llama_cpp_agent.chain import AgentChainElement, MapChain
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
+from llama_cpp_agent import AgentChainElement, MapChain
+from llama_cpp_agent import LlamaCppAgent
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent.providers import LlamaCppServerProvider
 
-model = LlamaCppEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080/completion")
+model = LlamaCppServerProvider("http://127.0.0.1:8080")
 
 agent = LlamaCppAgent(
     model,
-    debug_output=True,
     system_prompt="",
     predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
 )
 
-summary_chain = AgentChainElement("out_0", system_prompt="You are an advanced AI agent for summarizing articles", prompt="Summarize this article into bullet points:\n{item}")
+summary_chain = AgentChainElement("out_0", system_prompt="You are an advanced AI agent for summarizing articles",
+                                  prompt="Summarize this article into bullet points:\n{item}")
 
-combine_chain = AgentChainElement("out_1", system_prompt="You are an advanced AI agent that summarizes text", prompt="Please combine the bullet points of different summaries below, into one summary as bullet points:\n{map_output}")
+combine_chain = AgentChainElement("out_1", system_prompt="You are an advanced AI agent that summarizes text",
+                                  prompt="Please combine the bullet points of different summaries below, into one summary as bullet points:\n{map_output}")
 
 map_chain = MapChain(agent, [summary_chain], [combine_chain])
-
 
 article_list = [
     """### 1. Quantum Computing: The Next Frontier in Computational Power
@@ -100,6 +100,30 @@ A blockchain is a decentralized ledger of all transactions across a network. Eac
 Blockchain technology holds great promise for creating a more transparent and efficient world, but significant challenges must be addressed to realize its full potential."""
 ]
 
-
 map_chain.run_map_chain(items_to_map=article_list)
+
+```
+
+Example Output:
+```text
+* Quantum computing and machine learning are advanced technologies with significant potential in various sectors
+* Quantum computing is based on quantum mechanics principles, utilizing qubits that can exist in multiple states simultaneously and entanglement for long-distance interaction
+* Quantum algorithms like Shor's and Grover's offer exponential and quadratic speedups over classical algorithms, respectively
+* Applications include cryptography, drug discovery, optimization problems, and more
+* Challenges include maintaining qubit coherence, reducing error rates, and achieving scalability
+* Machine learning is a subfield of artificial intelligence focusing on data-driven models that improve over time
+* ML includes three main types: Supervised Learning, Unsupervised Learning, and Reinforcement Learning
+* Supervised Learning: models predict outputs based on labeled input data
+* Unsupervised Learning: algorithms identify patterns in unlabeled data
+* Reinforcement Learning: models learn through rewards or penalties
+* Key ML algorithms include Linear Regression, Logistic Regression, Decision Trees, Random Forests, and Neural Networks
+* Applications of ML include healthcare, finance, and retail
+* Challenges in ML include data privacy, need for large labeled datasets, and creating biased models
+* Blockchain technology is a decentralized ledger system for transactions across a network
+* A blockchain is made up of a chain of blocks, each containing transactions, which are secure and immutable
+* Key features include decentralization, transparency, and immutability
+* Applications include supply chain management, healthcare, and smart contracts
+* Challenges include scalability, regulatory issues, and energy consumption
+* Quantum computing and ML hold great promise but face challenges in coherence, error rates, data privacy, large datasets, and regulation
+* Researchers are working to overcome current limitations and advance the fields of quantum computing, machine learning, and blockchain technology.
 ```

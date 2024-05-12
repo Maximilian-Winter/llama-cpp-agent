@@ -1,4 +1,10 @@
-# Example that uses the FunctionCallingAgent class to use llama_index tools and query engines.
+# Example that uses the FunctionCallingAgent class to use llama_index tools and query engines. This is based on a llama-index example
+
+# To get the PDF used in this example:
+# mkdir -p 'data/10k/'
+# wget 'https://raw.githubusercontent.com/run-llama/llama_index/main/docs/docs/examples/data/10k/uber_2021.pdf' -O 'data/10k/uber_2021.pdf'
+# wget 'https://raw.githubusercontent.com/run-llama/llama_index/main/docs/docs/examples/data/10k/lyft_2021.pdf' -O 'data/10k/lyft_2021.pdf'
+
 
 # Import necessary classes of llama-cpp-agent
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool

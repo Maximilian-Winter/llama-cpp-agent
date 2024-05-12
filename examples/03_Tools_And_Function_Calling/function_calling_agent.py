@@ -8,9 +8,9 @@ from pydantic import BaseModel, Field
 from llama_cpp_agent import LlamaCppFunctionTool
 from llama_cpp_agent import FunctionCallingAgent
 from llama_cpp_agent import MessagesFormatterType
-from llama_cpp_agent.providers import TGIServerProvider
+from llama_cpp_agent.providers import LlamaCppServerProvider
 
-model = TGIServerProvider("http://localhost:8080")
+model = LlamaCppServerProvider("http://localhost:8080")
 
 
 # Simple tool for the agent, to get the current date and time in a specific format.
@@ -93,7 +93,7 @@ open_ai_tool_spec = {
 
 # Callback for receiving messages for the user.
 def send_message_to_user_callback(message: str):
-    print(message)
+    print("Assistant: " + message.strip())
 
 # First we create the calculator tool.
 calculator_function_tool = LlamaCppFunctionTool(calculator)
@@ -110,8 +110,16 @@ function_call_agent = FunctionCallingAgent(
     llama_cpp_function_tools=[calculator_function_tool, current_datetime_function_tool, get_weather_function_tool],
     send_message_to_user_callback=send_message_to_user_callback,
     allow_parallel_function_calling=True,
+    debug_output=False,
     messages_formatter_type=MessagesFormatterType.CHATML)
 
-user_input = "What is the current weather in London celsius?"
-function_call_agent.generate_response(user_input)
+user_input = '''Get the date and time in '%d-%m-%Y %H:%M' format. Get the current weather in celsius in London, New York and at the North Pole. Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.'''
+print("User: " + user_input)
+
+settings = model.get_provider_default_settings()
+settings.add_additional_stop_sequences(["<|end|>"])
+settings.stream = False
+settings.temperature = 0.65
+
+function_call_agent.generate_response(user_input, llm_sampling_settings=settings)
 

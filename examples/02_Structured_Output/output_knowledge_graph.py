@@ -6,9 +6,9 @@ from pydantic import BaseModel, Field
 from llama_cpp_agent import LlamaCppAgent
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 from llama_cpp_agent import MessagesFormatterType
-from llama_cpp_agent.providers import TGIServerProvider
+from llama_cpp_agent.providers import LlamaCppServerProvider
 
-provider = TGIServerProvider("http://localhost:8080")
+provider = LlamaCppServerProvider("http://localhost:8080")
 
 
 class Node(BaseModel):
@@ -54,7 +54,7 @@ def visualize_knowledge_graph(kg):
 
 
 def generate_graph(user_input: str):
-    prompt = f"""Help me understand the following by describing it as a extremely detailed knowledge graph with at least 20 nodes: {user_input}""".strip()
+    prompt = f"""Help me understand the following by describing it as a extremely detailed knowledge graph with at least 40 nodes: {user_input}""".strip()
     response = agent.get_chat_response(
         message=prompt,
         structured_output_settings=output_settings
@@ -63,5 +63,5 @@ def generate_graph(user_input: str):
     return response
 
 
-graph = generate_graph("Teach me about quantum mechanics")
+graph = generate_graph("large language models.")
 visualize_knowledge_graph(graph)

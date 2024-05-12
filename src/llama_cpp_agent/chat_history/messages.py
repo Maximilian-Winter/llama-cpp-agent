@@ -95,7 +95,7 @@ def convert_messages_to_list_of_dictionaries(
                 else:
                     content = f"Function Call:\nFunction: {message.tool_calls[0].function.name}\nArguments: {message.tool_calls[0].function.arguments}\n"
         elif isinstance(message, ToolMessage):
-            content = f"Function Call Result:\nResult: {message.content}\n"
+            content = f"{message.content}\n"
         else:
             content = f"{message.content}"
         # Construct the dictionary for the current message

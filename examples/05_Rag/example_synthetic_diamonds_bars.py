@@ -39,7 +39,7 @@ for split in splits:
     rag.add_document(split)
 
 # Define a llamacpp server endpoint.
-from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
+from llama_cpp_agent.providers import LlamaCppServerProvider
 
 model = LlamaCppServerProvider("http://127.0.0.1:8080")
 

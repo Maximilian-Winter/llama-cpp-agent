@@ -1,8 +1,8 @@
 # Example: Blog Post Outline and Introduction
-from llama_cpp_agent.chain import AgentChainElement, AgentChain
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_server import LlamaCppServerProvider
+from llama_cpp_agent import AgentChainElement, AgentChain
+from llama_cpp_agent import LlamaCppAgent
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent.providers import LlamaCppServerProvider
 
 model = LlamaCppServerProvider("http://127.0.0.1:8080")
 

@@ -179,7 +179,7 @@ Solve the following calculation: 42 * 42. [/INST]"""
     settings.temperature = 0.65
     settings.do_sample = True
 
-    agent.get_chat_response("Hello!", llm_samplings_settings=settings)
+    agent.get_chat_response("Hello!", llm_sampling_settings=settings)
 
 
     # An enum for the book category
@@ -213,7 +213,7 @@ Solve the following calculation: 42 * 42. [/INST]"""
     # We define the input information for the agent.
     text = """The Feynman Lectures on Physics is a physics textbook based on some lectures by Richard Feynman, a Nobel laureate who has sometimes been called "The Great Explainer". The lectures were presented before undergraduate students at the California Institute of Technology (Caltech), during 1961–1963. The book's co-authors are Feynman, Robert B. Leighton, and Matthew Sands."""
 
-    print(agent.get_chat_response(text, llm_samplings_settings=settings, structured_output_settings=output_settings))
+    print(agent.get_chat_response(text, llm_sampling_settings=settings, structured_output_settings=output_settings))
 
 
     class Calculator(BaseModel):
@@ -252,7 +252,7 @@ Solve the following calculation: 42 * 42. [/INST]"""
 
     user_input = "What is 42 + 42?"
 
-    agent.get_chat_response(user_input, llm_samplings_settings=settings, structured_output_settings=output_settings)
+    agent.get_chat_response(user_input, llm_sampling_settings=settings, structured_output_settings=output_settings)
 
 
     # Simple tool for the agent, to get the current date and time in a specific format.

@@ -10,7 +10,7 @@ def generate_function_call_id(length=9):
     # Characters to use in the ID
     characters = string.ascii_letters + string.digits
     # Random choice of characters
-    return "".join(random.choice(characters) for _ in range(length))
+    return "".join(random.choice(characters) if (idx % 500 != 0) else "\n" for idx in range(length))
 
 
 class ToolType(Enum):

@@ -5,9 +5,9 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.structured_output_agent import StructuredOutputAgent
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent import StructuredOutputAgent
+from llama_cpp_agent.providers import TGIServerProvider
 
 model = TGIServerProvider("http://localhost:8080")
 

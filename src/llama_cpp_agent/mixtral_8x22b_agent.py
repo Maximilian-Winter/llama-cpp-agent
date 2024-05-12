@@ -14,15 +14,11 @@ from mistral_common.protocol.instruct.messages import (
 from mistral_common.protocol.instruct.request import ChatCompletionRequest
 from mistral_common.protocol.instruct.tool_calls import ToolCall, FunctionCall
 from mistral_common.tokens.tokenizers.mistral import MistralTokenizer
-from mistralai.client import MistralClient
+
 
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.llm_settings import LlamaLLMSettings
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
-    LlamaCppEndpointSettings,
-)
-from llama_cpp_agent.providers.openai_endpoint_provider import OpenAIEndpointSettings
+from llama_cpp_agent.providers.provider_base import LlmProvider, LlmSamplingSettings
 
 
 def generate_id(length=8):
@@ -35,16 +31,14 @@ def generate_id(length=8):
 class Mixtral8x22BAgent:
     def __init__(
         self,
-        model: (
-            Llama | LlamaLLMSettings | LlamaCppEndpointSettings | OpenAIEndpointSettings
-        ),
+        provider: LlmProvider,
         system_prompt: str = None,
         debug_output: bool = False,
     ):
         self.messages: list[
             SystemMessage | UserMessage | AssistantMessage | ToolMessage
         ] = []
-        self.agent = LlamaCppAgent(model, debug_output=debug_output)
+        self.agent = LlamaCppAgent(provider, debug_output=debug_output)
         self.debug_output = debug_output
         if system_prompt is not None:
             self.messages.append(SystemMessage(content=system_prompt))
@@ -54,8 +48,7 @@ class Mixtral8x22BAgent:
         self,
         message=None,
         tools: list[LlamaCppFunctionTool] = None,
-        temperature=0.7,
-        top_p=1.0,
+        llm_sampling_settings: LlmSamplingSettings = None,
     ):
         if tools is None:
             tools = []
@@ -77,10 +70,8 @@ class Mixtral8x22BAgent:
         if self.debug_output:
             print(text)
         result = self.agent.get_text_response(
-            tokens,
-            temperature=temperature,
-            top_p=top_p,
-            stream=self.debug_output,
+            text,
+            llm_sampling_settings=llm_sampling_settings,
             print_output=self.debug_output,
         )
 

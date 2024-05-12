@@ -148,6 +148,6 @@ class StructuredOutputAgent:
             add_message_to_chat_history=False,
             streaming_callback=self.streaming_callback,
             structured_output_settings=output_settings,
-            llm_samplings_settings=llm_sampling_settings,
+            llm_sampling_settings=llm_sampling_settings,
         )
         return response

@@ -7,10 +7,11 @@ from enum import Enum
 
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.hermes_2_pro_agent import Hermes2ProAgent
+from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
 
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent.providers import LlamaCppServerProvider
 
-provider = TGIServerProvider("http://localhost:8080")
+provider = LlamaCppServerProvider("http://localhost:8080")
 
 
 def get_current_datetime(output_format: Optional[str] = None):
@@ -103,18 +104,19 @@ current_datetime_function_tool = LlamaCppFunctionTool(get_current_datetime)
 # For OpenAI tool definitions, we pass a OpenAI function definition with actual function in a tuple to the LlamaCppFunctionTool constructor.
 get_weather_function_tool = LlamaCppFunctionTool((open_ai_tool_definition, get_current_weather))
 
+output_settings = LlmStructuredOutputSettings.from_llama_cpp_function_tools([get_weather_function_tool, current_datetime_function_tool, calculator_function_tool], allow_parallel_function_calling=True)
 
-agent = Hermes2ProAgent(model=provider, debug_output=True)
+agent = Hermes2ProAgent(provider=provider, debug_output=True)
 
 
-result = agent.get_response("Get the date and time in '%d-%m-%Y %H:%M' format.", temperature=0.35, tools=[current_datetime_function_tool])
-
-print(result)
-
-result = agent.get_response("Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.", temperature=0.35, tools=[calculator_function_tool])
+result = agent.get_response("Get the date and time in '%d-%m-%Y %H:%M' format.", structured_output_settings=output_settings)
 
 print(result)
 
-result = agent.get_response("Get the current weather in celsius in London, New York and at the North Pole.", temperature=0.35, tools=[get_weather_function_tool])
+result = agent.get_response("Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.", structured_output_settings=output_settings)
+
+print(result)
+
+result = agent.get_response("Get the current weather in celsius in London, New York and at the North Pole.", structured_output_settings=output_settings)
 
 print(result)

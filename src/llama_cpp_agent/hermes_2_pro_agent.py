@@ -10,28 +10,16 @@ from llama_cpp import Llama
 from pydantic import ValidationError
 from transformers import AutoTokenizer
 
+from llama_cpp_agent.chat_history import ChatMessage, SystemMessage, UserMessage
+from llama_cpp_agent.chat_history.messages import convert_messages_to_list_of_dictionaries, ToolCall, FunctionCall, \
+    ToolMessage, AssistantMessage
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.llm_agent import LlamaCppAgent
+from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
 from llama_cpp_agent.llm_prompt_template import PromptTemplate
-from llama_cpp_agent.llm_settings import LlamaLLMSettings
-from llama_cpp_agent.messages import (
-    ToolCall,
-    FunctionCall,
-    ToolMessage,
-    AssistantMessage,
-    UserMessage,
-    ChatMessage,
-    convert_messages_to_list_of_dictionaries,
-    SystemMessage,
-)
-from llama_cpp_agent.messages_formatter import (
-    MessagesFormatterType,
-    get_predefined_messages_formatter,
-)
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
-    LlamaCppEndpointSettings,
-)
-from llama_cpp_agent.providers.openai_endpoint_provider import OpenAIEndpointSettings
+from llama_cpp_agent.messages_formatter import MessagesFormatter
+
+from llama_cpp_agent.providers.provider_base import LlmProvider
 
 
 def generate_id(length=8):
@@ -63,15 +51,20 @@ def parse_tool_calls(text):
     return json_dicts
 
 
-class Hermes2ProMessageFormatter:
+class Hermes2ProMessageFormatter(MessagesFormatter):
     """
     Class representing a messages formatter for LLMs.
     """
 
-    def __init__(self):
+    def __init__(self, PRE_PROMPT: str = "", SYS_PROMPT_START: str = "", SYS_PROMPT_END: str = "", USER_PROMPT_START: str = "",
+                 USER_PROMPT_END: str = "", ASSISTANT_PROMPT_START: str = "", ASSISTANT_PROMPT_END: str = "",
+                 INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE: bool = False, DEFAULT_STOP_SEQUENCES: List[str] = None):
         """
         Initializes a new MessagesFormatter object.
         """
+        super().__init__(PRE_PROMPT, SYS_PROMPT_START, SYS_PROMPT_END, USER_PROMPT_START, USER_PROMPT_END,
+                         ASSISTANT_PROMPT_START, ASSISTANT_PROMPT_END, INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE,
+                         DEFAULT_STOP_SEQUENCES)
         SYS_PROMPT_START_MIXTRAL = """"""
         SYS_PROMPT_END_MIXTRAL = """\n\n"""
         USER_PROMPT_START_MIXTRAL = """[INST] """
@@ -94,8 +87,7 @@ class Hermes2ProMessageFormatter:
             "<|im_end|>",
             "<|im_start|>assistant",
             "<|im_start|>user",
-            "<|im_start|>system",
-            "<|im_start|>tool",
+            "<|im_start|>system"
         ]
         self.FUNCTION_PROMPT_START = "<|im_start|>tool\n"
         self.FUNCTION_PROMPT_END = "<|im_end|>\n"
@@ -221,21 +213,20 @@ class Hermes2ProMessageFormatter:
 class Hermes2ProAgent:
     def __init__(
         self,
-        model: (
-            Llama | LlamaLLMSettings | LlamaCppEndpointSettings | OpenAIEndpointSettings
-        ),
+        provider: LlmProvider,
         system_prompt: str = None,
         debug_output: bool = False,
     ):
         self.messages: list[ChatMessage] = []
-        self.agent = LlamaCppAgent(model, debug_output=debug_output)
+        self.messages_formatter = Hermes2ProMessageFormatter()
+        self.agent = LlamaCppAgent(provider, debug_output=debug_output, custom_messages_formatter=self.messages_formatter)
         self.debug_output = debug_output
         if system_prompt is not None:
             self.system_prompt = system_prompt
         else:
             self.system_prompt = "You are a function calling AI model. You are provided with function signatures within <tools></tools> XML tags. You may call one or more functions to assist with the user query. Don't make assumptions about what values to plug into functions.\nHere are the available tools:"
         self.messages.append(SystemMessage(content="system_prompt"))
-        self.messages_formatter = Hermes2ProMessageFormatter()
+
         self.sys_prompt_template = """{system_prompt} <tools> {tools} </tools>
 Use the following pydantic model json schema for each tool call you will make: {"properties": {"arguments": {"title": "Arguments", "type": "object"}, "name": {"title": "Name", "type": "string"}}, "required": ["arguments", "name"], "title": "FunctionCall", "type": "object"} 
 For each function call return a json object with function name and arguments within <tool_call></tool_call> XML tags as follows:
@@ -248,18 +239,14 @@ For each function call return a json object with function name and arguments wit
     def get_response(
         self,
         message=None,
-        tools: list[LlamaCppFunctionTool] = None,
-        temperature=0.7,
-        top_p=1.0,
+        structured_output_settings: LlmStructuredOutputSettings = None,
     ):
-        if tools is None:
-            tools = []
         if message is not None:
             msg = UserMessage(content=message)
             self.messages.append(msg)
         openai_tools = []
         openai_tool_mapping = {}
-        for tool in tools:
+        for tool in structured_output_settings.function_tools:
             openai_tools.append(tool.to_openai_tool())
             openai_tool_mapping[tool.model.__name__] = tool
 
@@ -274,10 +261,7 @@ For each function call return a json object with function name and arguments wit
             print(text)
         result = self.agent.get_text_response(
             text,
-            temperature=temperature,
-            top_p=top_p,
-            stop_sequences=self.messages_formatter.DEFAULT_STOP_SEQUENCES,
-            stream=self.debug_output,
+
             print_output=self.debug_output,
         )
 
@@ -317,7 +301,7 @@ For each function call return a json object with function name and arguments wit
                 AssistantMessage(content=result, tool_calls=tool_calls)
             )
             self.messages.extend(tool_messages)
-            return self.get_response(tools=tools)
+            return self.get_response(structured_output_settings=structured_output_settings)
         else:
             self.messages.append(AssistantMessage(content=result.strip()))
             return result.strip()

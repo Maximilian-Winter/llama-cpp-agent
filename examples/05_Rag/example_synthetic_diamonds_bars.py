@@ -2,6 +2,7 @@ import json
 
 from ragatouille.utils import get_wikipedia_page
 
+from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
 from typing import List
@@ -9,12 +10,9 @@ from typing import List
 from pydantic import BaseModel, Field
 
 from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import (
-    generate_gbnf_grammar_and_documentation,
-)
 
 from llama_cpp_agent.rag.rag_colbert_reranker import RAGColbertReranker
-from llama_cpp_agent.rag.text_utils import RecursiveCharacterTextSplitter
+from llama_cpp_agent.text_utils import RecursiveCharacterTextSplitter
 
 
 # Initialize the chromadb vector database with a colbert reranker.
@@ -67,21 +65,19 @@ class QueryExtension(BaseModel):
     """
     queries: List[str] = Field(default_factory=list, description="List of queries.")
 
-
-# Generate a grammar and documentation of the query extension model.
-grammar, docs = generate_gbnf_grammar_and_documentation([QueryExtension])
+output_settings = LlmStructuredOutputSettings.from_pydantic_models([QueryExtension], LlmStructuredOutputType.object_instance)
 
 # Define a query extension agent which will extend the query with additional queries.
 query_extension_agent = LlamaCppAgent(
     model,
     debug_output=True,
-    system_prompt="You are a world class query extension algorithm capable of extending queries by writing new queries. Do not answer the queries, simply provide a list of additional queries in JSON format. Structure your output according to the following model:\n\n" + docs.strip(),
+    system_prompt="You are a world class query extension algorithm capable of extending queries by writing new queries. Do not answer the queries, simply provide a list of additional queries in JSON format.",
     predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
 )
 
 # Perform the query extension with the agent.
 output = query_extension_agent.get_chat_response(
-    f"Consider the following query: {query}", grammar=grammar)
+    f"Consider the following query: {query}", structured_output_settings=output_settings)
 
 # Load the query extension in JSON format and create an instance of the query extension model.
 queries = QueryExtension.model_validate(json.loads(output))

@@ -8,9 +8,9 @@ from enum import Enum
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.mixtral_8x22b_agent import Mixtral8x22BAgent
 
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent.providers import LlamaCppServerProvider
 
-provider = TGIServerProvider("http://localhost:8080")
+provider = LlamaCppServerProvider("http://localhost:8080")
 
 
 def get_current_datetime(output_format: Optional[str] = None):
@@ -104,7 +104,7 @@ current_datetime_function_tool = LlamaCppFunctionTool(get_current_datetime)
 get_weather_function_tool = LlamaCppFunctionTool((open_ai_tool_definition, get_current_weather))
 
 
-agent = Mixtral8x22BAgent(model=provider)
+agent = Mixtral8x22BAgent(provider=provider)
 
 result = agent.get_response("Get the date and time in '%d-%m-%Y %H:%M' format.", tools=[current_datetime_function_tool])
 

@@ -276,7 +276,7 @@ class FunctionCallingAgent:
             structured_output_settings=self.structured_output_settings
             if structured_output_settings is None
             else structured_output_settings,
-            llm_samplings_settings=llm_sampling_settings,
+            llm_sampling_settings=llm_sampling_settings,
         )
         if without_grammar_mode:
             self.prompt_suffix = ""

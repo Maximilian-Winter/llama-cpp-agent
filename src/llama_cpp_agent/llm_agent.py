@@ -116,9 +116,9 @@ class LlamaCppAgent:
 
     def get_text_response(
             self,
-            prompt: str | list[int] = None,
+            prompt: str = None,
             structured_output_settings: LlmStructuredOutputSettings = None,
-            llm_samplings_settings: LlmSamplingSettings = None,
+            llm_sampling_settings: LlmSamplingSettings = None,
             streaming_callback: Callable[[StreamingResponse], None] = None,
             returns_streaming_generator: bool = False,
             print_output: bool = False,
@@ -132,9 +132,9 @@ class LlamaCppAgent:
         Get a text response from the LLM provider.
 
         Args:
-            prompt (str | list[int]): The prompt or tokenized prompt for the LLM.
+            prompt (str | list[int]): The prompt for the LLM.
             structured_output_settings (LlmStructuredOutputSettings): Settings for structured output.
-            llm_samplings_settings (LlmSamplingSettings): Sampling settings for the LLM.
+            llm_sampling_settings (LlmSamplingSettings): Sampling settings for the LLM.
             streaming_callback (Callable[[StreamingResponse], None]): Callback for streaming responses.
             returns_streaming_generator (bool): Whether to return a generator streaming the results.
             print_output (bool): Whether to print the output.
@@ -151,13 +151,13 @@ class LlamaCppAgent:
             structured_output_settings = LlmStructuredOutputSettings(
                 output_type=LlmStructuredOutputType.no_structured_output
             )
-        if llm_samplings_settings is None:
-            llm_samplings_settings = self.provider.get_provider_default_settings()
+        if llm_sampling_settings is None:
+            llm_sampling_settings = self.provider.get_provider_default_settings()
         else:
-            llm_samplings_settings = deepcopy(llm_samplings_settings)
+            llm_sampling_settings = deepcopy(llm_sampling_settings)
 
-        if llm_samplings_settings.get_additional_stop_sequences() is not None:
-            llm_samplings_settings.add_additional_stop_sequences(
+        if llm_sampling_settings.get_additional_stop_sequences() is not None:
+            llm_sampling_settings.add_additional_stop_sequences(
                 self.messages_formatter.DEFAULT_STOP_SEQUENCES
             )
 
@@ -165,7 +165,7 @@ class LlamaCppAgent:
             completion = self.get_text_completion(
                 prompt=prompt,
                 structured_output_settings=structured_output_settings,
-                llm_samplings_settings=llm_samplings_settings,
+                llm_samplings_settings=llm_sampling_settings,
             )
 
             def stream_results():
@@ -178,7 +178,7 @@ class LlamaCppAgent:
                     full_response_stream
                 )
 
-            if llm_samplings_settings.is_streaming():
+            if llm_sampling_settings.is_streaming():
                 full_response = ""
                 if returns_streaming_generator:
                     return stream_results()
@@ -223,7 +223,7 @@ class LlamaCppAgent:
             add_message_to_chat_history: bool = True,
             add_response_to_chat_history: bool = True,
             structured_output_settings: LlmStructuredOutputSettings = None,
-            llm_samplings_settings: LlmSamplingSettings = None,
+            llm_sampling_settings: LlmSamplingSettings = None,
             streaming_callback: Callable[[StreamingResponse], None] = None,
             returns_streaming_generator: bool = False,
             print_output: bool = False,
@@ -245,7 +245,7 @@ class LlamaCppAgent:
             add_message_to_chat_history (bool): Whether to add the input message to the chat history.
             add_response_to_chat_history (bool): Whether to add the generated response to the chat history.
             structured_output_settings (LlmStructuredOutputSettings): Settings for structured output.
-            llm_samplings_settings (LlmSamplingSettings): Sampling settings for the LLM.
+            llm_sampling_settings (LlmSamplingSettings): Sampling settings for the LLM.
             streaming_callback (Callable[[StreamingResponse], None]): Callback for streaming responses.
             returns_streaming_generator (bool): Whether to return a generator streaming the results.
             print_output (bool): Whether to print the generated response.
@@ -260,13 +260,13 @@ class LlamaCppAgent:
             structured_output_settings = LlmStructuredOutputSettings(
                 output_type=LlmStructuredOutputType.no_structured_output
             )
-        if llm_samplings_settings is None:
-            llm_samplings_settings = self.provider.get_provider_default_settings()
+        if llm_sampling_settings is None:
+            llm_sampling_settings = self.provider.get_provider_default_settings()
         else:
-            llm_samplings_settings = deepcopy(llm_samplings_settings)
+            llm_sampling_settings = deepcopy(llm_sampling_settings)
 
-        if llm_samplings_settings.get_additional_stop_sequences() is not None:
-            llm_samplings_settings.add_additional_stop_sequences(
+        if llm_sampling_settings.get_additional_stop_sequences() is not None:
+            llm_sampling_settings.add_additional_stop_sequences(
                 self.messages_formatter.DEFAULT_STOP_SEQUENCES
             )
 
@@ -278,7 +278,7 @@ class LlamaCppAgent:
             role=role,
             prompt_suffix=prompt_suffix,
             structured_output_settings=structured_output_settings,
-            llm_samplings_settings=llm_samplings_settings,
+            llm_sampling_settings=llm_sampling_settings,
         )
 
         def stream_results():
@@ -304,7 +304,7 @@ class LlamaCppAgent:
         if self.provider:
             if returns_streaming_generator:
                 return stream_results()
-            if llm_samplings_settings.is_streaming():
+            if llm_sampling_settings.is_streaming():
                 full_response = ""
                 for out in completion:
                     text = out["choices"][0]["text"]
@@ -374,7 +374,7 @@ class LlamaCppAgent:
             add_message_to_chat_history: bool = True,
             role: Literal["system", "user", "assistant", "tool"] = "user",
             prompt_suffix: str = None,
-            llm_samplings_settings: LlmSamplingSettings = None,
+            llm_sampling_settings: LlmSamplingSettings = None,
             structured_output_settings: LlmStructuredOutputSettings = None,
     ):
         if message is not None and add_message_to_chat_history:
@@ -434,7 +434,7 @@ class LlamaCppAgent:
             self.provider.create_completion(
                 prompt,
                 structured_output_settings,
-                llm_samplings_settings,
+                llm_sampling_settings,
                 self.messages_formatter.BOS_TOKEN,
             ),
             response_role,

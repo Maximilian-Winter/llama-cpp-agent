@@ -4,10 +4,10 @@ from typing import Union
 
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.function_calling_agent import FunctionCallingAgent
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.function_calling import LlamaCppFunctionTool
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent import FunctionCallingAgent
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent import LlamaCppFunctionTool
+from llama_cpp_agent.providers import TGIServerProvider
 
 # Set up the provider
 provider = TGIServerProvider("http://localhost:8080")

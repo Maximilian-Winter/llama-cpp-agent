@@ -2,14 +2,13 @@
 from typing import List, Any
 
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
+from llama_cpp_agent import MessagesFormatterType
 
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.output_parser import extract_object_from_response
+from llama_cpp_agent import LlamaCppAgent
 
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent.providers import TGIServerProvider
 
 provider = TGIServerProvider("http://localhost:8080")
 
@@ -70,7 +69,7 @@ def dataframe(data: str):
     parameters = provider.get_provider_default_settings()
     parameters.do_sample = True
     parameters.temperature = 0.65
-    response = llama_cpp_agent.get_chat_response(message=prompt, structured_output_settings=output_settings)
+    response = llama_cpp_agent.get_chat_response(message=prompt, llm_sampling_settings=parameters, structured_output_settings=output_settings)
     return response
 
 

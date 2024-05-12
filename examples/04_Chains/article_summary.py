@@ -1,10 +1,10 @@
 # Example: Article Summary and Social Media Post
-from llama_cpp_agent.chain import AgentChainElement, AgentChain
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent import AgentChainElement, AgentChain
+from llama_cpp_agent import LlamaCppAgent
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent.providers import LlamaCppServerProvider
 
-provider = TGIServerProvider("http://localhost:8080")
+provider = LlamaCppServerProvider("http://localhost:8080")
 
 agent = LlamaCppAgent(
     provider,
@@ -18,6 +18,7 @@ article_summary = AgentChainElement(
     system_prompt="You are an article summarization assistant",
     prompt="Summarize the key points of the following article in 3-4 sentences:\n--\n{article_text}"
 )
+
 
 social_media_post = AgentChainElement(
     output_identifier="out_1",

@@ -1,8 +1,8 @@
 from llama_cpp import Llama
 
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_python import LlamaCppPythonProvider
+from llama_cpp_agent import LlamaCppAgent
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent.providers import LlamaCppPythonProvider
 
 
 llama_model = Llama(r"C:\AI\Agents\gguf-models\mistral-7b-instruct-v0.2.Q6_K.gguf", n_batch=1024, n_threads=10,
@@ -21,5 +21,5 @@ while True:
     user_input = input(">")
     if user_input == "exit":
         break
-    agent_output = agent.get_chat_response(user_input, llm_samplings_settings=settings)
+    agent_output = agent.get_chat_response(user_input, llm_sampling_settings=settings)
     print(f"Agent: {agent_output.strip()}")

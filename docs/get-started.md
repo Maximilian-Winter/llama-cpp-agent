@@ -129,7 +129,7 @@ settings = provider.get_provider_default_settings()
 
 settings.temperature = 0.65
 
-agent_output = agent.get_chat_response("Hello, World!", llm_samplings_settings=settings)
+agent_output = agent.get_chat_response("Hello, World!", llm_sampling_settings=settings)
 print(f"Agent: {agent_output.strip()}")
 ```
 

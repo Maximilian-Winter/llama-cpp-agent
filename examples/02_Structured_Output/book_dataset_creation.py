@@ -4,7 +4,7 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.llm_agent import LlamaCppAgent
+from llama_cpp_agent import LlamaCppAgent
 
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 from llama_cpp_agent.providers.tgi_server import TGIServerProvider

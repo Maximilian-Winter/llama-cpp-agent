@@ -3,11 +3,11 @@ from typing import Union
 
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.function_calling import LlamaCppFunctionTool
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent import LlamaCppAgent
+from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent import LlamaCppFunctionTool
+from llama_cpp_agent.providers import TGIServerProvider
 
 provider = TGIServerProvider("http://localhost:8080")
 

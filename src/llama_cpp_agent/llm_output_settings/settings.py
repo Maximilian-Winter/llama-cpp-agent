@@ -598,7 +598,7 @@ class LlmStructuredOutputSettings(BaseModel):
             function_call = function_call_response
             if function_call is None:
                 return "Error: Invalid function call response."
-            if not self.output_type.parallel_function_calling:
+            if not self.output_type == LlmStructuredOutputType.parallel_function_calling:
                 output = self.intern_function_call(function_call)
             else:
                 output = self.intern_parallel_function_call(function_call)
@@ -620,7 +620,7 @@ class LlmStructuredOutputSettings(BaseModel):
         if self.function_calling_content in function_call:
             function_tool = None
             for tool in self.function_tools:
-                if tool == function_call[self.function_calling_name_field_name]:
+                if tool.model.__name__ == function_call[self.function_calling_name_field_name]:
                     function_tool = tool
                     break
             if function_tool is not None:

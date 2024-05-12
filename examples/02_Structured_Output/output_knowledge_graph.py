@@ -1,19 +1,12 @@
-# Based on an example of the Instructor library for OpenAI
-
-
-import json
 from typing import List
 
 from graphviz import Digraph
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import (
-    generate_gbnf_grammar_and_documentation,
-)
-from llama_cpp_agent.llm_agent import LlamaCppAgent
+from llama_cpp_agent import LlamaCppAgent
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.tgi_server import TGIServerProvider
+from llama_cpp_agent import MessagesFormatterType
+from llama_cpp_agent.providers import TGIServerProvider
 
 provider = TGIServerProvider("http://localhost:8080")
 

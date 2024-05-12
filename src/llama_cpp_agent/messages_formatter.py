@@ -127,12 +127,12 @@ FUNCTION_PROMPT_START_OPEN_CHAT = """"""
 FUNCTION_PROMPT_END_OPEN_CHAT = """"""
 DEFAULT_OPEN_CHAT_STOP_SEQUENCES = ["<|end_of_turn|>"]
 
-SYS_PROMPT_START_PHI_3 = """<|system|>\n"""
-SYS_PROMPT_END_PHI_3 = """<|endoftext|>\n"""
-USER_PROMPT_START_PHI_3 = """<|user|>\n"""
-USER_PROMPT_END_PHI_3 = """<|endoftext|>\n"""
-ASSISTANT_PROMPT_START_PHI_3 = """<|assistant|>\n"""
-ASSISTANT_PROMPT_END_PHI_3 = """<|endoftext|>\n"""
+SYS_PROMPT_START_PHI_3 = """"""
+SYS_PROMPT_END_PHI_3 = """\n\n"""
+USER_PROMPT_START_PHI_3 = """<|user|>"""
+USER_PROMPT_END_PHI_3 = """<|end|>\n"""
+ASSISTANT_PROMPT_START_PHI_3 = """<|assistant|>"""
+ASSISTANT_PROMPT_END_PHI_3 = """<|end|>\n"""
 FUNCTION_PROMPT_START_PHI_3 = """"""
 FUNCTION_PROMPT_END_PHI_3 = """"""
 DEFAULT_PHI_3_STOP_SEQUENCES = ["<|end|>", "<|end_of_turn|>"]
@@ -546,11 +546,11 @@ phi_3_chat_formatter = MessagesFormatter(
     USER_PROMPT_END_PHI_3,
     ASSISTANT_PROMPT_START_PHI_3,
     ASSISTANT_PROMPT_END_PHI_3,
-    False,
+    True,
     DEFAULT_PHI_3_STOP_SEQUENCES,
     True,
     FUNCTION_PROMPT_START_PHI_3,
-    FUNCTION_PROMPT_END_PHI_3
+    FUNCTION_PROMPT_END_PHI_3,
 )
 
 predefined_formatter = {

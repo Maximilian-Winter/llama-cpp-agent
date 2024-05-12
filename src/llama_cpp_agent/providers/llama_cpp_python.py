@@ -126,6 +126,9 @@ class LlamaCppPythonProvider(LlmProvider):
         self.llama_model = llama_model
         self.grammar_cache = {}
 
+    def is_using_json_schema_constraints(self):
+        return False
+
     def get_provider_identifier(self) -> LlmProviderId:
         return LlmProviderId.llama_cpp_python
 

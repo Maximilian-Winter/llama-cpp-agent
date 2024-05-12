@@ -6,7 +6,7 @@ SYS_PROMPT_START_MIXTRAL = """"""
 SYS_PROMPT_END_MIXTRAL = """\n\n"""
 USER_PROMPT_START_MIXTRAL = """[INST] """
 USER_PROMPT_END_MIXTRAL = """ """
-ASSISTANT_PROMPT_START_MIXTRAL = """[/INST] """
+ASSISTANT_PROMPT_START_MIXTRAL = """[/INST]"""
 ASSISTANT_PROMPT_END_MIXTRAL = """</s>"""
 FUNCTION_PROMPT_START_MIXTRAL = """"""
 FUNCTION_PROMPT_END_MIXTRAL = """"""
@@ -179,6 +179,7 @@ class MessagesFormatter:
         FUNCTION_PROMPT_END: str = "",
         STRIP_PROMPT: bool = True,
         BOS_TOKEN: str = "<s>",
+        EOS_TOKEN: str = "</s>"
     ):
         """
         Initializes a new MessagesFormatter object.
@@ -214,7 +215,7 @@ class MessagesFormatter:
         self.USE_USER_ROLE_FUNCTION_CALL_RESULT = USE_USER_ROLE_FUNCTION_CALL_RESULT
         self.STRIP_PROMPT = STRIP_PROMPT
         self.BOS_TOKEN = BOS_TOKEN
-
+        self.EOS_TOKEN = EOS_TOKEN
     def get_bos_token(self):
         return self.BOS_TOKEN
 
@@ -265,7 +266,7 @@ class MessagesFormatter:
                     + self.ASSISTANT_PROMPT_END
                 )
                 last_role = "assistant"
-            elif message["role"] == "function":
+            elif message["role"] == "tool":
                 if isinstance(message["content"], list):
                     message["content"] = "\n".join(
                         [json.dumps(m, indent=2) for m in message["content"]]
@@ -283,8 +284,8 @@ class MessagesFormatter:
                         + message["content"]
                         + self.FUNCTION_PROMPT_END
                     )
-                    last_role = "function"
-        if last_role == "system" or last_role == "user" or last_role == "function":
+                    last_role = "tool"
+        if last_role == "system" or last_role == "user" or last_role == "tool":
             if self.STRIP_PROMPT:
                 if response_role is not None:
                     if response_role == "assistant":

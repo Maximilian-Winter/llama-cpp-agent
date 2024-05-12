@@ -82,6 +82,9 @@ class VLLMServerProvider(LlmProvider):
         )
         self.model = model
 
+    def is_using_json_schema_constraints(self):
+        return True
+
     def get_provider_identifier(self) -> LlmProviderId:
         return LlmProviderId.tgi_server
 
@@ -147,8 +150,7 @@ class VLLMServerProvider(LlmProvider):
         self,
         messages: List[Dict[str, str]],
         structured_output_settings: LlmStructuredOutputSettings,
-        settings: VLLMServerSamplingSettings,
-        bos_token: str,
+        settings: VLLMServerSamplingSettings
     ):
         grammar = None
         if (

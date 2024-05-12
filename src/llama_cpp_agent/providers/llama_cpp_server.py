@@ -162,6 +162,9 @@ class LlamaCppServerProvider(LlmProvider):
         self.api_key = api_key
         self.llama_cpp_python_server = llama_cpp_python_server
 
+    def is_using_json_schema_constraints(self):
+        return False
+
     def get_provider_identifier(self) -> LlmProviderId:
         return LlmProviderId.llama_cpp_server
 

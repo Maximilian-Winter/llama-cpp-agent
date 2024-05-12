@@ -18,5 +18,5 @@ while True:
     user_input = input(">")
     if user_input == "exit":
         break
-    agent_output = agent.get_chat_response(user_input, print_output=False)
+    agent_output = agent.get_chat_response(user_input, llm_samplings_settings=settings)
     print(f"Agent: {agent_output.strip()}")

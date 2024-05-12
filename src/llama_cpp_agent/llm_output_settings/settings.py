@@ -64,7 +64,7 @@ class LlmStructuredOutputSettings(BaseModel):
     function_tools: Optional[List[LlamaCppFunctionTool]] = Field(
         None, description="List of functions tools for function calling"
     )
-    pydantic_models: Optional[List[BaseModel]] = Field(
+    pydantic_models: Optional[List[type[BaseModel]]] = Field(
         None, description="List of pydantic models for structured output"
     )
     add_thoughts_and_reasoning_field: Optional[bool] = Field(
@@ -126,7 +126,7 @@ class LlmStructuredOutputSettings(BaseModel):
 
     @staticmethod
     def from_pydantic_models(
-        models: List[BaseModel], output_type: LlmStructuredOutputType
+        models: List[type[BaseModel]], output_type: LlmStructuredOutputType
     ):
         """
         Create settings from a list of Pydantic models with a specific output type.
@@ -382,25 +382,25 @@ class LlmStructuredOutputSettings(BaseModel):
         elif self.output_type == LlmStructuredOutputType.object_instance:
             return generate_text_documentation(
                 self.pydantic_models, ordered_json_mode=json_schema_mode
-            )
+            ).strip()
         elif self.output_type == LlmStructuredOutputType.list_of_objects:
             return generate_text_documentation(
                 self.pydantic_models, ordered_json_mode=json_schema_mode
-            )
+            ).strip()
         elif self.output_type == LlmStructuredOutputType.function_calling:
             return generate_text_documentation(
                 [tool.model for tool in self.function_tools],
                 model_prefix="Function",
                 fields_prefix="Parameters",
                 ordered_json_mode=json_schema_mode,
-            )
+            ).strip()
         elif self.output_type == LlmStructuredOutputType.parallel_function_calling:
             return generate_text_documentation(
                 [tool.model for tool in self.function_tools],
                 model_prefix="Function",
                 fields_prefix="Parameters",
                 ordered_json_mode=json_schema_mode,
-            )
+            ).strip()
 
     def get_gbnf_grammar(self):
         """
@@ -618,10 +618,12 @@ class LlmStructuredOutputSettings(BaseModel):
             str: The output of the function call or an error message.
         """
         if self.function_calling_content in function_call:
-            function_tool = self.function_tools[
-                function_call[self.function_calling_content]
-            ]
-            if self.function_calling_content in function_call:
+            function_tool = None
+            for tool in self.function_tools:
+                if tool == function_call[self.function_calling_name_field_name]:
+                    function_tool = tool
+                    break
+            if function_tool is not None:
                 cls = function_tool.model
                 call_parameters = function_call[self.function_calling_content]
                 call = cls(**call_parameters)
@@ -647,23 +649,26 @@ class LlmStructuredOutputSettings(BaseModel):
         result = []
         for function_call in function_calls:
             if self.function_calling_content in function_call:
-                function_tool = self.function_tools[
-                    function_call[self.function_calling_content]
-                ]
-                try:
-                    cls = function_tool.model
-                    call_parameters = function_call[self.function_calling_content]
-                    call = cls(**call_parameters)
-                    output = call.run(**function_tool.additional_parameters)
-                    result.append(
-                        {
-                            self.function_calling_name_field_name: function_tool.model.__name__,
-                            self.function_calling_content: call_parameters,
-                            "return_value": output,
-                        }
-                    )
-                except AttributeError as e:
-                    return f"Error: {e}"
+                function_tool = None
+                for tool in self.function_tools:
+                    if tool.model.__name__ == function_call[self.function_calling_name_field_name]:
+                        function_tool = tool
+                        break
+                if function_tool is not None:
+                    try:
+                        cls = function_tool.model
+                        call_parameters = function_call[self.function_calling_content]
+                        call = cls(**call_parameters)
+                        output = call.run(**function_tool.additional_parameters)
+                        result.append(
+                            {
+                                self.function_calling_name_field_name: function_tool.model.__name__,
+                                self.function_calling_content: call_parameters,
+                                "return_value": output,
+                            }
+                        )
+                    except AttributeError as e:
+                        return f"Error: {e}"
 
         return result
 

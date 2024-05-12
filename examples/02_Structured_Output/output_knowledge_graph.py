@@ -40,8 +40,7 @@ output_settings = LlmStructuredOutputSettings.from_pydantic_models([KnowledgeGra
 agent = LlamaCppAgent(
     provider,
     debug_output=True,
-    system_prompt="You are an advanced AI assistant responding in JSON format.\n\nAvailable JSON response models:\n\n"
-    + output_settings.get_llm_documentation(provider=provider),
+    system_prompt="You are an advanced AI assistant responding in JSON format.",
     predefined_messages_formatter_type=MessagesFormatterType.CHATML,
 )
 

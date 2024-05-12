@@ -26,7 +26,7 @@ output_settings = LlmStructuredOutputSettings.from_functions([calculate_a_to_the
 llama_cpp_agent = LlamaCppAgent(
     provider,
     debug_output=True,
-    system_prompt=f"You are an advanced AI, tasked to assist the user by calling functions in JSON format. The following are the available functions and their parameters and types:\n\n{output_settings.get_llm_documentation(provider)}",
+    system_prompt=f"You are an advanced AI, tasked to assist the user by calling functions in JSON format.",
     predefined_messages_formatter_type=MessagesFormatterType.CHATML,
 )
 

@@ -15,10 +15,31 @@ class ChatHistory(ABC):
     def add_message(self, message: Dict[str, str]):
         pass
 
+    @abstractmethod
+    def get_messages_count(self):
+        pass
+
+    @abstractmethod
+    def edit_message(self, index: int, edited_message: Dict[str, str]):
+        pass
+
+    @abstractmethod
+    def get_message(self, index) -> Dict[str, str]:
+        pass
+
 
 class ChatMessageStore(ABC):
+
+    @abstractmethod
+    def get_messages_count(self):
+        pass
+
     @abstractmethod
     def add_message(self, message: ChatMessage):
+        pass
+
+    @abstractmethod
+    def edit_message(self, index: int, edited_message: ChatMessage):
         pass
 
     @abstractmethod
@@ -38,11 +59,11 @@ class ChatMessageStore(ABC):
         pass
 
     @abstractmethod
-    def remove_last_k_message(self, k: int):
+    def remove_last_k_messages(self, k: int):
         pass
 
     @abstractmethod
-    def get_message(self, k: int) -> ChatMessage:
+    def get_message(self, index: int) -> ChatMessage:
         pass
 
     @abstractmethod

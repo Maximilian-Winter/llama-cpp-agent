@@ -61,17 +61,15 @@ output_settings = LlmStructuredOutputSettings.from_pydantic_models([Database],
                                                                    output_type=LlmStructuredOutputType.object_instance)
 
 llama_cpp_agent = LlamaCppAgent(provider, debug_output=True,
-                                system_prompt="""You are an advanced AI assistant, responding in JSON format.
-
-Available JSON response models:\n\n""" + output_settings.get_llm_documentation(provider).strip(),
+                                system_prompt="""You are an advanced AI assistant, responding in JSON format.""",
                                 predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
 
-def dataframe(data: str) -> Database:
+def dataframe(data: str):
     prompt = data
     parameters = provider.get_provider_default_settings()
     parameters.do_sample = True
-    parameters.temperature = 0.1
+    parameters.temperature = 0.65
     response = llama_cpp_agent.get_chat_response(message=prompt, structured_output_settings=output_settings)
     return response
 

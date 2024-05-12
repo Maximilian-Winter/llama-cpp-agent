@@ -8,7 +8,6 @@ from pydantic import BaseModel
 from .llm_agent import LlamaCppAgent, StreamingResponse
 from .llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 from .llm_prompt_template import PromptTemplate
-from .llm_settings import LlamaLLMGenerationSettings, LlamaLLMSettings
 from .output_parser import extract_object_from_response
 from .messages_formatter import MessagesFormatterType, MessagesFormatter
 
@@ -101,52 +100,6 @@ class StructuredOutputAgent:
                 "custom_messages_formatter"
             ] = self.llama_cpp_agent.messages_formatter.as_dict()
             json.dump(dic, file, indent=4)
-
-    @staticmethod
-    def load_from_file(
-        file_path: str,
-        llama_llm: Union[Llama, LlamaLLMSettings],
-        streaming_callback: Callable[[StreamingResponse], None] = None,
-    ) -> "StructuredOutputAgent":
-        """
-        Load the agent's state from a file.
-
-        Args:
-            file_path (str): The path to the file.
-            llama_llm (Union[Llama, LlamaLLMSettings, LlamaCppEndpointSettings]): An instance of Llama, LlamaLLMSettings, or LlamaCppServerLLMSettings as LLM.
-            streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
-
-        Returns:
-            StructuredOutputAgent: The loaded StructuredOutputAgent instance.
-        """
-        with open(file_path, "r", encoding="utf-8") as file:
-            loaded_agent = json.load(file)
-            loaded_agent["llama_llm"] = llama_llm
-            loaded_agent["streaming_callback"] = streaming_callback
-            loaded_agent[
-                "llama_generation_settings"
-            ] = LlamaLLMGenerationSettings.load_from_dict(
-                loaded_agent["llama_generation_settings"]
-            )
-            loaded_agent[
-                "custom_messages_formatter"
-            ] = MessagesFormatter.load_from_dict(
-                loaded_agent["custom_messages_formatter"]
-            )
-            return StructuredOutputAgent(**loaded_agent)
-
-    @staticmethod
-    def load_from_dict(agent_dict: dict) -> "StructuredOutputAgent":
-        """
-        Load the agent's state from a dictionary.
-
-        Args:
-            agent_dict (dict): The dictionary containing the agent's state.
-
-        Returns:
-            StructuredOutputAgent: The loaded StructuredOutputAgent instance.
-        """
-        return StructuredOutputAgent(**agent_dict)
 
     def as_dict(self) -> dict:
         """

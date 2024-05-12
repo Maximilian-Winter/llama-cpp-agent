@@ -11,7 +11,7 @@ from llama_cpp_agent.chat_history.messages import (
     AssistantMessage,
     SystemMessage,
     Roles,
-    convert_messages_to_list_of_dictionaries,
+    convert_messages_to_list_of_dictionaries, ToolMessage, generate_function_call_id,
 )
 from llama_cpp_agent.providers.provider_base import LlmProvider
 
@@ -22,8 +22,14 @@ class BasicChatMessageStore(ChatMessageStore):
             messages = []
         self.messages: List[ChatMessage] = messages
 
+    def get_messages_count(self):
+        return len(self.messages)
+
     def add_message(self, message: ChatMessage):
         self.messages.append(message)
+
+    def edit_message(self, index: int, edited_message: ChatMessage):
+        self.messages[index] = edited_message
 
     def add_user_message(self, message: str):
         self.messages.append(UserMessage(role=Roles.user, content=message))
@@ -37,11 +43,11 @@ class BasicChatMessageStore(ChatMessageStore):
     def remove_last_message(self):
         self.messages = self.messages[:-1]
 
-    def remove_last_k_message(self, k: int):
+    def remove_last_k_messages(self, k: int):
         self.messages = self.messages[:-k]
 
-    def get_message(self, k: int) -> ChatMessage:
-        return self.messages[k]
+    def get_message(self, index: int) -> ChatMessage:
+        return self.messages[index]
 
     def get_last_message(self) -> ChatMessage:
         return self.messages[-1]
@@ -78,12 +84,14 @@ class BasicChatHistoryStrategy(Enum):
 
 
 class BasicChatHistory(ChatHistory):
+
+
     def __init__(
-        self,
-        chat_history_strategy: BasicChatHistoryStrategy = BasicChatHistoryStrategy.last_k_messages,
-        k: int = 10,
-        llm_provider: LlmProvider = None,
-        message_store: ChatMessageStore = None,
+            self,
+            chat_history_strategy: BasicChatHistoryStrategy = BasicChatHistoryStrategy.last_k_messages,
+            k: int = 10,
+            llm_provider: LlmProvider = None,
+            message_store: ChatMessageStore = None,
     ):
         if message_store is None:
             message_store = BasicChatMessageStore()
@@ -92,8 +100,8 @@ class BasicChatHistory(ChatHistory):
         self.strategy = chat_history_strategy
         self.llm_provider = llm_provider
         if (
-            chat_history_strategy == BasicChatHistoryStrategy.last_k_tokens
-            and llm_provider is None
+                chat_history_strategy == BasicChatHistoryStrategy.last_k_tokens
+                and llm_provider is None
         ):
             raise Exception(
                 "Please pass a LLM provider to BasicChatHistory when using last k tokens as memory strategy!"
@@ -130,6 +138,40 @@ class BasicChatHistory(ChatHistory):
         return []
 
     def add_message(self, message: Dict[str, str]):
-        self.message_store.add_message(
-            ChatMessage(role=message["role"], content=message["content"])
-        )
+        if message["role"] == "system":
+            self.message_store.add_message(
+                SystemMessage(content=message["content"])
+            )
+        elif message["role"] == "user":
+            self.message_store.add_message(
+                UserMessage(content=message["content"])
+            )
+        elif message["role"] == "assistant":
+            self.message_store.add_message(
+                AssistantMessage(content=message["content"])
+            )
+        elif message["role"] == "tool":
+            self.message_store.add_message(
+                ToolMessage(tool_call_id=generate_function_call_id(), content=message["content"])
+            )
+
+    def get_messages_count(self):
+        return self.message_store.get_messages_count()
+
+    def edit_message(self, index: int, message: Dict[str, str]):
+        if message["role"] == "system":
+            self.message_store.edit_message(index,
+                                            SystemMessage(content=message["content"])
+                                            )
+        elif message["role"] == "user":
+            self.message_store.edit_message(index,
+                                            UserMessage(content=message["content"])
+                                            )
+        elif message["role"] == "assistant":
+            self.message_store.edit_message(index,
+                                            AssistantMessage(content=message["content"])
+                                            )
+
+    def get_message(self, index) -> Dict[str, str]:
+        message = self.message_store.get_message(index)
+        return {"role": message.role, "content": message.content}

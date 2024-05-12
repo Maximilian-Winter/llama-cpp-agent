@@ -121,6 +121,10 @@ class LlmProvider(ABC):
     """
 
     @abstractmethod
+    def is_using_json_schema_constraints(self):
+        pass
+
+    @abstractmethod
     def get_provider_identifier(self) -> LlmProviderId:
         """
         Returns the provider identifier.
@@ -167,8 +171,7 @@ class LlmProvider(ABC):
         self,
         messages: List[Dict[str, str]],
         structured_output_settings: LlmStructuredOutputSettings,
-        settings: LlmSamplingSettings,
-        bos_token: str,
+        settings: LlmSamplingSettings
     ):
         """
         Create a chat completion request with the LLM provider and returns the result.

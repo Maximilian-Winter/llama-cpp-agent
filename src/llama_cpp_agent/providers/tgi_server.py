@@ -88,6 +88,8 @@ class TGIServerSamplingSettings(LlmSamplingSettings):
 
 
 class TGIServerProvider(LlmProvider):
+
+
     def __init__(self, server_address: str, api_key: str = None):
         self.server_address = server_address
         self.server_completion_endpoint = self.server_address + "/generate"
@@ -100,6 +102,8 @@ class TGIServerProvider(LlmProvider):
         self.server_tokenize_endpoint = self.server_address + "/tokenize"
         self.api_key = api_key
 
+    def is_using_json_schema_constraints(self):
+        return True
     def get_provider_identifier(self) -> LlmProviderId:
         return LlmProviderId.tgi_server
 
@@ -123,7 +127,7 @@ class TGIServerProvider(LlmProvider):
 
         settings_dict = copy(settings.as_dict())
 
-        data = {"parameters": settings_dict, "inputs": bos_token + prompt}
+        data = {"parameters": settings_dict, "inputs": prompt}
         grammar = None
         if (
             structured_output_settings.output_type
@@ -150,8 +154,7 @@ class TGIServerProvider(LlmProvider):
         self,
         messages: List[Dict[str, str]],
         structured_output_settings: LlmStructuredOutputSettings,
-        settings: TGIServerSamplingSettings,
-        bos_token: str,
+        settings: TGIServerSamplingSettings
     ):
         if self.api_key is not None:
             headers = {
@@ -160,7 +163,6 @@ class TGIServerProvider(LlmProvider):
             }
         else:
             headers = {"Content-Type": "application/json"}
-        messages[0]["content"] = bos_token + messages[0]["content"]
         data = copy(settings.as_dict())
         data["messages"] = messages
         data["model"] = "tgi"

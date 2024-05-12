@@ -206,7 +206,7 @@ def format_json_example(example: dict[str, Any], depth: int) -> str:
 
 def generate_text_documentation(
     pydantic_models: list[BaseModel],
-    model_prefix="Model",
+    model_prefix="Output Model",
     fields_prefix="Fields",
     documentation_with_field_description=True,
     ordered_json_mode=False,

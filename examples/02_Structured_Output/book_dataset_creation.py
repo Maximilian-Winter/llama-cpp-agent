@@ -41,11 +41,10 @@ class Book(BaseModel):
 output_settings = LlmStructuredOutputSettings.from_pydantic_models([Book],
                                                                    output_type=LlmStructuredOutputType.list_of_objects)
 
-# We are creating the agent with a custom system prompt including information about the dataset entry and its structure.
+# We are creating the agent with a custom system prompt, the information about the structure of our pydantic model gets added automatically to the system prompt.
 llama_cpp_agent = LlamaCppAgent(
     provider,
-    system_prompt="You are an advanced AI, tasked to create JSON database entries for books.\n\n\n" + output_settings.get_llm_documentation(
-        provider),
+    system_prompt="You are an advanced AI, tasked to create JSON database entries for books.",
 )
 
 # We define the input information for the agent.

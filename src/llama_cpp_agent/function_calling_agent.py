@@ -8,7 +8,7 @@ from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
 from .llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
-from .llm_settings import LlamaLLMGenerationSettings, LlamaLLMSettings
+
 from .llm_agent import LlamaCppAgent, StreamingResponse
 from .messages_formatter import MessagesFormatterType, MessagesFormatter
 from .function_calling import LlamaCppFunctionTool
@@ -143,8 +143,7 @@ class FunctionCallingAgent:
         Initialize the FunctionCallingAgent.
 
         Args:
-            llama_llm (Llama | LlamaLLMSettings | LlamaCppEndpointSettings | OpenAIEndpointSettings): An instance of Llama, LlamaLLMSettings, LlamaCppEndpointSettings or LlamaCppServerLLMSettings as LLM.
-            llama_generation_settings (LlamaLLMGenerationSettings | LlamaCppGenerationSettings | OpenAIGenerationSettings): Generation settings for Llama.
+            llama_llm (LlmProvider): The LLM Provider.
             messages_formatter_type (MessagesFormatterType): Type of messages formatter.
             custom_messages_formatter (MessagesFormatter): Optional Custom messages formatter.
             streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
@@ -184,30 +183,11 @@ class FunctionCallingAgent:
         if system_prompt is not None:
             self.system_prompt = system_prompt
         else:
-            # You can also request to return control back to you after a function call is executed by setting the 'return_control' flag in a function call object.
-            self.system_prompt = (
-                """"You are Funky, an AI assistant that calls functions to perform tasks.
-
-To call functions, you respond with a JSON object containing three fields:
-"thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
-"function": The name of the function you want to call.
-"parameters": The arguments required for the function.
-
-After performing a function call, you will receive a response containing the return values of the function calls. Only you will see the return values of functions after you call them.
-
-### Functions:
-Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
-Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
-
-"""
-                + self.structured_output_settings.get_llm_documentation(
-                    llama_llm
-                ).strip()
-            )
+            self.system_prompt = """You are Funky, an AI assistant that calls functions to perform tasks."""
         self.llama_cpp_agent = LlamaCppAgent(
             llama_llm,
             debug_output=debug_output,
-            system_prompt="",
+            system_prompt=self.system_prompt,
             predefined_messages_formatter_type=messages_formatter_type,
             custom_messages_formatter=custom_messages_formatter,
         )
@@ -215,81 +195,6 @@ Choose the appropriate function based on the task you want to perform. Provide y
         self.k_last_messages_from_chat_history = k_last_messages_from_chat_history
         self.streaming_callback = streaming_callback
 
-    def save(self, file_path: str):
-        """
-        Save the agent's state to a file.
-
-        Args:
-            file_path (str): The path to the file.
-        """
-        with open(file_path, "w", encoding="utf-8") as file:
-            dic = copy(self.as_dict())
-            del dic["llama_cpp_agent"]
-            del dic["streaming_callback"]
-            del dic["tool_registry"]
-            del dic["llama_cpp_tools"]
-            del dic["send_message_to_user_callback"]
-            del dic["without_grammar_mode_function"]
-            dic["debug_output"] = self.llama_cpp_agent.debug_output
-            dic["messages"] = self.llama_cpp_agent.messages
-            dic["llama_generation_settings"] = self.llama_generation_settings.as_dict()
-            dic[
-                "custom_messages_formatter"
-            ] = self.llama_cpp_agent.messages_formatter.as_dict()
-            json.dump(dic, file, indent=4)
-
-    @staticmethod
-    def load_from_file(
-        file_path: str,
-        llama_llm: Union[Llama, LlamaLLMSettings],
-        open_ai_functions: (List[dict], List[Callable]) = None,
-        python_functions: List[Callable] = None,
-        pydantic_functions: List[Type[BaseModel]] = None,
-        send_message_to_user_callback: Callable[[str], None] = None,
-        streaming_callback: Callable[[StreamingResponse], None] = None,
-    ) -> "FunctionCallingAgent":
-        """
-        Load the agent's state from a file.
-
-        Args:
-            file_path (str): The path to the file.
-            llama_llm: LLM to use
-            open_ai_functions (Tuple[List[dict], List[Callable]]): OpenAI function definitions, and a list of the actual functions as tuple.
-            python_functions (List[Callable]): Python functions for interaction.
-            pydantic_functions (List[Type[BaseModel]]): Pydantic models representing functions.
-            send_message_to_user_callback (Callable[[str], None]): Callback for sending a message to the user.
-            streaming_callback (Callable[[StreamingResponse], None]): Callback function for streaming responses.
-
-        Returns:
-            FunctionCallingAgent: The loaded FunctionCallingAgent instance.
-        """
-
-        with open(file_path, "r", encoding="utf-8") as file:
-            loaded_agent = json.load(file)
-            loaded_agent["llama_llm"] = llama_llm
-            loaded_agent["streaming_callback"] = streaming_callback
-            loaded_agent["python_functions"] = python_functions
-            loaded_agent["pydantic_functions"] = pydantic_functions
-            loaded_agent["open_ai_functions"] = open_ai_functions
-            messages = copy(loaded_agent["messages"])
-            del loaded_agent["messages"]
-            loaded_agent[
-                "send_message_to_user_callback"
-            ] = send_message_to_user_callback
-            loaded_agent[
-                "llama_generation_settings"
-            ] = LlamaLLMGenerationSettings.load_from_dict(
-                loaded_agent["llama_generation_settings"]
-            )
-            loaded_agent[
-                "custom_messages_formatter"
-            ] = MessagesFormatter.load_from_dict(
-                loaded_agent["custom_messages_formatter"]
-            )
-            agent = FunctionCallingAgent(**loaded_agent)
-
-            agent.llama_cpp_agent.messages = messages
-            return agent
 
     @staticmethod
     def load_from_dict(agent_dict: dict) -> "FunctionCallingAgent":
@@ -348,7 +253,7 @@ Choose the appropriate function based on the task you want to perform. Provide y
                     else:
                         function_message += f"{count}. " + res + "\n\n"
                 self.llama_cpp_agent.add_message(
-                    role="function", message=function_message.strip()
+                    role="tool", message=function_message.strip()
                 )
                 if agent_sent_message:
                     break
@@ -367,7 +272,6 @@ Choose the appropriate function based on the task you want to perform. Provide y
             without_grammar_mode = True
             self.without_grammar_mode = False
         result = self.llama_cpp_agent.get_chat_response(
-            system_prompt=self.system_prompt,
             streaming_callback=self.streaming_callback,
             structured_output_settings=self.structured_output_settings
             if structured_output_settings is None

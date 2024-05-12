@@ -52,7 +52,7 @@ pip install llama-cpp-agent
 You can find the latest documentation [here!](https://llama-cpp-agent.readthedocs.io/en/latest/)
 
 ## Getting Started
-You can find the get started guide [here!](https://llama-cpp-agent.readthedocs.io/en/latest/)
+You can find the get started guide [here!](https://llama-cpp-agent.readthedocs.io/en/latest/get-started/)
 
 ## Discord Community
 Join the Discord Community [here](https://discord.gg/6tGznupZGX)

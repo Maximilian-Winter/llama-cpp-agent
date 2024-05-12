@@ -45,7 +45,7 @@ class Event(Base):
             "event_type": self.event_type.value,
             "timestamp": self.timestamp.isoformat(),
             "content": self.content,
-            "metadata": self.metadata,
+            "event_keywords": self.event_keywords,
         }
 
     @staticmethod
@@ -54,5 +54,5 @@ class Event(Base):
             event_type=data["event_type"],
             timestamp=datetime.datetime.fromisoformat(data["timestamp"]),
             content=data["content"],
-            metadata=data["metadata"],
+            event_keywords=data["metadata"],
         )

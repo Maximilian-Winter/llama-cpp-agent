@@ -45,8 +45,9 @@ watch:
   - ReadMe.md
 
 nav:
-  - "Getting Started": "index.md"
-  - "Usage Examples":
+  - "Welcome": "index.md"
+  - "Getting Started": "get-started.md"
+  - "Guides":
       "Simple Chat": "simple-chat-example.md"
       "Function Calling Agent": "function-calling-agent.md"
       "Parallel Function Calling Agent": "parallel_function_calling.md"
@@ -61,12 +62,12 @@ nav:
 
 
   - "API Reference":
-      "Agents API": "agents-api-reference.md"
-      "Function Calling API": "function-calling-api-reference.md"
+      "Provider": "provider-api-reference.md"
+      "Agents": "agents-api-reference.md"
+      "Function Calling": "function-calling-api-reference.md"
       "Agent Chains": "agent_chains.md"
-      "Settings API": "settings-api-reference.md"
-      "Output Parsing API": "output-parser-api-reference.md"
-      "Grammar Generator API": "grammar-api-reference.md"
+      "Output Parsing": "output-parser-api-reference.md"
+      "Grammar Generator": "grammar-api-reference.md"
 
 markdown_extensions:
   - attr_list

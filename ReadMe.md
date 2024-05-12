@@ -26,7 +26,11 @@
 - [FAQ](#faq)
 
 ## Introduction
-The llama-cpp-agent framework is a tool designed to simplify interactions with Large Language Models (LLMs). It provides an interface for chatting with LLMs, executing function calls, generating structured output, performing retrieval augmented generation, and processing text using agentic chains with tools. The framework integrates seamlessly with the llama.cpp server, llama-cpp-python and OpenAI endpoints that support grammar, offering flexibility and extensibility.
+The llama-cpp-agent framework is a tool designed to simplify interactions with Large Language Models (LLMs). It provides an interface for chatting with LLMs, executing function calls, generating structured output, performing retrieval augmented generation, and processing text using agentic chains with tools. 
+
+The framework uses guided sampling to constrain the model output to the user defined structures. This way also models not fine-tuned to do function calling and JSON output will be able to do it.
+
+The framework is compatible with the llama.cpp server, llama-cpp-python and its server, and with TGI and vllm servers.
 
 ## Key Features
 - **Simple Chat Interface**: Engage in seamless conversations with LLMs.
@@ -34,7 +38,7 @@ The llama-cpp-agent framework is a tool designed to simplify interactions with L
 - **Single and Parallel Function Calling**: Execute functions using LLMs.
 - **RAG - Retrieval Augmented Generation**: Perform retrieval augmented generation with colbert reranking.
 - **Agent Chains**: Process text using agent chains with tools, supporting Conversational, Sequential, and Mapping Chains.
-- **Compatibility**: Works with llama-index tools and OpenAI tool schemas.
+- **Compatibility**: Works with python functions, pydantic tools, llama-index tools, and OpenAI tool schemas.
 - **Flexibility**: Suitable for various applications, from casual chatting to specific function executions.
 
 ## Installation
@@ -46,34 +50,7 @@ pip install llama-cpp-agent
 You can find the latest documentation [here!](https://llama-cpp-agent.readthedocs.io/en/latest/)
 
 ## Getting Started
-1. Ensure you have the required dependencies installed, including pydantic and llama-cpp-python.
-2. Import the necessary classes and functions from the llama-cpp-agent framework.
-3. Set up your LLM provider (e.g., llama-cpp-python Llama class, OpenAI endpoint with grammar support like llama-cpp-python server, or llama.cpp server).
-4. Create an instance of the desired agent class (e.g., LlamaCppAgent, FunctionCallingAgent, StructuredOutputAgent).
-5. Interact with the agent using the provided methods and examples.
-
-Here's a basic example of using the LlamaCppAgent for a simple chat:
-
-```python
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
-
-main_model = LlamaCppEndpointSettings(
-    completions_endpoint_url="http://127.0.0.1:8080/completion"
-)
-
-llama_cpp_agent = LlamaCppAgent(main_model, debug_output=False,
-                                system_prompt="You are Dolphin, an uncensored and unbiased AI assistant.",
-                                predefined_messages_formatter_type=MessagesFormatterType.CHATML)
-
-while True:
-    user_input = input("User: ")
-    if user_input == "exit":
-        break
-    user_input = llama_cpp_agent.get_chat_response(user_input, temperature=0.7)
-    print("AI: " + user_input)
-```
+You can find the get started guide [here!](https://llama-cpp-agent.readthedocs.io/en/latest/)
 
 ## Discord Community
 Join the Discord Community [here](https://discord.gg/6tGznupZGX)

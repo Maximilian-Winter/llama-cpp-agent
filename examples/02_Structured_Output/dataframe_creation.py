@@ -1,22 +1,16 @@
 # Based on an example of the Instructor library for OpenAI
-
-
-import json
 from typing import List, Any
 
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
-from llama_cpp import Llama, LlamaGrammar
+from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
+from llama_cpp_agent import MessagesFormatterType
+
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.output_parser import extract_object_from_response
-from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models import \
-    generate_gbnf_grammar_and_documentation
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
+from llama_cpp_agent import LlamaCppAgent
 
-main_model = LlamaCppEndpointSettings(
-    completions_endpoint_url="http://127.0.0.1:8080/completion"
-)
+from llama_cpp_agent.providers import TGIServerProvider
+
+provider = TGIServerProvider("http://localhost:8080")
 
 
 class RowData(BaseModel):
@@ -62,22 +56,21 @@ class Database(BaseModel):
     )
 
 
-gbnf_grammar, documentation = generate_gbnf_grammar_and_documentation([Database],
-                                                                      model_prefix="Response Model",
-                                                                      fields_prefix="Response Model Field")
+output_settings = LlmStructuredOutputSettings.from_pydantic_models([Database],
+                                                                   output_type=LlmStructuredOutputType.object_instance)
 
-llama_cpp_agent = LlamaCppAgent(main_model, debug_output=True,
-                                system_prompt="You are an advanced AI assistant, responding in JSON format. \n\nAvailable JSON response models:\n\n" + documentation + """""",
+llama_cpp_agent = LlamaCppAgent(provider, debug_output=True,
+                                system_prompt="""You are an advanced AI assistant, responding in JSON format.""",
                                 predefined_messages_formatter_type=MessagesFormatterType.CHATML)
 
 
-def dataframe(data: str) -> Database:
+def dataframe(data: str):
     prompt = data
-
-    response = llama_cpp_agent.get_chat_response(message=prompt, temperature=0.65, grammar=gbnf_grammar)
-
-    database = extract_object_from_response(response, Database)
-    return database
+    parameters = provider.get_provider_default_settings()
+    parameters.do_sample = True
+    parameters.temperature = 0.65
+    response = llama_cpp_agent.get_chat_response(message=prompt, llm_sampling_settings=parameters, structured_output_settings=output_settings)
+    return response
 
 
 dfs = dataframe(

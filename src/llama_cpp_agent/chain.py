@@ -2,7 +2,9 @@ from typing import List, Callable
 
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.llm_agent import LlamaCppAgent
+from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
 from llama_cpp_agent.llm_prompt_template import PromptTemplate
+from llama_cpp_agent.providers.provider_base import LlmSamplingSettings
 
 
 class AgentChainElement:
@@ -14,7 +16,7 @@ class AgentChainElement:
         output_identifier (str): Unique identifier for the output of this chain element.
         system_prompt (str): Template string for the system prompt.
         prompt (str): Template string for the main prompt to the language model.
-        grammar (str, optional): GBNF-Grammar to constrain the language model's output.
+
         preprocessor (Callable[[str, str, dict], tuple[str, str, dict]], optional): Function to preprocess the input
                 before sending it to the language model. Takes the system prompt with template fields replaced, the prompt
                 with template fields replaced, and the additional information dictionary as arguments and returns the
@@ -25,9 +27,7 @@ class AgentChainElement:
         function_tool_registry (LlamaCppFunctionToolRegistry): Registry for LlamaCppFunctionTool and enables function calling.
         add_prompt_to_chat_history (bool): Flag to determine if the prompt should be added to the chat history.
         add_response_to_chat_history (bool): Flag to determine if the response should be added to the chat history.
-        temperature (float): Controls randomness in the generation process. Lower values make responses more deterministic.
-        top_p (float): Controls diversity via nucleus sampling: smaller values make responses more focused.
-        top_k (int): Controls diversity via top-k sampling: the number of highest probability vocabulary tokens considered.
+
     Methods:
         __init__: Constructs an instance of the AgentChain class.
     """
@@ -38,14 +38,12 @@ class AgentChainElement:
         system_prompt: str,
         prompt: str,
         tools: List[LlamaCppFunctionTool] = None,
-        grammar: str = None,
+        structured_output_settings: LlmStructuredOutputSettings = None,
         preprocessor: Callable[[str, str, dict], tuple[str, str, dict]] = None,
         postprocessor: Callable[[str, str, dict, str], str] = None,
         add_prompt_to_chat_history: bool = False,
         add_response_to_chat_history: bool = False,
-        temperature: float = 0.35,
-        top_p: float = 1.0,
-        top_k: int = 0,
+        llm_sampling_settings: LlmSamplingSettings = None,
     ):
         """
         Constructs an instance of the AgentChainElement class.
@@ -55,7 +53,6 @@ class AgentChainElement:
             system_prompt (str): Template string for the system prompt.
             prompt (str): Template string for the main prompt to the language model.
             tools (List[LlamaCppFunctionTool], optional): List of function tools available for use in this chain element.
-            grammar (str, optional): GBNF-Grammar to constrain the language model's output.
             preprocessor (Callable[[str, str, dict], tuple[str, str, dict]], optional): Function to preprocess the input
                 before sending it to the language model. Takes the system prompt with template fields replaced, the prompt
                 with template fields replaced, and the additional information dictionary as arguments and returns the
@@ -65,26 +62,21 @@ class AgentChainElement:
                 result as arguments and returns the modified result.
             add_prompt_to_chat_history (bool): Flag to determine if the prompt should be added to the chat history.
             add_response_to_chat_history (bool): Flag to determine if the response should be added to the chat history.
-            temperature (float): Controls randomness in the generation process. Lower values make responses more deterministic.
-            top_p (float): Controls diversity via nucleus sampling: smaller values make responses more focused.
-            top_k (int): Controls diversity via top-k sampling: the number of highest probability vocabulary tokens considered.
         """
         self.output_identifier = output_identifier
         self.system_prompt = system_prompt
         self.prompt = prompt
         self.add_prompt_to_chat_history = add_prompt_to_chat_history
         self.add_response_to_chat_history = add_response_to_chat_history
-        self.grammar = grammar
+        self.structured_output_settings = structured_output_settings
         self.preprocessor = preprocessor
         self.postprocessor = postprocessor
         self.function_tool_registry = None
         if tools is not None:
-            self.function_tool_registry = LlamaCppAgent.get_function_tool_registry(
-                tools
+            self.structured_output_settings = (
+                LlmStructuredOutputSettings.from_llama_cpp_function_tools(tools)
             )
-        self.temperature = temperature
-        self.top_p = top_p
-        self.top_k = top_k
+        self.llm_sampling_settings = llm_sampling_settings
 
 
 class AgentChain:
@@ -145,23 +137,19 @@ class AgentChain:
             outputs[chain_element.output_identifier] = self.agent.get_chat_response(
                 user_message if user_message is not None else prompt,
                 system_prompt=sys_prompt,
-                penalize_nl=False,
-                temperature=chain_element.temperature,
-                top_p=chain_element.top_p,
-                top_k=chain_element.top_k,
-                function_tool_registry=chain_element.function_tool_registry,
-                grammar=chain_element.grammar,
+                structured_output_settings=chain_element.structured_output_settings,
                 add_response_to_chat_history=chain_element.add_response_to_chat_history,
                 add_message_to_chat_history=chain_element.add_prompt_to_chat_history,
+                llm_sampling_settings=chain_element.llm_sampling_settings,
             )
             if chain_element.function_tool_registry is not None:
                 outputs[chain_element.output_identifier] = outputs[
                     chain_element.output_identifier
                 ][0]["return_value"]
             if chain_element.postprocessor is not None:
-                outputs[chain_element.output_identifier] = (
-                    chain_element.postprocessor
-                ) = chain_element.postprocessor(
+                outputs[
+                    chain_element.output_identifier
+                ] = chain_element.postprocessor = chain_element.postprocessor(
                     sys_prompt,
                     prompt,
                     outputs,
@@ -234,8 +222,6 @@ class MapChain:
             tuple: A tuple containing the final output string from the combine chain and the outputs dictionary.
         """
         outputs = {}
-        if user_message is not None:
-            outputs["user_message"] = user_message
 
         if additional_fields is not None:
             for field, value in additional_fields.items():
@@ -246,7 +232,7 @@ class MapChain:
         for item in items_to_map:
             additional_fields[self.item_identifier] = item
             result, result_dic = self.map_chain.run_chain(
-                additional_fields=additional_fields
+                user_message=user_message, additional_fields=additional_fields
             )
             results.append(result_dic[self.map_chain.chain[-1].output_identifier])
         additional_fields[self.map_output_identifier] = "\n\n".join(results)

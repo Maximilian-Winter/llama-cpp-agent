@@ -1,5 +1,6 @@
 ### Mapping Chain Example
 This example demonstrates how to create a mapping chain to summarize 3 articles into one summary.
+
 ```python
 from llama_cpp_agent import AgentChainElement, MapChain
 from llama_cpp_agent import LlamaCppAgent
@@ -11,7 +12,7 @@ model = LlamaCppServerProvider("http://127.0.0.1:8080")
 agent = LlamaCppAgent(
     model,
     system_prompt="",
-    predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL
 )
 
 summary_chain = AgentChainElement("out_0", system_prompt="You are an advanced AI agent for summarizing articles",

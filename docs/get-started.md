@@ -19,6 +19,7 @@ Welcome to the llama-cpp-agent framework! This guide will help you set up and st
 5. [Talk to the agent](#talk-to-the-agent)
     - [Get chat response](#talk-to-the-agent)
     - [Sampling parameters](#sampling-parameters)
+    - [Configure Chat History]
 6. [Let the agent use tools](#let-the-agent-use-tools)
     - [Define function tool](#let-the-agent-use-tools)
     - [Using the FunctionCallingAgent class](#using-the-functioncallingagent-class)
@@ -131,6 +132,33 @@ settings.temperature = 0.65
 
 agent_output = agent.get_chat_response("Hello, World!", llm_sampling_settings=settings)
 print(f"Agent: {agent_output.strip()}")
+```
+
+### Configure Chat History
+The llama-cpp-agent framework allows to customize the chat history by implementing the ChatHistory and ChatMessageStore interfaces.
+
+It provides basic implementation of it, in the BasicChatHistory and BasicChatMessageStore class and allows to configure it, like in the following example.
+
+```python
+# Import the BasicChatHistory class, the BasicChatMessageStore class and BasicChatHistoryStrategy class
+from llama_cpp_agent.chat_history import BasicChatHistory, BasicChatMessageStore, BasicChatHistoryStrategy
+
+# Create the provider like in the previous step.
+provider = ...
+
+# Create a message store for the chat history
+chat_history_store = BasicChatMessageStore()
+
+# Create the actual chat history, by passing the wished chat history strategy, it can be last_k_message or last_k_tokens. The default strategy will be to use the 20 last messages for the chat history.
+# We will use the last_k_tokens strategy which will include the last k tokens into the chat history. When we use this strategy, we will have to pass the provider to the class.
+chat_history = BasicChatHistory(message_store=chat_history_store, chat_history_strategy=BasicChatHistoryStrategy.last_k_tokens, k=7000, llm_provider=provider)
+
+# Pass the configured chat history to
+agent = LlamaCppAgent(provider,
+                      system_prompt="You are a helpful assistant.",
+                      chat_history=chat_history
+                      predefined_messages_formatter_type=MessagesFormatterType.CHATML)
+
 ```
 
 ## Let the agent use tools

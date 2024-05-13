@@ -107,33 +107,42 @@ This example, based on an example from the Instructor library for OpenAI, shows 
 ## Additional Information
 
 ### Predefined Messages Formatter
+
 The llama-cpp-agent framework provides predefined message formatters to format messages for the LLM model. The `MessagesFormatterType` enum defines the available formatters:
 
+- `MessagesFormatterType.MISTRAL`: Formats messages using the MISTRAL format.
 - `MessagesFormatterType.CHATML`: Formats messages using the CHATML format.
-- `MessagesFormatterType.MIXTRAL`: Formats messages using the MIXTRAL format.
 - `MessagesFormatterType.VICUNA`: Formats messages using the VICUNA format.
 - `MessagesFormatterType.LLAMA_2`: Formats messages using the LLAMA 2 format.
 - `MessagesFormatterType.SYNTHIA`: Formats messages using the SYNTHIA format.
 - `MessagesFormatterType.NEURAL_CHAT`: Formats messages using the NEURAL CHAT format.
 - `MessagesFormatterType.SOLAR`: Formats messages using the SOLAR format.
 - `MessagesFormatterType.OPEN_CHAT`: Formats messages using the OPEN CHAT format.
+- `MessagesFormatterType.ALPACA`: Formats messages using the ALPACA format.
+- `MessagesFormatterType.CODE_DS`: Formats messages using the CODE DS format.
+- `MessagesFormatterType.B22`: Formats messages using the B22 format.
+- `MessagesFormatterType.LLAMA_3`: Formats messages using the LLAMA 3 format.
+- `MessagesFormatterType.PHI_3`: Formats messages using the PHI 3 format.
 
 ### Creating Custom Messages Formatter
+
 You can create your own custom messages formatter by instantiating the `MessagesFormatter` class with the desired parameters:
 
 ```python
-from llama_cpp_agent.messages_formatter import MessagesFormatter
+from llama_cpp_agent.chat_history.messages_formatter import MessagesFormatter, PromptMarkers, Roles
+
+custom_prompt_markers = {
+    Roles.system: PromptMarkers("<|system|>", "<|endsystem|>"),
+    Roles.user: PromptMarkers("<|user|>", "<|enduser|>"),
+    Roles.assistant: PromptMarkers("<|assistant|>", "<|endassistant|>"),
+    Roles.tool: PromptMarkers("<|tool|>", "<|endtool|>"),
+}
 
 custom_formatter = MessagesFormatter(
-    PRE_PROMPT="",
-    SYS_PROMPT_START="<|system|>",
-    SYS_PROMPT_END="<|endsystem|>",
-    USER_PROMPT_START="<|user|>",
-    USER_PROMPT_END="<|enduser|>",
-    ASSISTANT_PROMPT_START="<|assistant|>",
-    ASSISTANT_PROMPT_END="<|endassistant|>",
-    INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE=False,
-    DEFAULT_STOP_SEQUENCES=["<|endsystem|>", "<|enduser|>", "<|endassistant|>"]
+    pre_prompt="",
+    prompt_markers=custom_prompt_markers,
+    include_sys_prompt_in_first_user_message=False,
+    default_stop_sequences=["<|endsystem|>", "<|enduser|>", "<|endassistant|>", "<|endtool|>"]
 )
 ```
 

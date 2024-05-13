@@ -9,7 +9,7 @@ model = TGIServerProvider("http://127.0.0.1:8080")
 agent = LlamaCppAgent(
     model,
     system_prompt="",
-    predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL
 )
 
 product_description = AgentChainElement(

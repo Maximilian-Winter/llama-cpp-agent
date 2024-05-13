@@ -48,7 +48,7 @@ agent_without_rag_information = LlamaCppAgent(
     model,
     debug_output=True,
     system_prompt="You are an advanced AI assistant, trained by OpenAI.",
-    predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL
 )
 
 # Define the query we want to ask based on the retrieved information
@@ -72,7 +72,7 @@ query_extension_agent = LlamaCppAgent(
     model,
     debug_output=True,
     system_prompt="You are a world class query extension algorithm capable of extending queries by writing new queries. Do not answer the queries, simply provide a list of additional queries in JSON format.",
-    predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL
 )
 
 # Perform the query extension with the agent.
@@ -103,7 +103,7 @@ agent_with_rag_information = LlamaCppAgent(
     model,
     debug_output=True,
     system_prompt="You are an advanced AI assistant, trained by OpenAI. Only answer question based on the context information provided.",
-    predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL
 )
 
 # Ask the agent the original query with the generated prompt that contains the retrieved information.

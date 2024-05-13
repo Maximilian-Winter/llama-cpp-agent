@@ -9,7 +9,7 @@ agent = LlamaCppAgent(
     model,
     debug_output=True,
     system_prompt="",
-    predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL
 )
 
 

@@ -1,141 +1,9 @@
 import json
+from dataclasses import dataclass
 from enum import Enum
 from typing import List, Dict, Tuple, Literal
 
-SYS_PROMPT_START_MIXTRAL = """"""
-SYS_PROMPT_END_MIXTRAL = """\n\n"""
-USER_PROMPT_START_MIXTRAL = """[INST] """
-USER_PROMPT_END_MIXTRAL = """ """
-ASSISTANT_PROMPT_START_MIXTRAL = """[/INST]"""
-ASSISTANT_PROMPT_END_MIXTRAL = """</s>"""
-FUNCTION_PROMPT_START_MIXTRAL = """"""
-FUNCTION_PROMPT_END_MIXTRAL = """"""
-DEFAULT_MIXTRAL_STOP_SEQUENCES = ["</s>"]
-
-MIXTRAL_8x22_TOOL_JINJA_TEMPLATE = "{{bos_token}}{% set user_messages = messages | selectattr('role', 'equalto', 'user') | list %}{% for message in messages %}{% if message['role'] == 'user' %}{% if message == user_messages[-1] %}{{ '[AVAILABLE_TOOLS]'}}{% for tool in tools %}{{ tool }}{% endfor %}{{ '[/AVAILABLE_TOOLS]'}}{{ '[INST]' + message['content'] + '[/INST]' }}{% else %}{{ '[INST]' + message['content'] + '[/INST]' }}{% endif %}{% elif message['role'] == 'assistant' %}{{ ' ' + message['content'] + ' ' + eos_token}}{% elif message['role'] == 'tool_results' %}{{'[TOOL_RESULTS]' + message['content']|string + '[/TOOL_RESULTS]'}}{% elif message['role'] == 'tool_calls' %}{{'[TOOL_CALLS]' + message['content']|string + eos_token}}{% endif %}{% endfor %}"
-MIXTRAL_8x22_DEFAULT_JINJA_TEMPLATE = "{{bos_token}}{% for message in messages %}{% if (message['role'] == 'user') != (loop.index0 % 2 == 0) %}{{ raise_exception('Conversation roles must alternate user/assistant/user/assistant/...') }}{% endif %}{% if message['role'] == 'user' %}{{ ' [INST] ' + message['content'] + ' [/INST]' }}{% elif message['role'] == 'assistant' %}{{ ' ' + message['content'] + ' ' + eos_token}}{% else %}{{ raise_exception('Only user and assistant roles are supported!') }}{% endif %}{% endfor %}"
-CHATML_JINJA_TEMPLATE = "{% for message in messages %}{{'<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>' + '\n'}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}"
-SYS_PROMPT_START_CHATML = """<|im_start|>system\n"""
-SYS_PROMPT_END_CHATML = """<|im_end|>\n"""
-USER_PROMPT_START_CHATML = """<|im_start|>user\n"""
-USER_PROMPT_END_CHATML = """<|im_end|>\n"""
-ASSISTANT_PROMPT_START_CHATML = """<|im_start|>assistant\n"""
-ASSISTANT_PROMPT_END_CHATML = """<|im_end|>\n"""
-
-FUNCTION_PROMPT_START_CHATML = """<|im_start|>function\n"""
-FUNCTION_PROMPT_END_CHATML = """<|im_end|>\n"""
-DEFAULT_CHATML_STOP_SEQUENCES = [
-    "<|im_end|>",
-    "<|im_start|>assistant",
-    "<|im_start|>user",
-    "<|im_start|>system",
-]
-
-SYS_PROMPT_START_VICUNA = """"""
-SYS_PROMPT_END_VICUNA = """\n\n"""
-USER_PROMPT_START_VICUNA = """USER:"""
-USER_PROMPT_END_VICUNA = """\n"""
-ASSISTANT_PROMPT_START_VICUNA = """ASSISTANT:"""
-ASSISTANT_PROMPT_END_VICUNA = """"""
-FUNCTION_PROMPT_START_VICUNA = """"""
-FUNCTION_PROMPT_END_VICUNA = """"""
-DEFAULT_VICUNA_STOP_SEQUENCES = ["</s>", "USER:"]
-USER_PROMPT_START_LLAMA_2, USER_PROMPT_END_LLAMA_2 = "[INST] ", " [/INST]"
-
-ASSISTANT_PROMPT_START_LLAMA_2, ASSISTANT_PROMPT_END_LLAMA_2 = " ", " </s>"
-SYS_PROMPT_START_LLAMA_2, SYS_PROMPT_END_LLAMA_2 = "<<SYS>>\n", "\n<</SYS>>\n\n"
-FUNCTION_PROMPT_START_LLAMA_2, FUNCTION_PROMPT_END_LLAMA_2 = "", ""
-DEFAULT_LLAMA_2_STOP_SEQUENCES = ["</s>", "[INST]"]
-
-SYS_PROMPT_START_SYNTHIA = """SYSTEM: """
-SYS_PROMPT_END_SYNTHIA = """\n"""
-USER_PROMPT_START_SYNTHIA = """USER: """
-USER_PROMPT_END_SYNTHIA = """\n"""
-ASSISTANT_PROMPT_START_SYNTHIA = """ASSISTANT:"""
-ASSISTANT_PROMPT_END_SYNTHIA = """\n"""
-FUNCTION_PROMPT_START_SYNTHIA = """"""
-FUNCTION_PROMPT_END_SYNTHIA = """"""
-
-SYS_PROMPT_START_ALPACA = """### Instruction:\n"""
-SYS_PROMPT_END_ALPACA = """\n"""
-USER_PROMPT_START_ALPACA = """### Input:\n"""
-USER_PROMPT_END_ALPACA = """ \n"""
-ASSISTANT_PROMPT_START_ALPACA = """### Response:\n"""
-ASSISTANT_PROMPT_END_ALPACA = """\n"""
-FUNCTION_PROMPT_START_ALPACA = """"""
-FUNCTION_PROMPT_END_ALPACA = """"""
-DEFAULT_ALPACA_STOP_SEQUENCES = ["### Instruction:", "### Input:", "### Response:"]
-
-SYS_PROMPT_START_NEURAL_CHAT = """### System:\n"""
-SYS_PROMPT_END_NEURAL_CHAT = """\n"""
-USER_PROMPT_START_NEURAL_CHAT = """### User:\n"""
-USER_PROMPT_END_NEURAL_CHAT = """ \n"""
-ASSISTANT_PROMPT_START_NEURAL_CHAT = """### Assistant:\n"""
-ASSISTANT_PROMPT_END_NEURAL_CHAT = """\n"""
-FUNCTION_PROMPT_START_NEURAL_CHAT = """"""
-FUNCTION_PROMPT_END_NEURAL_CHAT = """"""
-DEFAULT_NEURAL_CHAT_STOP_SEQUENCES = ["### User:"]
-
-SYS_PROMPT_START_22B = """### System: """
-SYS_PROMPT_END_22B = """\n"""
-USER_PROMPT_START_22B = """### User: """
-USER_PROMPT_END_22B = """ \n"""
-ASSISTANT_PROMPT_START_22B = """### Assistant:"""
-ASSISTANT_PROMPT_END_22B = """\n"""
-FUNCTION_PROMPT_START_22B = """"""
-FUNCTION_PROMPT_END_22B = """"""
-DEFAULT_22B_STOP_SEQUENCES = ["### User:"]
-
-SYS_PROMPT_START_CODE_DS = """"""
-SYS_PROMPT_END_CODE_DS = """\n\n"""
-USER_PROMPT_START_CODE_DS = """@@ Instruction\n"""
-USER_PROMPT_END_CODE_DS = """\n\n"""
-ASSISTANT_PROMPT_START_CODE_DS = """@@ Response\n"""
-ASSISTANT_PROMPT_END_CODE_DS = """\n\n"""
-
-DEFAULT_CODE_DS_STOP_SEQUENCES = ["@@ Instruction"]
-
-SYS_PROMPT_START_LLAMA3 = """<|start_header_id|>system<|end_header_id|>\n"""
-SYS_PROMPT_END_LLAMA3 = """<|eot_id|>"""
-USER_PROMPT_START_LLAMA3 = """<|start_header_id|>user<|end_header_id|>\n"""
-USER_PROMPT_END_LLAMA3 = """<|eot_id|>"""
-ASSISTANT_PROMPT_START_LLAMA3 = """<|start_header_id|>assistant<|end_header_id|>\n"""
-ASSISTANT_PROMPT_END_LLAMA3 = """<|eot_id|>"""
-FUNCTION_PROMPT_START_LLAMA3 = (
-    """<|start_header_id|>function_calling_results<|end_header_id|>\n"""
-)
-FUNCTION_PROMPT_END_LLAMA3 = """<|eot_id|>"""
-DEFAULT_LLAMA3_STOP_SEQUENCES = ["assistant", "<|eot_id|>"]
-
-SYS_PROMPT_START_SOLAR = """"""
-SYS_PROMPT_END_SOLAR = """\n"""
-USER_PROMPT_START_SOLAR = """### User:\n"""
-USER_PROMPT_END_SOLAR = """ \n"""
-ASSISTANT_PROMPT_START_SOLAR = """### Assistant:\n"""
-ASSISTANT_PROMPT_END_SOLAR = """\n"""
-FUNCTION_PROMPT_START_SOLAR = """"""
-FUNCTION_PROMPT_END_SOLAR = """"""
-DEFAULT_SOLAR_STOP_SEQUENCES = ["### User:"]
-
-SYS_PROMPT_START_OPEN_CHAT = """"""
-SYS_PROMPT_END_OPEN_CHAT = """  """
-USER_PROMPT_START_OPEN_CHAT = """GPT4 Correct User: """
-USER_PROMPT_END_OPEN_CHAT = """<|end_of_turn|>"""
-ASSISTANT_PROMPT_START_OPEN_CHAT = """GPT4 Correct Assistant: """
-ASSISTANT_PROMPT_END_OPEN_CHAT = """<|end_of_turn|>"""
-FUNCTION_PROMPT_START_OPEN_CHAT = """"""
-FUNCTION_PROMPT_END_OPEN_CHAT = """"""
-DEFAULT_OPEN_CHAT_STOP_SEQUENCES = ["<|end_of_turn|>"]
-
-SYS_PROMPT_START_PHI_3 = """"""
-SYS_PROMPT_END_PHI_3 = """\n\n"""
-USER_PROMPT_START_PHI_3 = """<|user|>"""
-USER_PROMPT_END_PHI_3 = """<|end|>\n"""
-ASSISTANT_PROMPT_START_PHI_3 = """<|assistant|>"""
-ASSISTANT_PROMPT_END_PHI_3 = """<|end|>\n"""
-FUNCTION_PROMPT_START_PHI_3 = """"""
-FUNCTION_PROMPT_END_PHI_3 = """"""
-DEFAULT_PHI_3_STOP_SEQUENCES = ["<|end|>", "<|end_of_turn|>"]
+from llama_cpp_agent.chat_history.messages import Roles
 
 
 class MessagesFormatterType(Enum):
@@ -143,7 +11,7 @@ class MessagesFormatterType(Enum):
     Enum representing different types of predefined messages formatters.
     """
 
-    MIXTRAL = 1
+    MISTRAL = 1
     CHATML = 2
     VICUNA = 3
     LLAMA_2 = 4
@@ -158,403 +26,299 @@ class MessagesFormatterType(Enum):
     PHI_3 = 13
 
 
+@dataclass
+class PromptMarkers:
+    start: str
+    end: str
+
+
 class MessagesFormatter:
-    """
-    Class representing a messages formatter for LLMs.
-    """
-
     def __init__(
-        self,
-        PRE_PROMPT: str,
-        SYS_PROMPT_START: str,
-        SYS_PROMPT_END: str,
-        USER_PROMPT_START: str,
-        USER_PROMPT_END: str,
-        ASSISTANT_PROMPT_START: str,
-        ASSISTANT_PROMPT_END: str,
-        INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE: bool,
-        DEFAULT_STOP_SEQUENCES: List[str],
-        USE_USER_ROLE_FUNCTION_CALL_RESULT: bool = True,
-        FUNCTION_PROMPT_START: str = "",
-        FUNCTION_PROMPT_END: str = "",
-        STRIP_PROMPT: bool = True,
-        BOS_TOKEN: str = "<s>",
-        EOS_TOKEN: str = "</s>"
+            self,
+            pre_prompt: str,
+            prompt_markers: Dict[Roles, PromptMarkers],
+            include_sys_prompt_in_first_user_message: bool,
+            default_stop_sequences: List[str],
+            use_user_role_for_function_call_result: bool = True,
+            strip_prompt: bool = True,
+            bos_token: str = "<s>",
+            eos_token: str = "</s>"
     ):
-        """
-        Initializes a new MessagesFormatter object.
+        self.pre_prompt = pre_prompt
+        self.prompt_markers = prompt_markers
+        self.include_sys_prompt_in_first_user_message = include_sys_prompt_in_first_user_message
+        self.default_stop_sequences = default_stop_sequences
+        self.use_user_role_for_function_call_result = use_user_role_for_function_call_result
+        self.strip_prompt = strip_prompt
+        self.bos_token = bos_token
+        self.eos_token = eos_token
+        self.added_system_prompt = False
 
-        Args:
-            PRE_PROMPT (str): The pre-prompt content.
-            SYS_PROMPT_START (str): The system prompt start.
-            SYS_PROMPT_END (str): The system prompt end.
-            USER_PROMPT_START (str): The user prompt start.
-            USER_PROMPT_END (str): The user prompt end.
-            ASSISTANT_PROMPT_START (str): The assistant prompt start.
-            ASSISTANT_PROMPT_END (str): The assistant prompt end.
-            INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE (bool): Indicates whether to include the system prompt
-                                                             in the first user message.
-            DEFAULT_STOP_SEQUENCES (List[str]): List of default stop sequences.
-            USE_USER_ROLE_FUNCTION_CALL_RESULT (bool): Indicates whether to use user role for function call results.
-            FUNCTION_PROMPT_START (str): The function prompt start.
-            FUNCTION_PROMPT_END (str): The function prompt end.
-        """
-        self.PRE_PROMPT = PRE_PROMPT
-        self.SYS_PROMPT_START = SYS_PROMPT_START
-        self.SYS_PROMPT_END = SYS_PROMPT_END
-        self.USER_PROMPT_START = USER_PROMPT_START
-        self.USER_PROMPT_END = USER_PROMPT_END
-        self.ASSISTANT_PROMPT_START = ASSISTANT_PROMPT_START
-        self.ASSISTANT_PROMPT_END = ASSISTANT_PROMPT_END
-        self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE = (
-            INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE
-        )
-        self.DEFAULT_STOP_SEQUENCES = DEFAULT_STOP_SEQUENCES
-        self.FUNCTION_PROMPT_START = FUNCTION_PROMPT_START
-        self.FUNCTION_PROMPT_END = FUNCTION_PROMPT_END
-        self.USE_USER_ROLE_FUNCTION_CALL_RESULT = USE_USER_ROLE_FUNCTION_CALL_RESULT
-        self.STRIP_PROMPT = STRIP_PROMPT
-        self.BOS_TOKEN = BOS_TOKEN
-        self.EOS_TOKEN = EOS_TOKEN
-    def get_bos_token(self):
-        return self.BOS_TOKEN
+    def get_bos_token(self) -> str:
+        return self.bos_token
 
-    def format_messages(
-        self,
-        messages: List[Dict[str, str]],
-        response_role: Literal["user", "assistant"] | None = None,
-    ) -> Tuple[str, str]:
-        """
-        Formats a list of messages into a conversation string.
-
-        Args:
-            messages (List[Dict[str, str]]): List of messages with role and content.
-            response_role(Literal["system", "user", "assistant", "function"]|None): Forces the response role to be "system", "user" or "assistant".
-        Returns:
-            Tuple[str, str]: Formatted conversation string and the role of the last message.
-        """
-        formatted_messages = self.PRE_PROMPT
-        last_role = "assistant"
-
-        no_user_prompt_start = False
+    def format_conversation(
+            self,
+            messages: List[Dict[str, str]],
+            response_role: Literal[Roles.user, Roles.assistant] | None = None,
+    ) -> Tuple[str, Roles]:
+        formatted_messages = self.pre_prompt
+        last_role = Roles.assistant
+        self.added_system_prompt = False
         for message in messages:
-            if message["role"] == "system":
-                formatted_messages += (
-                    self.SYS_PROMPT_START + message["content"] + self.SYS_PROMPT_END
-                )
-                last_role = "system"
-                if self.INCLUDE_SYS_PROMPT_IN_FIRST_USER_MESSAGE:
-                    formatted_messages = self.USER_PROMPT_START + formatted_messages
-                    no_user_prompt_start = True
-            elif message["role"] == "user":
-                if no_user_prompt_start:
-                    no_user_prompt_start = False
-                    formatted_messages += message["content"] + self.USER_PROMPT_END
-                else:
-                    formatted_messages += (
-                        self.USER_PROMPT_START
-                        + message["content"]
-                        + self.USER_PROMPT_END
-                    )
-                last_role = "user"
-            elif message["role"] == "assistant":
-                if self.STRIP_PROMPT:
-                    message["content"] = message["content"].strip()
-                formatted_messages += (
-                    self.ASSISTANT_PROMPT_START
-                    + message["content"]
-                    + self.ASSISTANT_PROMPT_END
-                )
-                last_role = "assistant"
-            elif message["role"] == "tool":
-                if isinstance(message["content"], list):
-                    message["content"] = "\n".join(
-                        [json.dumps(m, indent=2) for m in message["content"]]
-                    )
-                if self.USE_USER_ROLE_FUNCTION_CALL_RESULT:
-                    formatted_messages += (
-                        self.USER_PROMPT_START
-                        + message["content"]
-                        + self.USER_PROMPT_END
-                    )
-                    last_role = "user"
-                else:
-                    formatted_messages += (
-                        self.FUNCTION_PROMPT_START
-                        + message["content"]
-                        + self.FUNCTION_PROMPT_END
-                    )
-                    last_role = "tool"
-        if last_role == "system" or last_role == "user" or last_role == "tool":
-            if self.STRIP_PROMPT:
-                if response_role is not None:
-                    if response_role == "assistant":
-                        return (
-                            formatted_messages + self.ASSISTANT_PROMPT_START.strip(),
-                            "assistant",
-                        )
-                    if response_role == "user":
-                        return (
-                            formatted_messages + self.USER_PROMPT_START.strip(),
-                            "user",
-                        )
-                else:
-                    return (
-                        formatted_messages + self.ASSISTANT_PROMPT_START.strip(),
-                        "assistant",
-                    )
-            else:
-                if response_role is not None:
-                    if response_role == "assistant":
-                        return (
-                            formatted_messages + self.ASSISTANT_PROMPT_START,
-                            "assistant",
-                        )
-                    if response_role == "user":
-                        return formatted_messages + self.USER_PROMPT_START, "user"
-                else:
-                    return formatted_messages + self.ASSISTANT_PROMPT_START, "assistant"
-        if self.STRIP_PROMPT:
-            if response_role is not None:
-                if response_role == "assistant":
-                    return (
-                        formatted_messages + self.ASSISTANT_PROMPT_START.strip(),
-                        "assistant",
-                    )
-                if response_role == "user":
-                    return formatted_messages + self.USER_PROMPT_START.strip(), "user"
-            else:
-                return formatted_messages + self.USER_PROMPT_START.strip(), "user"
+            role = Roles(message["role"])
+            content = self._format_message_content(message["content"], role)
+
+            if role == Roles.system:
+                formatted_messages += self._format_system_message(content)
+                last_role = Roles.system
+            elif role == Roles.user:
+                formatted_messages += self._format_user_message(content)
+                last_role = Roles.user
+            elif role == Roles.assistant:
+                formatted_messages += self._format_assistant_message(content)
+                last_role = Roles.assistant
+            elif role == Roles.tool:
+                formatted_messages += self._format_tool_message(content)
+                last_role = Roles.tool
+
+        return self._format_response(formatted_messages, last_role, response_role)
+
+    def _format_message_content(self, content: str, role: Roles) -> str:
+        if self.strip_prompt and role != Roles.tool:
+            return content.strip()
+        return content
+
+    def _format_system_message(self, content: str) -> str:
+        formatted_message = self.prompt_markers[Roles.system].start + content + self.prompt_markers[Roles.system].end
+        self.added_system_prompt = True
+        if self.include_sys_prompt_in_first_user_message:
+            formatted_message = self.prompt_markers[Roles.user].start + formatted_message
+        return formatted_message
+
+    def _format_user_message(self, content: str) -> str:
+        if self.include_sys_prompt_in_first_user_message and self.added_system_prompt:
+            return content + self.prompt_markers[Roles.user].end
+        return self.prompt_markers[Roles.user].start + content + self.prompt_markers[Roles.user].end
+
+    def _format_assistant_message(self, content: str) -> str:
+        return self.prompt_markers[Roles.assistant].start + content + self.prompt_markers[Roles.assistant].end
+
+    def _format_tool_message(self, content: str) -> str:
+        if isinstance(content, list):
+            content = "\n".join(json.dumps(m, indent=2) for m in content)
+        if self.use_user_role_for_function_call_result:
+            return self._format_user_message(content)
         else:
-            if response_role is not None:
-                if response_role == "assistant":
-                    return formatted_messages + self.ASSISTANT_PROMPT_START, "assistant"
-                if response_role == "user":
-                    return formatted_messages + self.USER_PROMPT_START, "user"
-            else:
-                return formatted_messages + self.USER_PROMPT_START, "user"
+            return self.prompt_markers[Roles.tool].start + content + self.prompt_markers[Roles.tool].end
 
-    def save(self, file_path: str):
-        """
-        Saves the messages formatter configuration to a file.
+    def _format_response(
+            self,
+            formatted_messages: str,
+            last_role: Roles,
+            response_role: Literal[Roles.user, Roles.assistant] | None = None,
+    ) -> Tuple[str, Roles]:
+        if response_role is None:
+            response_role = Roles.assistant if last_role != Roles.assistant else Roles.user
 
-        Args:
-           file_path (str): The file path to save the configuration.
-        """
-        with open(file_path, "w", encoding="utf-8") as file:
-            json.dump(self.as_dict(), file, indent=4)
+        prompt_start = self.prompt_markers[response_role].start.strip() if self.strip_prompt else self.prompt_markers[
+            response_role].start
+        return formatted_messages + prompt_start, response_role
 
-    @staticmethod
-    def load_from_file(file_path: str) -> "MessagesFormatter":
-        """
-        Loads a messages formatter configuration from a file.
 
-        Args:
-            file_path (str): The file path to load the configuration from.
+mixtral_prompt_markers = {
+    Roles.system: PromptMarkers("", """\n\n"""),
+    Roles.user: PromptMarkers("""[INST] """, """ """),
+    Roles.assistant: PromptMarkers("""[/INST]""", """</s>"""),
+    Roles.tool: PromptMarkers("", ""),
+}
 
-        Returns:
-            MessagesFormatter: Loaded messages formatter.
-        """
-        with open(file_path, "r", encoding="utf-8") as file:
-            loaded_messages_formatter = json.load(file)
-            return MessagesFormatter(**loaded_messages_formatter)
+chatml_prompt_markers = {
+    Roles.system: PromptMarkers("""<|im_start|>system\n""", """<|im_end|>\n"""),
+    Roles.user: PromptMarkers("""<|im_start|>user\n""", """<|im_end|>\n"""),
+    Roles.assistant: PromptMarkers("""<|im_start|>assistant\n""", """<|im_end|>\n"""),
+    Roles.tool: PromptMarkers("""<|im_start|>function\n""", """<|im_end|>\n"""),
+}
 
-    @staticmethod
-    def load_from_dict(loaded_messages_formatter: dict) -> "MessagesFormatter":
-        """
-        Creates a messages formatter from a dictionary.
+vicuna_prompt_markers = {
+    Roles.system: PromptMarkers("", """\n\n"""),
+    Roles.user: PromptMarkers("""USER:""", """\n"""),
+    Roles.assistant: PromptMarkers("""ASSISTANT:""", ""),
+    Roles.tool: PromptMarkers("", ""),
+}
 
-        Args:
-            loaded_messages_formatter (dict): Dictionary representing the messages formatter.
+llama_2_prompt_markers = {
+    Roles.system: PromptMarkers("<<SYS>>\n", "\n<</SYS>>\n\n"),
+    Roles.user: PromptMarkers("[INST] ", " [/INST]"),
+    Roles.assistant: PromptMarkers(" ", " </s>"),
+    Roles.tool: PromptMarkers("", ""),
+}
 
-        Returns:
-            MessagesFormatter: Created messages formatter.
-        """
-        return MessagesFormatter(**loaded_messages_formatter)
+llama_3_prompt_markers = {
+    Roles.system: PromptMarkers("""<|start_header_id|>system<|end_header_id|>\n""", """<|eot_id|>"""),
+    Roles.user: PromptMarkers("""<|start_header_id|>user<|end_header_id|>\n""", """<|eot_id|>"""),
+    Roles.assistant: PromptMarkers("""<|start_header_id|>assistant<|end_header_id|>\n""", """<|eot_id|>"""),
+    Roles.tool: PromptMarkers("""<|start_header_id|>function_calling_results<|end_header_id|>\n""", """<|eot_id|>"""),
+}
 
-    def as_dict(self) -> dict:
-        """
-        Converts the messages formatter to a dictionary.
+synthia_prompt_markers = {
+    Roles.system: PromptMarkers("""SYSTEM: """, """\n"""),
+    Roles.user: PromptMarkers("""USER: """, """\n"""),
+    Roles.assistant: PromptMarkers("""ASSISTANT:""", """\n"""),
+    Roles.tool: PromptMarkers("", ""),
+}
 
-        Returns:
-            dict: Dictionary representation of the messages formatter.
-        """
-        return self.__dict__
+neural_chat_prompt_markers = {
+    Roles.system: PromptMarkers("""### System:\n""", """\n"""),
+    Roles.user: PromptMarkers("""### User:\n""", """ \n"""),
+    Roles.assistant: PromptMarkers("""### Assistant:\n""", """\n"""),
+    Roles.tool: PromptMarkers("", ""),
+}
 
+code_ds_prompt_markers = {
+    Roles.system: PromptMarkers("", """\n\n"""),
+    Roles.user: PromptMarkers("""@@ Instruction\n""", """\n\n"""),
+    Roles.assistant: PromptMarkers("""@@ Response\n""", """\n\n"""),
+    Roles.tool: PromptMarkers("", ""),
+}
+
+solar_prompt_markers = {
+    Roles.system: PromptMarkers("", """\n"""),
+    Roles.user: PromptMarkers("""### User:\n""", """ \n"""),
+    Roles.assistant: PromptMarkers("""### Assistant:\n""", """\n"""),
+    Roles.tool: PromptMarkers("", ""),
+}
+
+open_chat_prompt_markers = {
+    Roles.system: PromptMarkers("", """  """),
+    Roles.user: PromptMarkers("""GPT4 Correct User: """, """<|end_of_turn|>"""),
+    Roles.assistant: PromptMarkers("""GPT4 Correct Assistant: """, """<|end_of_turn|>"""),
+    Roles.tool: PromptMarkers("", ""),
+}
+
+alpaca_prompt_markers = {
+    Roles.system: PromptMarkers("""### Instruction:\n""", """\n"""),
+    Roles.user: PromptMarkers("""### Input:\n""", """ \n"""),
+    Roles.assistant: PromptMarkers("""### Response:\n""", """\n"""),
+    Roles.tool: PromptMarkers("""<|im_start|>function\n""", """<|im_end|>\n"""),
+}
+
+b22_chat_prompt_markers = {
+    Roles.system: PromptMarkers("""### System: """, """\n"""),
+    Roles.user: PromptMarkers("""### User: """, """ \n"""),
+    Roles.assistant: PromptMarkers("""### Assistant:""", """\n"""),
+    Roles.tool: PromptMarkers("", ""),
+}
+
+phi_3_chat_prompt_markers = {
+    Roles.system: PromptMarkers("", """\n\n"""),
+    Roles.user: PromptMarkers("""<|user|>""", """<|end|>\n"""),
+    Roles.assistant: PromptMarkers("""<|assistant|>""", """<|end|>\n"""),
+    Roles.tool: PromptMarkers("", ""),
+}
 
 mixtral_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_MIXTRAL,
-    SYS_PROMPT_END_MIXTRAL,
-    USER_PROMPT_START_MIXTRAL,
-    USER_PROMPT_END_MIXTRAL,
-    ASSISTANT_PROMPT_START_MIXTRAL,
-    ASSISTANT_PROMPT_END_MIXTRAL,
+    mixtral_prompt_markers,
     True,
-    DEFAULT_MIXTRAL_STOP_SEQUENCES,
+    ["</s>"],
 )
+
 chatml_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_CHATML,
-    SYS_PROMPT_END_CHATML,
-    USER_PROMPT_START_CHATML,
-    USER_PROMPT_END_CHATML,
-    ASSISTANT_PROMPT_START_CHATML,
-    ASSISTANT_PROMPT_END_CHATML,
+    chatml_prompt_markers,
     False,
-    DEFAULT_CHATML_STOP_SEQUENCES,
-    False,
-    FUNCTION_PROMPT_START_CHATML,
-    FUNCTION_PROMPT_END_CHATML,
+    ["<|im_end|>", "</s>"],
+    use_user_role_for_function_call_result=False,
+    strip_prompt=False,
 )
+
 vicuna_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_VICUNA,
-    SYS_PROMPT_END_VICUNA,
-    USER_PROMPT_START_VICUNA,
-    USER_PROMPT_END_VICUNA,
-    ASSISTANT_PROMPT_START_VICUNA,
-    ASSISTANT_PROMPT_END_VICUNA,
+    vicuna_prompt_markers,
     False,
-    DEFAULT_VICUNA_STOP_SEQUENCES,
+    ["</s>", "USER:"],
 )
 
 llama_2_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_LLAMA_2,
-    SYS_PROMPT_END_LLAMA_2,
-    USER_PROMPT_START_LLAMA_2,
-    USER_PROMPT_END_LLAMA_2,
-    ASSISTANT_PROMPT_START_LLAMA_2,
-    ASSISTANT_PROMPT_END_LLAMA_2,
+    llama_2_prompt_markers,
     True,
-    DEFAULT_LLAMA_2_STOP_SEQUENCES,
+    ["</s>", "[INST]"],
 )
 
 llama_3_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_LLAMA3,
-    SYS_PROMPT_END_LLAMA3,
-    USER_PROMPT_START_LLAMA3,
-    USER_PROMPT_END_LLAMA3,
-    ASSISTANT_PROMPT_START_LLAMA3,
-    ASSISTANT_PROMPT_END_LLAMA3,
+    llama_3_prompt_markers,
     False,
-    DEFAULT_LLAMA3_STOP_SEQUENCES,
-    USE_USER_ROLE_FUNCTION_CALL_RESULT=False,
-    FUNCTION_PROMPT_START=FUNCTION_PROMPT_START_LLAMA3,
-    FUNCTION_PROMPT_END=FUNCTION_PROMPT_END_LLAMA3,
-    STRIP_PROMPT=True,
+    ["assistant", "<|eot_id|>"],
+    use_user_role_for_function_call_result=False,
+    strip_prompt=True,
 )
 
 synthia_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_SYNTHIA,
-    SYS_PROMPT_END_SYNTHIA,
-    USER_PROMPT_START_SYNTHIA,
-    USER_PROMPT_END_SYNTHIA,
-    ASSISTANT_PROMPT_START_SYNTHIA,
-    ASSISTANT_PROMPT_END_SYNTHIA,
+    synthia_prompt_markers,
     False,
-    DEFAULT_VICUNA_STOP_SEQUENCES,
+    ["</s>", "USER:"],
 )
 
 neural_chat_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_NEURAL_CHAT,
-    SYS_PROMPT_END_NEURAL_CHAT,
-    USER_PROMPT_START_NEURAL_CHAT,
-    USER_PROMPT_END_NEURAL_CHAT,
-    ASSISTANT_PROMPT_START_NEURAL_CHAT,
-    ASSISTANT_PROMPT_END_NEURAL_CHAT,
+    neural_chat_prompt_markers,
     False,
-    DEFAULT_NEURAL_CHAT_STOP_SEQUENCES,
-    STRIP_PROMPT=False,
+    ["### User:"],
+    strip_prompt=False,
 )
+
 code_ds_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_CODE_DS,
-    SYS_PROMPT_END_CODE_DS,
-    USER_PROMPT_START_CODE_DS,
-    USER_PROMPT_END_CODE_DS,
-    ASSISTANT_PROMPT_START_CODE_DS,
-    ASSISTANT_PROMPT_END_CODE_DS,
+    code_ds_prompt_markers,
     True,
-    DEFAULT_CODE_DS_STOP_SEQUENCES,
+    ["@@ Instruction"],
 )
 
 solar_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_SOLAR,
-    SYS_PROMPT_END_SOLAR,
-    USER_PROMPT_START_SOLAR,
-    USER_PROMPT_END_SOLAR,
-    ASSISTANT_PROMPT_START_SOLAR,
-    ASSISTANT_PROMPT_END_SOLAR,
+    solar_prompt_markers,
     True,
-    DEFAULT_SOLAR_STOP_SEQUENCES,
+    ["### User:"],
 )
 
 open_chat_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_OPEN_CHAT,
-    SYS_PROMPT_END_OPEN_CHAT,
-    USER_PROMPT_START_OPEN_CHAT,
-    USER_PROMPT_END_OPEN_CHAT,
-    ASSISTANT_PROMPT_START_OPEN_CHAT,
-    ASSISTANT_PROMPT_END_OPEN_CHAT,
+    open_chat_prompt_markers,
     True,
-    DEFAULT_OPEN_CHAT_STOP_SEQUENCES,
-    True,
-    FUNCTION_PROMPT_START_OPEN_CHAT,
-    FUNCTION_PROMPT_END_OPEN_CHAT,
+    ["<|end_of_turn|>"],
+    use_user_role_for_function_call_result=True,
 )
 
 alpaca_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_ALPACA,
-    SYS_PROMPT_END_ALPACA,
-    USER_PROMPT_START_ALPACA,
-    USER_PROMPT_END_ALPACA,
-    ASSISTANT_PROMPT_START_ALPACA,
-    ASSISTANT_PROMPT_END_ALPACA,
+    alpaca_prompt_markers,
     False,
-    DEFAULT_ALPACA_STOP_SEQUENCES,
-    False,
-    FUNCTION_PROMPT_START_CHATML,
-    FUNCTION_PROMPT_END_CHATML,
+    ["### Instruction:", "### Input:", "### Response:"],
+    use_user_role_for_function_call_result=False,
 )
 
 b22_chat_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_22B,
-    SYS_PROMPT_END_22B,
-    USER_PROMPT_START_22B,
-    USER_PROMPT_END_22B,
-    ASSISTANT_PROMPT_START_22B,
-    ASSISTANT_PROMPT_END_22B,
+    b22_chat_prompt_markers,
     False,
-    DEFAULT_22B_STOP_SEQUENCES,
-    STRIP_PROMPT=False,
+    ["### User:"],
+    strip_prompt=False,
 )
 
 phi_3_chat_formatter = MessagesFormatter(
     "",
-    SYS_PROMPT_START_PHI_3,
-    SYS_PROMPT_END_PHI_3,
-    USER_PROMPT_START_PHI_3,
-    USER_PROMPT_END_PHI_3,
-    ASSISTANT_PROMPT_START_PHI_3,
-    ASSISTANT_PROMPT_END_PHI_3,
+    phi_3_chat_prompt_markers,
     True,
-    DEFAULT_PHI_3_STOP_SEQUENCES,
-    True,
-    FUNCTION_PROMPT_START_PHI_3,
-    FUNCTION_PROMPT_END_PHI_3,
+    ["<|end|>", "<|end_of_turn|>"],
+    use_user_role_for_function_call_result=True,
 )
 
 predefined_formatter = {
-    MessagesFormatterType.MIXTRAL: mixtral_formatter,
+    MessagesFormatterType.MISTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
     MessagesFormatterType.VICUNA: vicuna_formatter,
     MessagesFormatterType.LLAMA_2: llama_2_formatter,
@@ -571,7 +335,7 @@ predefined_formatter = {
 
 
 def get_predefined_messages_formatter(
-    formatter_type: MessagesFormatterType,
+        formatter_type: MessagesFormatterType,
 ) -> MessagesFormatter:
     """
     Gets a predefined messages formatter based on the formatter type.

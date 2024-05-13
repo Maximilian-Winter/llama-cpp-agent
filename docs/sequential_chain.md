@@ -1,5 +1,6 @@
 ### Sequential Chain Example
 This example demonstrates how to create a complete product launch campaign with help of a sequential chain.
+
 ```python
 # Example: Product Launch Campaign (Product Description, USP, Target Audience, Marketing Channels, Ad Copy, Landing Page, Email Campaign, Social Media Posts, Press Release, and Performance Metrics)
 from llama_cpp_agent import AgentChainElement, AgentChain
@@ -12,7 +13,7 @@ model = LlamaCppServerProvider("http://127.0.0.1:8080")
 agent = LlamaCppAgent(
     model,
     system_prompt="",
-    predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL
 )
 
 product_description = AgentChainElement(
@@ -75,7 +76,8 @@ performance_metrics = AgentChainElement(
     prompt="Identify the key performance metrics to track the success of the {product_name} launch campaign based on the following marketing channels, ad copy, landing page, email campaign, social media posts, and press release:\n--\nMarketing Channels:\n{out_3}\nAd Copy:\n{out_4}\nLanding Page Structure:\n{out_5}\nEmail Campaign:\n{out_6}\nSocial Media Posts:\n{out_7}\nPress Release:\n{out_8}"
 )
 
-chain = [product_description, product_usp, target_audience, marketing_channels, ad_copy, landing_page, email_campaign, social_media_posts, press_release, performance_metrics]
+chain = [product_description, product_usp, target_audience, marketing_channels, ad_copy, landing_page, email_campaign,
+         social_media_posts, press_release, performance_metrics]
 agent_chain = AgentChain(agent, chain)
 agent_chain.run_chain(additional_fields={"product_name": "Smart Fitness Tracker"})
 

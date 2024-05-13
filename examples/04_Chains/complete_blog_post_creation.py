@@ -10,7 +10,7 @@ agent = LlamaCppAgent(
     provider,
     debug_output=True,
     system_prompt="",
-    predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL
 )
 blog_post_topic = AgentChainElement(
     output_identifier="out_0",

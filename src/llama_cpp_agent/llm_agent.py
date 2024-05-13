@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from .chat_history.basic_chat_history import BasicChatHistory
 from .chat_history.chat_history_base import ChatHistory
+from .chat_history.messages import Roles
 
 from .llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 
@@ -88,17 +89,14 @@ class LlamaCppAgent:
         else:
             self.chat_history = chat_history
 
-        self.add_message(role="system", message=system_prompt)
+        self.add_message(role=Roles.system, message=system_prompt)
         self.system_prompt = system_prompt
         self.add_tools_and_structures_documentation_to_system_prompt = add_tools_and_structures_documentation_to_system_prompt
 
     def add_message(
             self,
             message: str,
-            role: Literal["system"]
-                  | Literal["user"]
-                  | Literal["assistant"]
-                  | Literal["tool"] = "user",
+            role: Roles,
     ):
         """
         Adds a message to the chat history.
@@ -158,7 +156,7 @@ class LlamaCppAgent:
 
         if llm_sampling_settings.get_additional_stop_sequences() is not None:
             llm_sampling_settings.add_additional_stop_sequences(
-                self.messages_formatter.DEFAULT_STOP_SEQUENCES
+                self.messages_formatter.default_stop_sequences
             )
 
         if self.provider:
@@ -216,7 +214,7 @@ class LlamaCppAgent:
     def get_chat_response(
             self,
             message: str = None,
-            role: Literal["system", "user", "assistant", "tool"] = "user",
+            role: Roles = Roles.user,
             prompt_suffix: str = None,
             chat_history: ChatHistory = None,
             system_prompt: str = None,
@@ -267,7 +265,7 @@ class LlamaCppAgent:
 
         if llm_sampling_settings.get_additional_stop_sequences() is not None:
             llm_sampling_settings.add_additional_stop_sequences(
-                self.messages_formatter.DEFAULT_STOP_SEQUENCES
+                self.messages_formatter.default_stop_sequences
             )
 
         completion, response_role = self.get_response_role_and_completion(
@@ -285,18 +283,17 @@ class LlamaCppAgent:
             full_response_stream = ""
             for out_stream in completion:
                 out_text = out_stream["choices"][0]["text"]
-                if out_text != self.messages_formatter.EOS_TOKEN:
+                if out_text != self.messages_formatter.eos_token:
                     full_response_stream += text
                     yield out_text
             self.last_response = full_response
             if add_response_to_chat_history:
-                if response_role == "assistant":
-                    chat_history.add_message(
-                        {
-                            "role": response_role,
-                            "content": full_response,
-                        }
-                    )
+                chat_history.add_message(
+                    {
+                        "role": response_role,
+                        "content": full_response,
+                    }
+                )
             return structured_output_settings.handle_structured_output(
                 full_response_stream
             )
@@ -308,7 +305,7 @@ class LlamaCppAgent:
                 full_response = ""
                 for out in completion:
                     text = out["choices"][0]["text"]
-                    if text != self.messages_formatter.EOS_TOKEN:
+                    if text != self.messages_formatter.eos_token:
                         full_response += text
                         if streaming_callback is not None:
                             streaming_callback(
@@ -324,32 +321,31 @@ class LlamaCppAgent:
                     print("")
                 self.last_response = full_response
                 if add_response_to_chat_history:
-                    if response_role == "assistant":
-                        chat_history.add_message(
-                            {
-                                "role": response_role,
-                                "content": full_response,
-                            }
-                        )
+                    chat_history.add_message(
+                        {
+                            "role": response_role,
+                            "content": full_response,
+                        }
+                    )
 
                 return structured_output_settings.handle_structured_output(
                     full_response
                 )
             else:
                 text = completion["choices"][0]["text"]
-                if text.strip().endswith(self.messages_formatter.EOS_TOKEN):
-                    text = text.replace(self.messages_formatter.EOS_TOKEN, "")
+                if text.strip().endswith(self.messages_formatter.eos_token):
+                    text = text.replace(self.messages_formatter.eos_token, "")
                 if print_output or self.debug_output:
                     print(text)
                 self.last_response = text
                 if add_response_to_chat_history:
-                    if response_role == "assistant":
-                        chat_history.add_message(
-                            {
-                                "role": response_role,
-                                "content": text,
-                            }
-                        )
+                    chat_history.add_message(
+                        {
+                            "role": response_role,
+                            "content": text,
+                        }
+                    )
+
                 return structured_output_settings.handle_structured_output(text)
         return "Error: No model loaded!"
 
@@ -363,7 +359,7 @@ class LlamaCppAgent:
             prompt,
             structured_output_settings,
             llm_samplings_settings,
-            self.messages_formatter.BOS_TOKEN,
+            self.messages_formatter.bos_token,
         )
 
     def get_response_role_and_completion(
@@ -372,7 +368,7 @@ class LlamaCppAgent:
             chat_history: ChatHistory = None,
             system_prompt: str = None,
             add_message_to_chat_history: bool = True,
-            role: Literal["system", "user", "assistant", "tool"] = "user",
+            role: Roles = Roles.user,
             prompt_suffix: str = None,
             llm_sampling_settings: LlmSamplingSettings = None,
             structured_output_settings: LlmStructuredOutputSettings = None,
@@ -403,25 +399,41 @@ class LlamaCppAgent:
                 additional_suffix = "\n"
                 if structured_output_settings.output_type == LlmStructuredOutputType.function_calling or structured_output_settings.output_type == LlmStructuredOutputType.parallel_function_calling:
                     if structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
-                        messages[0]["content"] += function_calling_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(provider=self.provider)
+                        messages[0][
+                            "content"] += function_calling_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
-                        messages[0]["content"] += function_calling_without_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(provider=self.provider)
+                        messages[0][
+                            "content"] += function_calling_without_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
                     elif structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
-                        messages[0]["content"] += function_calling_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(provider=self.provider)
+                        messages[0][
+                            "content"] += function_calling_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
-                        messages[0]["content"] += function_calling_without_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(provider=self.provider)
+                        messages[0][
+                            "content"] += function_calling_without_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
                 elif structured_output_settings.output_type == LlmStructuredOutputType.object_instance or structured_output_settings.output_type == LlmStructuredOutputType.list_of_objects:
                     if structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
-                        messages[0]["content"] += structured_output_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(provider=self.provider)
+                        messages[0][
+                            "content"] += structured_output_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
-                        messages[0]["content"] += structured_output_without_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(provider=self.provider)
+                        messages[0][
+                            "content"] += structured_output_without_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
                     elif structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
-                        messages[0]["content"] += structured_output_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(provider=self.provider)
+                        messages[0][
+                            "content"] += structured_output_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
-                        messages[0]["content"] += structured_output_without_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(provider=self.provider)
+                        messages[0][
+                            "content"] += structured_output_without_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
 
-        prompt, response_role = self.messages_formatter.format_messages(
-            messages, "assistant"
+        prompt, response_role = self.messages_formatter.format_conversation(
+            messages, Roles.assistant
         )
 
         if prompt_suffix:
@@ -435,7 +447,7 @@ class LlamaCppAgent:
                 prompt,
                 structured_output_settings,
                 llm_sampling_settings,
-                self.messages_formatter.BOS_TOKEN,
+                self.messages_formatter.bos_token,
             ),
             response_role,
         )

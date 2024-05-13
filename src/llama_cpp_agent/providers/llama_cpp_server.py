@@ -1,5 +1,5 @@
 import json
-from copy import copy
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import List, Dict, Union
 
@@ -186,7 +186,7 @@ class LlamaCppServerProvider(LlmProvider):
         else:
             headers = {"Content-Type": "application/json"}
 
-        data = copy(settings.as_dict())
+        data = deepcopy(settings.as_dict())
         data["prompt"] = prompt
         data = self.prepare_generation_settings(data, structured_output_settings)
 
@@ -207,8 +207,7 @@ class LlamaCppServerProvider(LlmProvider):
         self,
         messages: List[Dict[str, str]],
         structured_output_settings: LlmStructuredOutputSettings,
-        settings: LlamaCppSamplingSettings,
-        bos_token: str,
+        settings: LlamaCppSamplingSettings
     ):
         if self.api_key is not None:
             headers = {
@@ -218,7 +217,7 @@ class LlamaCppServerProvider(LlmProvider):
         else:
             headers = {"Content-Type": "application/json"}
 
-        data = copy(settings.as_dict())
+        data = deepcopy(settings.as_dict())
         data["messages"] = messages
         data = self.prepare_generation_settings(data, structured_output_settings)
         if settings.stream:

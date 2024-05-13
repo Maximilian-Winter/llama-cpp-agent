@@ -64,6 +64,7 @@ nav:
   - "API Reference":
       "Provider": "provider-api-reference.md"
       "Agents": "agents-api-reference.md"
+      "Chat History": "chat_history-api-reference.md"
       "Function Calling": "function-calling-api-reference.md"
       "Agent Chains": "agent_chains.md"
       "Output Parsing": "output-parser-api-reference.md"

@@ -1,5 +1,5 @@
 import json
-from copy import copy
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import List, Dict, Union
 
@@ -154,7 +154,7 @@ class LlamaCppPythonProvider(LlmProvider):
                 self.grammar_cache[grammar] = LlamaGrammar.from_string(grammar)
                 grammar = self.grammar_cache[grammar]
 
-        settings_dictionary = copy(settings.as_dict())
+        settings_dictionary = deepcopy(settings.as_dict())
 
         settings_dictionary["stop"] = settings_dictionary.pop(
             "additional_stop_sequences"
@@ -168,8 +168,7 @@ class LlamaCppPythonProvider(LlmProvider):
         self,
         messages: List[Dict[str, str]],
         structured_output_settings: LlmStructuredOutputSettings,
-        settings: LlamaCppPythonSamplingSettings,
-        bos_token: str,
+        settings: LlamaCppPythonSamplingSettings
     ):
         grammar = None
         if (
@@ -182,7 +181,7 @@ class LlamaCppPythonProvider(LlmProvider):
             else:
                 self.grammar_cache[grammar] = LlamaGrammar.from_string(grammar)
                 grammar = self.grammar_cache[grammar]
-        settings_dictionary = copy(settings.as_dict())
+        settings_dictionary = deepcopy(settings.as_dict())
         settings_dictionary["max_tokens"] = settings_dictionary.pop("n_predict")
         settings_dictionary["stop"] = settings_dictionary.pop("stop_sequences")
 

@@ -63,7 +63,7 @@ class BasicChatMessageStore(ChatMessageStore):
 
     def save_to_json(self, file_path: str):
         # Convert messages to a list of dictionaries using pydantic's model_dump() method
-        messages_dict = [message.model_dump() for message in self.messages]
+        messages_dict = [{"role": message.role.value, "content": message.content} for message in self.messages]
         # Write the list of dictionaries to a JSON file
         with open(file_path, "w") as file:
             json.dump(messages_dict, file, indent=4)
@@ -73,9 +73,10 @@ class BasicChatMessageStore(ChatMessageStore):
         with open(file_path, "r") as file:
             messages_dict = json.load(file)
         # Convert dictionaries back to ChatMessage instances
-        self.messages = [
-            parse_obj_as(ChatMessage, message) for message in messages_dict
-        ]
+        self.messages = [SystemMessage(content=message["content"]) if message["role"] == "system" else
+                         UserMessage(content=message["content"]) if message["role"] == "user" else
+                         AssistantMessage(content=message["content"]) if message["role"] == "assistant" else
+                         ToolMessage(content=message["content"]) for message in messages_dict]
 
 
 class BasicChatHistoryStrategy(Enum):
@@ -85,11 +86,10 @@ class BasicChatHistoryStrategy(Enum):
 
 class BasicChatHistory(ChatHistory):
 
-
     def __init__(
             self,
             chat_history_strategy: BasicChatHistoryStrategy = BasicChatHistoryStrategy.last_k_messages,
-            k: int = 10,
+            k: int = 20,
             llm_provider: LlmProvider = None,
             message_store: ChatMessageStore = None,
     ):
@@ -107,11 +107,14 @@ class BasicChatHistory(ChatHistory):
                 "Please pass a LLM provider to BasicChatHistory when using last k tokens as memory strategy!"
             )
 
+    def get_message_store(self) -> BasicChatMessageStore:
+        return self.message_store
+
     def get_chat_messages(self) -> List[Dict[str, str]]:
         if self.strategy == BasicChatHistoryStrategy.last_k_messages:
-            return convert_messages_to_list_of_dictionaries(
-                self.message_store.get_last_k_messages(self.k)
-            )
+            messages = [self.message_store.get_message(0)]
+            messages.extend(self.message_store.get_last_k_messages(self.k - 1))
+            return convert_messages_to_list_of_dictionaries(messages)
         elif self.strategy == BasicChatHistoryStrategy.last_k_tokens:
             total_tokens = 0
             selected_messages = []
@@ -138,19 +141,19 @@ class BasicChatHistory(ChatHistory):
         return []
 
     def add_message(self, message: Dict[str, str]):
-        if message["role"] == "system":
+        if message["role"] == Roles.system:
             self.message_store.add_message(
                 SystemMessage(content=message["content"])
             )
-        elif message["role"] == "user":
+        elif message["role"] == Roles.user:
             self.message_store.add_message(
                 UserMessage(content=message["content"])
             )
-        elif message["role"] == "assistant":
+        elif message["role"] == Roles.assistant:
             self.message_store.add_message(
                 AssistantMessage(content=message["content"])
             )
-        elif message["role"] == "tool":
+        elif message["role"] == Roles.tool:
             self.message_store.add_message(
                 ToolMessage(tool_call_id=generate_function_call_id(), content=message["content"])
             )
@@ -159,18 +162,26 @@ class BasicChatHistory(ChatHistory):
         return self.message_store.get_messages_count()
 
     def edit_message(self, index: int, message: Dict[str, str]):
-        if message["role"] == "system":
-            self.message_store.edit_message(index,
-                                            SystemMessage(content=message["content"])
-                                            )
-        elif message["role"] == "user":
-            self.message_store.edit_message(index,
-                                            UserMessage(content=message["content"])
-                                            )
-        elif message["role"] == "assistant":
-            self.message_store.edit_message(index,
-                                            AssistantMessage(content=message["content"])
-                                            )
+        if message["role"] == Roles.system:
+            self.message_store.edit_message(
+                index,
+                SystemMessage(content=message["content"])
+            )
+        elif message["role"] == Roles.user:
+            self.message_store.edit_message(
+                index,
+                UserMessage(content=message["content"])
+            )
+        elif message["role"] == Roles.assistant:
+            self.message_store.edit_message(
+                index,
+                AssistantMessage(content=message["content"])
+            )
+        elif message["role"] == Roles.tool:
+            self.message_store.edit_message(
+                index,
+                ToolMessage(tool_call_id=generate_function_call_id(), content=message["content"])
+            )
 
     def get_message(self, index) -> Dict[str, str]:
         message = self.message_store.get_message(index)

@@ -1,5 +1,6 @@
 ### RAG - Retrieval Augmented Generation
 This example shows how to do RAG with colbert reranking. You have to install the optional rag dependencies (ragatouille) to use the RAGColbertReranker class and this example.
+
 ```python
 import json
 
@@ -20,7 +21,6 @@ from llama_cpp_agent.providers.llama_cpp_endpoint_provider import (
 )
 from llama_cpp_agent.rag.rag_colbert_reranker import RAGColbertReranker
 from llama_cpp_agent.rag.text_utils import RecursiveCharacterTextSplitter
-
 
 # Initialize the chromadb vector database with a colbert reranker.
 rag = RAGColbertReranker(persistent=False)
@@ -48,6 +48,7 @@ for split in splits:
 # Define the query we want to ask based on the retrieved information
 query = "What is a BARS apparatus?"
 
+
 # Define a pydantic class to represent a query extension as additional queries to the original query.
 class QueryExtension(BaseModel):
     """
@@ -67,7 +68,7 @@ query_extension_agent = LlamaCppAgent(
     main_model,
     debug_output=True,
     system_prompt="You are a world class query extension algorithm capable of extending queries by writing new queries. Do not answer the queries, simply provide a list of additional queries in JSON format. Structure your output according to the following model:\n\n" + docs.strip(),
-    predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL
 )
 
 # Perform the query extension with the agent.
@@ -98,7 +99,7 @@ agent_with_rag_information = LlamaCppAgent(
     main_model,
     debug_output=True,
     system_prompt="You are an advanced AI assistant, trained by OpenAI. Only answer question based on the context information provided.",
-    predefined_messages_formatter_type=MessagesFormatterType.MIXTRAL
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL
 )
 
 # Ask the agent the original query with the generated prompt that contains the retrieved information.

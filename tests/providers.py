@@ -15,7 +15,7 @@ from llama_cpp_agent.providers.vllm_server import LlmProviderId, VLLMServerProvi
 from llama_cpp_agent.providers.llama_cpp_python import LlmProviderId, LlamaCppPythonProvider
 
 if __name__ == "__main__":
-    test_endpoint = LlmProviderId.tgi_server
+    test_endpoint = LlmProviderId.vllm_server
     text_test = "[INST] Hello World! [/INST]"
     messages_test = [{"role": "user", "content": "Hello World!"}]
     structured_output_settings_test = LlmStructuredOutputSettings(
@@ -144,7 +144,8 @@ if __name__ == "__main__":
     settings = LlmStructuredOutputSettings(output_type=LlmStructuredOutputType.parallel_function_calling,
                                            function_tools=tools)
 
-    prompt_test = f"""[INST] You are Funky, an AI assistant that calls functions to perform tasks.
+    prompt_test = f"""[INST] <<SYS>>
+You are Funky, an AI assistant that calls functions to perform tasks.
 
 To call functions, you respond with a JSON object containing three fields:
 "001_thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
@@ -158,6 +159,7 @@ Below is a list of functions you can use to interact with the system. Each funct
 Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
 
 {settings.get_llm_documentation(provider).strip()}
+<</SYS>>
 
 Solve the following calculation: 42 * 42. [/INST]"""
     sampling_settings_test.stream = False
@@ -170,14 +172,13 @@ Solve the following calculation: 42 * 42. [/INST]"""
         provider,
         debug_output=True,
         system_prompt="You are a helpful assistant.",
-        predefined_messages_formatter_type=MessagesFormatterType.CHATML,
+        predefined_messages_formatter_type=MessagesFormatterType.LLAMA_2,
     )
 
     settings = provider.get_provider_default_settings()
     settings.stream = True
-    settings.max_new_tokens = 512
+    settings.max_tokens = 512
     settings.temperature = 0.65
-    settings.do_sample = True
 
     agent.get_chat_response("Hello!", llm_sampling_settings=settings)
 
@@ -346,7 +347,7 @@ Solve the following calculation: 42 * 42. [/INST]"""
         llama_cpp_function_tools=[calculator_function_tool, current_datetime_function_tool, get_weather_function_tool],
         send_message_to_user_callback=send_message_to_user_callback,
         allow_parallel_function_calling=True,
-        messages_formatter_type=MessagesFormatterType.CHATML)
+        messages_formatter_type=MessagesFormatterType.LLAMA_2)
 
     user_input = '''Get the date and time in '%d-%m-%Y %H:%M' format. Get the current weather in celsius in London, New York and at the North Pole. Solve the following calculations: 42 * 42, 74 + 26, 7 * 26, 4 + 6  and 96/8.'''
-    function_call_agent.generate_response(user_input)
+    function_call_agent.generate_response(user_input, llm_sampling_settings=settings)

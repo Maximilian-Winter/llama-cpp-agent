@@ -1,5 +1,5 @@
 import json
-from copy import copy
+from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Union
 
@@ -109,7 +109,7 @@ class VLLMServerProvider(LlmProvider):
         temperature = settings.temperature
         max_tokens = settings.max_tokens
 
-        settings_dict = copy(settings.as_dict())
+        settings_dict = deepcopy(settings.as_dict())
         settings_dict.pop("top_p")
         settings_dict.pop("stream")
         settings_dict.pop("temperature")

@@ -7,7 +7,7 @@ provider = VLLMServerProvider("http://localhost:8000/v1", "TheBloke/Llama-2-7b-C
 agent = LlamaCppAgent(
     provider,
     system_prompt="You are a helpful assistant.",
-    predefined_messages_formatter_type=MessagesFormatterType.CHATML,
+    predefined_messages_formatter_type=MessagesFormatterType.LLAMA_2,
 )
 
 settings = provider.get_provider_default_settings()

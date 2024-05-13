@@ -1,5 +1,5 @@
 import json
-from copy import copy
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Union
 
@@ -89,21 +89,21 @@ class TGIServerSamplingSettings(LlmSamplingSettings):
 
 class TGIServerProvider(LlmProvider):
 
-
     def __init__(self, server_address: str, api_key: str = None):
         self.server_address = server_address
         self.server_completion_endpoint = self.server_address + "/generate"
         self.server_streaming_completion_endpoint = (
-            self.server_address + "/generate_stream"
+                self.server_address + "/generate_stream"
         )
         self.server_chat_completion_endpoint = (
-            self.server_address + "/v1/chat/completions"
+                self.server_address + "/v1/chat/completions"
         )
         self.server_tokenize_endpoint = self.server_address + "/tokenize"
         self.api_key = api_key
 
     def is_using_json_schema_constraints(self):
         return True
+
     def get_provider_identifier(self) -> LlmProviderId:
         return LlmProviderId.tgi_server
 
@@ -111,11 +111,11 @@ class TGIServerProvider(LlmProvider):
         return TGIServerSamplingSettings()
 
     def create_completion(
-        self,
-        prompt: str,
-        structured_output_settings: LlmStructuredOutputSettings,
-        settings: TGIServerSamplingSettings,
-        bos_token: str,
+            self,
+            prompt: str,
+            structured_output_settings: LlmStructuredOutputSettings,
+            settings: TGIServerSamplingSettings,
+            bos_token: str,
     ):
         if self.api_key is not None:
             headers = {
@@ -125,13 +125,13 @@ class TGIServerProvider(LlmProvider):
         else:
             headers = {"Content-Type": "application/json"}
 
-        settings_dict = copy(settings.as_dict())
+        settings_dict = deepcopy(settings.as_dict())
 
         data = {"parameters": settings_dict, "inputs": prompt}
         grammar = None
         if (
-            structured_output_settings.output_type
-            != LlmStructuredOutputType.no_structured_output
+                structured_output_settings.output_type
+                != LlmStructuredOutputType.no_structured_output
         ):
             grammar = structured_output_settings.get_json_schema()
 
@@ -151,10 +151,10 @@ class TGIServerProvider(LlmProvider):
         return returned_data
 
     def create_chat_completion(
-        self,
-        messages: List[Dict[str, str]],
-        structured_output_settings: LlmStructuredOutputSettings,
-        settings: TGIServerSamplingSettings
+            self,
+            messages: List[Dict[str, str]],
+            structured_output_settings: LlmStructuredOutputSettings,
+            settings: TGIServerSamplingSettings
     ):
         if self.api_key is not None:
             headers = {
@@ -163,13 +163,13 @@ class TGIServerProvider(LlmProvider):
             }
         else:
             headers = {"Content-Type": "application/json"}
-        data = copy(settings.as_dict())
+        data = deepcopy(settings.as_dict())
         data["messages"] = messages
         data["model"] = "tgi"
         grammar = None
         if (
-            structured_output_settings.output_type
-            != LlmStructuredOutputType.no_structured_output
+                structured_output_settings.output_type
+                != LlmStructuredOutputType.no_structured_output
         ):
             grammar = structured_output_settings.get_json_schema()
 
@@ -226,16 +226,16 @@ class TGIServerProvider(LlmProvider):
                         decoded_chunk += chunk.decode("utf-8")
                         new_data = json.loads(decoded_chunk.replace("data:", ""))
                         if "token" in new_data and (
-                            new_data["token"]["text"] is not None
+                                new_data["token"]["text"] is not None
                         ):
                             returned_data = {
                                 "choices": [{"text": new_data["token"]["text"]}]
                             }
                             yield returned_data
                         elif (
-                            "choices" in new_data
-                            and (new_data["choices"][0]["delta"] is not None)
-                            and ("content" in new_data["choices"][0]["delta"])
+                                "choices" in new_data
+                                and (new_data["choices"][0]["delta"] is not None)
+                                and ("content" in new_data["choices"][0]["delta"])
                         ):
                             returned_data = {
                                 "choices": [

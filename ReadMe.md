@@ -1,5 +1,7 @@
 # llama-cpp-agent
+
 [![PyPI version](https://badge.fury.io/py/llama-cpp-agent.svg)](https://badge.fury.io/py/llama-cpp-agent)
+
 <img src="https://github.com/Maximilian-Winter/llama-cpp-agent/blob/db41b3184ebc902f50edbd3d27f7a3a1128b7d7d/logo/logo_orange.png" alt="llama-cpp-agent logo" width="400"/>
 
 ## Introduction

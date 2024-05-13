@@ -26,12 +26,7 @@ jobs:
         pip install build
     - name: Build package
       run: python -m build
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: dist
-        path: dist
-        retention-days: 1
+
   publish:
     needs: build
     runs-on: ubuntu-latest
@@ -42,10 +37,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
+      - name: Build package
+        run: python -m build
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@3fbcf7ccf443305955ce16db9de8401f7dc1c7dd
         with:

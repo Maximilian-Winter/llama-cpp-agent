@@ -13,11 +13,10 @@ agent = LlamaCppAgent(
 settings = provider.get_provider_default_settings()
 settings.n_predict = 512
 settings.temperature = 0.65
-agent.chat_history.get_message_store().load_from_json("test.json")
+
 while True:
     user_input = input(">")
     if user_input == "exit":
         break
     agent_output = agent.get_chat_response(user_input, llm_sampling_settings=settings)
-    agent.chat_history.get_message_store().save_to_json("test.json")
     print(f"Agent: {agent_output.strip()}")

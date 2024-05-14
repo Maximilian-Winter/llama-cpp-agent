@@ -85,7 +85,7 @@ class MessagesFormatter:
         return self._format_response(formatted_messages, last_role, response_role)
 
     def _format_message_content(self, content: str, role: Roles) -> str:
-        if self.strip_prompt and role != Roles.tool:
+        if self.strip_prompt:
             return content.strip()
         return content
 

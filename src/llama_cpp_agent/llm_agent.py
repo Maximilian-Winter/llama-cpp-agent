@@ -172,6 +172,7 @@ class LlamaCppAgent:
                     out_text = out_stream["choices"][0]["text"]
                     full_response_stream += text
                     yield out_text
+
                 return structured_output_settings.handle_structured_output(
                     full_response_stream
                 )
@@ -286,12 +287,14 @@ class LlamaCppAgent:
                 if out_text != self.messages_formatter.eos_token:
                     full_response_stream += text
                     yield out_text
-            self.last_response = full_response
+            if prompt_suffix:
+                full_response_stream = prompt_suffix + full_response_stream
+            self.last_response = full_response_stream
             if add_response_to_chat_history:
                 chat_history.add_message(
                     {
                         "role": response_role,
-                        "content": full_response,
+                        "content": full_response_stream,
                     }
                 )
             return structured_output_settings.handle_structured_output(
@@ -319,6 +322,8 @@ class LlamaCppAgent:
                     )
                 if print_output or self.debug_output:
                     print("")
+                if prompt_suffix:
+                    full_response = prompt_suffix + full_response
                 self.last_response = full_response
                 if add_response_to_chat_history:
                     chat_history.add_message(
@@ -337,6 +342,8 @@ class LlamaCppAgent:
                     text = text.replace(self.messages_formatter.eos_token, "")
                 if print_output or self.debug_output:
                     print(text)
+                if prompt_suffix:
+                    text = prompt_suffix + text
                 self.last_response = text
                 if add_response_to_chat_history:
                     chat_history.add_message(

@@ -10,7 +10,7 @@ from llama_cpp_agent.gbnf_grammar_generator.gbnf_grammar_from_pydantic_models im
     generate_gbnf_grammar_from_pydantic_models,
 )
 from llama_cpp_agent.json_schema_generator.schema_generator import generate_json_schemas
-from llama_cpp_agent.llm_documentation import generate_text_documentation
+from llama_cpp_agent.llm_documentation import generate_text_documentation, generate_markdown_documentation
 from llama_cpp_agent.output_parser import parse_json_response
 
 
@@ -380,22 +380,22 @@ class LlmStructuredOutputSettings(BaseModel):
                 "LlmOutputType: no_structured_output not supported for structured output and function calling!"
             )
         elif self.output_type == LlmStructuredOutputType.object_instance:
-            return generate_text_documentation(
+            return generate_markdown_documentation(
                 self.pydantic_models, ordered_json_mode=json_schema_mode
             ).strip()
         elif self.output_type == LlmStructuredOutputType.list_of_objects:
-            return generate_text_documentation(
+            return generate_markdown_documentation(
                 self.pydantic_models, ordered_json_mode=json_schema_mode
             ).strip()
         elif self.output_type == LlmStructuredOutputType.function_calling:
-            return generate_text_documentation(
+            return generate_markdown_documentation(
                 [tool.model for tool in self.function_tools],
                 model_prefix="Function",
                 fields_prefix="Parameters",
                 ordered_json_mode=json_schema_mode,
             ).strip()
         elif self.output_type == LlmStructuredOutputType.parallel_function_calling:
-            return generate_text_documentation(
+            return generate_markdown_documentation(
                 [tool.model for tool in self.function_tools],
                 model_prefix="Function",
                 fields_prefix="Parameters",

@@ -7,6 +7,7 @@ from typing import Type, List, Callable, Union, Literal
 from llama_cpp import Llama
 from pydantic import BaseModel, Field
 
+from .chat_history.messages import Roles
 from .llm_output_settings import LlmStructuredOutputSettings, LlmStructuredOutputType
 
 from .llm_agent import LlamaCppAgent, StreamingResponse
@@ -224,7 +225,7 @@ class FunctionCallingAgent:
         llm_sampling_settings: LlmSamplingSettings = None,
         structured_output_settings: LlmStructuredOutputSettings = None,
     ):
-        self.llama_cpp_agent.add_message(role="user", message=message)
+        self.llama_cpp_agent.add_message(role=Roles.user, message=message)
 
         result = self.intern_get_response(llm_sampling_settings=llm_sampling_settings)
 
@@ -253,7 +254,7 @@ class FunctionCallingAgent:
                     else:
                         function_message += f"{count}. " + res + "\n\n"
                 self.llama_cpp_agent.add_message(
-                    role="tool", message=function_message.strip()
+                    role=Roles.tool, message=function_message.strip()
                 )
                 if agent_sent_message:
                     break

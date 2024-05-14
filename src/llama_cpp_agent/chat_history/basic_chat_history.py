@@ -112,9 +112,14 @@ class BasicChatHistory(ChatHistory):
 
     def get_chat_messages(self) -> List[Dict[str, str]]:
         if self.strategy == BasicChatHistoryStrategy.last_k_messages:
-            messages = [self.message_store.get_message(0)]
-            messages.extend(self.message_store.get_last_k_messages(self.k - 1))
-            return convert_messages_to_list_of_dictionaries(messages)
+            converted_messages = convert_messages_to_list_of_dictionaries(
+                self.message_store.get_last_k_messages(self.k - 1)
+            )
+            if len(converted_messages) == self.k and converted_messages[0]["role"] != "system":
+                messages = [convert_messages_to_list_of_dictionaries(self.message_store.get_message(0))]
+                messages.extend(converted_messages[1:])
+                return messages
+            return converted_messages
         elif self.strategy == BasicChatHistoryStrategy.last_k_tokens:
             total_tokens = 0
             selected_messages = []

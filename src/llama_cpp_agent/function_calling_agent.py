@@ -227,7 +227,7 @@ class FunctionCallingAgent:
     ):
         self.llama_cpp_agent.add_message(role=Roles.user, message=message)
 
-        result = self.intern_get_response(llm_sampling_settings=llm_sampling_settings)
+        result = self.intern_get_response(llm_sampling_settings=llm_sampling_settings, structured_output_settings=structured_output_settings)
 
         while True:
             if isinstance(result, str):
@@ -259,7 +259,7 @@ class FunctionCallingAgent:
                 if agent_sent_message:
                     break
             result = self.intern_get_response(
-                llm_sampling_settings=llm_sampling_settings
+                llm_sampling_settings=llm_sampling_settings, structured_output_settings=structured_output_settings
             )
         return result
 

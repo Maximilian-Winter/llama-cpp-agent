@@ -98,6 +98,7 @@ class MessagesFormatter:
 
     def _format_user_message(self, content: str) -> str:
         if self.include_sys_prompt_in_first_user_message and self.added_system_prompt:
+            self.added_system_prompt = False
             return content + self.prompt_markers[Roles.user].end
         return self.prompt_markers[Roles.user].start + content + self.prompt_markers[Roles.user].end
 
@@ -128,8 +129,8 @@ class MessagesFormatter:
 
 mixtral_prompt_markers = {
     Roles.system: PromptMarkers("", """\n\n"""),
-    Roles.user: PromptMarkers("""[INST] """, """ """),
-    Roles.assistant: PromptMarkers("""[/INST]""", """</s>"""),
+    Roles.user: PromptMarkers("""[INST] """, """ [/INST]"""),
+    Roles.assistant: PromptMarkers("""""", """</s>"""),
     Roles.tool: PromptMarkers("", ""),
 }
 

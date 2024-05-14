@@ -396,7 +396,7 @@ class LlamaCppAgent:
         additional_suffix = ""
         if self.add_tools_and_structures_documentation_to_system_prompt:
             if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
-                additional_suffix = "\n"
+                # additional_suffix = "\n"
                 if structured_output_settings.output_type == LlmStructuredOutputType.function_calling or structured_output_settings.output_type == LlmStructuredOutputType.parallel_function_calling:
                     if structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
                         messages[0][

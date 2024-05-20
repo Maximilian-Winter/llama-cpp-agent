@@ -382,9 +382,9 @@ class LlamaCppAgent:
     ):
         if len(chat_history.get_chat_messages()) == 0:
             if system_prompt:
-                chat_history.add_message({"role": "system", "content": system_prompt})
+                chat_history.add_message({"role": Roles.system, "content": system_prompt})
             else:
-                chat_history.add_message({"role": "system", "content": self.system_prompt})
+                chat_history.add_message({"role": Roles.system, "content": self.system_prompt})
 
         if message is not None and add_message_to_chat_history:
             chat_history.add_message(

@@ -170,7 +170,7 @@ class LlamaCppAgent:
                 full_response_stream = ""
                 for out_stream in completion:
                     out_text = out_stream["choices"][0]["text"]
-                    full_response_stream += text
+                    full_response_stream += out_text
                     yield out_text
 
                 return structured_output_settings.handle_structured_output(
@@ -285,7 +285,7 @@ class LlamaCppAgent:
             for out_stream in completion:
                 out_text = out_stream["choices"][0]["text"]
                 if out_text != self.messages_formatter.eos_token:
-                    full_response_stream += text
+                    full_response_stream += out_text
                     yield out_text
             if prompt_suffix:
                 full_response_stream = prompt_suffix + full_response_stream

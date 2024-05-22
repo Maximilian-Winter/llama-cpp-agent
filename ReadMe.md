@@ -67,7 +67,7 @@ Join the Discord Community [here](https://discord.gg/6tGznupZGX)
 The llama-cpp-agent framework provides a wide range of examples demonstrating its capabilities. Here are some key examples:
 
 ### Simple Chat Example using llama.cpp server backend
-This example demonstrates how to initiate a chat with an LLM model using the llama.cpp server backend. It supports llama-cpp-python Llama class instances, OpenAI endpoints with GBNF grammar support, and the llama.cpp backend server.
+This example demonstrates how to initiate a chat with an LLM model using the llama.cpp server backend.
 
 [View Example](https://llama-cpp-agent.readthedocs.io/en/latest/simple-chat-example/)
 

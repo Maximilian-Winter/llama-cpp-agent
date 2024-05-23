@@ -1,12 +1,10 @@
 function_calling_thoughts_and_reasoning = '''\n\nYou can call functions to help you with your tasks and user queries. To call functions, you respond with a JSON object containing three fields:
                         
-"thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
-"function": The name of the function you want to call.
-"arguments": The arguments required for the function.
+"thoughts_and_reasoning": Write down your thoughts and reasoning behind the function call in this field. Think step by step and plan your next action.
+"function": Write down the name of the function you want to call in this field.
+"arguments": Write down arguments for the function in this field.
 
-After performing a function call, you will receive a response containing the return values of the function calls. Only you will see the return values of functions after you call them.
-
-### Functions:
+## Functions
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
 Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
 
@@ -14,12 +12,10 @@ Choose the appropriate function based on the task you want to perform. Provide y
 
 function_calling_without_thoughts_and_reasoning = '''\n\nYou can call functions to help you with your tasks and user queries. To call functions, you respond with a JSON object containing two fields:
                         
-"function": The name of the function you want to call.
-"arguments": The arguments required for the function.
+"function": Write down the name of the function you want to call in this field.
+"arguments": Write down arguments for the function in this field.
 
-After performing a function call, you will receive a response containing the return values of the function calls. Only you will see the return values of functions after you call them.
-
-### Functions:
+## Functions
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
 Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
 
@@ -28,13 +24,11 @@ Choose the appropriate function based on the task you want to perform. Provide y
 
 function_calling_thoughts_and_reasoning_json_schema = '''\n\nYou can call functions to help you with your tasks and user queries. To call functions, you respond with a JSON object containing three fields:
                         
-"001_thoughts_and_reasoning": Your thoughts and reasoning behind the function call.
-"002_function": The name of the function you want to call.
-"003_arguments": The arguments required for the function.
+"001_thoughts_and_reasoning": Write down your thoughts and reasoning behind the function call in this field. Think step by step and plan your next action.
+"002_function": Write down the name of the function you want to call in this field.
+"003_arguments": Write down arguments for the function in this field.
 
-After performing a function call, you will receive a response containing the return values of the function calls. Only you will see the return values of functions after you call them.
-
-### Functions:
+## Functions
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
 Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
 
@@ -42,12 +36,10 @@ Choose the appropriate function based on the task you want to perform. Provide y
 
 function_calling_without_thoughts_and_reasoning_json_schema = '''\n\nYou can call functions to help you with your tasks and user queries. To call functions, you respond with a JSON object containing two fields:
                         
-"001_function": The name of the function you want to call.
-"002_arguments": The arguments required for the function.
+"001_function": Write down the name of the function you want to call in this field.
+"002_arguments": Write down arguments for the function in this field.
 
-After performing a function call, you will receive a response containing the return values of the function calls. Only you will see the return values of functions after you call them.
-
-### Functions:
+## Functions
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
 Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
 
@@ -60,7 +52,7 @@ structured_output_thoughts_and_reasoning = '''\n\nYour output is constrained to 
 "model": The name of the model you will output.
 "fields": The fields of the model.
 
-You can generate the following output models in JSON format:
+## Output Models
 
 '''
 
@@ -69,7 +61,7 @@ structured_output_without_thoughts_and_reasoning = '''\n\nYour output is constra
 "model": The name of the model you will output.
 "fields": The fields of the model.
 
-You can generate the following output models in JSON format:
+## Output Models
 
 '''
 
@@ -80,7 +72,7 @@ structured_output_thoughts_and_reasoning_json_schema = '''\n\nYour output is con
 "002_model": The name of the model you will output.
 "003_fields": The fields of the model.
 
-You can generate the following output models in JSON format:
+## Output Models
 
 '''
 
@@ -89,6 +81,6 @@ structured_output_without_thoughts_and_reasoning_json_schema = '''\n\nYour outpu
 "001_model": The name of the model you will output.
 "002_fields": The fields of the model.
 
-You can generate the following output models in JSON format:
+## Output Models
 
 '''

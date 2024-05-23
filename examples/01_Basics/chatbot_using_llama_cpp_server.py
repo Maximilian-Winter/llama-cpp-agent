@@ -7,7 +7,8 @@ provider = LlamaCppServerProvider("http://127.0.0.1:8080")
 agent = LlamaCppAgent(
     provider,
     system_prompt="You are a helpful assistant.",
-    predefined_messages_formatter_type=MessagesFormatterType.CHATML,
+    debug_output=True,
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL,
 )
 
 settings = provider.get_provider_default_settings()

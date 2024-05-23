@@ -16,6 +16,15 @@ from llama_cpp_agent.providers import LlamaCppServerProvider
 
 provider = LlamaCppServerProvider("http://localhost:8080")
 
+import os
+import re
+import subprocess
+import traceback
+
+import venv
+import tempfile
+from typing import List
+
 
 class ComputerLlmInterface:
     def __init__(self, agent: LlamaCppAgent, venv_path, additional_packages=None,
@@ -193,10 +202,9 @@ class ComputerLlmInterface:
         else:
             return "No Python code block found."
 
-    def interpret_code(self) -> str:
+    def write_and_execute_python_code(self) -> str:
         """
-        Executes Python code. Use this to analyze and visualize data.
-        For example for .csv files, always make sure which keys actually exist before accessing them.
+        Lets you write Python code and automatically execute it in the virtual environment.
         """
         response = self.agent.get_chat_response(
             prompt_suffix="\n```python\n",
@@ -212,7 +220,8 @@ class ComputerLlmInterface:
             response = self.extract_python_code(response)
         try:
             if isinstance(response, str):
-                return self.run_code_in_venv(response)
+                result_text = self.run_code_in_venv(response)
+                return "Python executed successfully. Here is the output of the script:\n\n" + result_text
         except Exception as e:
             tb = traceback.format_exc()
             return f"Error during Python code execution: {str(e)}\n{tb}"
@@ -239,7 +248,7 @@ agent = LlamaCppAgent(
 interface = ComputerLlmInterface(agent=agent, venv_path="./.venv")
 
 output_settings = LlmStructuredOutputSettings.from_functions(
-    [interface.interpret_code, interface.execute_cli_commands, send_message])
+    [interface.write_and_execute_python_code, interface.execute_cli_commands, send_message])
 output_settings.add_thoughts_and_reasoning_field = True
 
 agent.system_prompt += " \n\n" + output_settings.get_llm_documentation(
@@ -248,7 +257,7 @@ agent.system_prompt += " \n\n" + output_settings.get_llm_documentation(
 
 def create_app():
     prompt = r"""Create a graph of x^2 + 5 with your Python Code Interpreter and save it as an image."""
-    prompt2 = r"""Create a random 3d scatter plot with your Python Code Interpreter and save it as an image."""
+    prompt2 = r"""Create an interesting and engaging random 3d scatter plot with your Python Code Interpreter and save it as an image."""
     prompt3 = r"""Analyze and visualize the dataset on multiple diagrams, keep it interesting and engaging. Open the dataset: "./input.csv" with your Python code interpreter. The head keys are the following: Country,Region,Hemisphere,HappinessScore,HDI,GDP_PerCapita,Beer_PerCapita,Spirit_PerCapita,Wine_PerCapita"""
     settings = provider.get_provider_default_settings()
     settings.temperature = 0.45
@@ -256,7 +265,7 @@ def create_app():
     settings.top_k = 40
 
     response = agent.get_chat_response(
-        message=prompt3,
+        message=prompt2,
         structured_output_settings=output_settings,
         llm_sampling_settings=settings
     )

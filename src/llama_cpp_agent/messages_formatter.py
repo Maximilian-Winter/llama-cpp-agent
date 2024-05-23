@@ -24,7 +24,7 @@ class MessagesFormatterType(Enum):
     B22 = 11
     LLAMA_3 = 12
     PHI_3 = 13
-
+    OPEN_INTERPRETER = 14
 
 @dataclass
 class PromptMarkers:
@@ -217,7 +217,17 @@ phi_3_chat_prompt_markers = {
     Roles.assistant: PromptMarkers("""<|assistant|>""", """<|end|>\n"""),
     Roles.tool: PromptMarkers("", ""),
 }
+open_interpreter_chat_prompt_markers = {
+    Roles.system: PromptMarkers("", "\n\n"),
+    Roles.user: PromptMarkers("### Instruction:\n", "\n"),
+    Roles.assistant: PromptMarkers("### Response:\n", "\n"),
+    Roles.tool: PromptMarkers("", ""),
+}
 
+"""
+### Instruction:
+{prompt}
+### Response:"""
 mixtral_formatter = MessagesFormatter(
     "",
     mixtral_prompt_markers,
@@ -318,6 +328,14 @@ phi_3_chat_formatter = MessagesFormatter(
     use_user_role_for_function_call_result=True,
 )
 
+open_interpreter_chat_formatter = MessagesFormatter(
+    "You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.\n",
+    open_interpreter_chat_prompt_markers,
+    True,
+    ["<|EOT|>", "### Instruction:"],
+    use_user_role_for_function_call_result=True,
+)
+
 predefined_formatter = {
     MessagesFormatterType.MISTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
@@ -332,6 +350,7 @@ predefined_formatter = {
     MessagesFormatterType.B22: b22_chat_formatter,
     MessagesFormatterType.LLAMA_3: llama_3_formatter,
     MessagesFormatterType.PHI_3: phi_3_chat_formatter,
+    MessagesFormatterType.OPEN_INTERPRETER: open_interpreter_chat_formatter,
 }
 
 

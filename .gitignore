@@ -159,3 +159,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 /examples/05_Agents/data/
+/examples/03_Tools_And_Function_Calling/experimental_llm_computer_interface/venv_agent/
+

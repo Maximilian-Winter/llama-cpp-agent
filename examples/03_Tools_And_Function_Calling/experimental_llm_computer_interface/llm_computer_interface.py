@@ -445,11 +445,9 @@ agent = LlamaCppAgent(
     add_tools_and_structures_documentation_to_system_prompt=True,
 )
 sampling_settings = provider.get_provider_default_settings()
-sampling_settings.top_k = 40
+sampling_settings.temperature = 0.45
 sampling_settings.top_p = 0.85
-sampling_settings.tfs_z = 1.0
-sampling_settings.min_p = 0.0
-sampling_settings.temperature = 0.55
+sampling_settings.top_k = 40
 
 llm_computer_interface = LlmComputerInterface(agent=agent, sampling_settings=sampling_settings, operating_system="Windows 11", venv_path="./venv_agent")
 

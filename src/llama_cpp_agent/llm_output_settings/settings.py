@@ -190,7 +190,7 @@ class LlmStructuredOutputSettings(BaseModel):
 
     @staticmethod
     def from_functions(
-        tools: List[Callable], allow_parallel_function_calling: bool = False
+        tools: List[Callable], allow_parallel_function_calling: bool = False, add_thoughts_and_reasoning_field: bool = False,
     ):
         """
         Create settings from a list of llama-index tools with a specific output type.
@@ -198,7 +198,7 @@ class LlmStructuredOutputSettings(BaseModel):
         Args:
             tools (list): List of llama-index tools.
             allow_parallel_function_calling (bool): Whether to enable parallel function calling. Defaults to False.
-
+            add_thoughts_and_reasoning_field_to_output (bool): Whether to add a thoughts and reasoning field to output.
         Returns:
             LlmStructuredOutputSettings: Configured settings object.
 
@@ -206,6 +206,7 @@ class LlmStructuredOutputSettings(BaseModel):
             NotImplementedError: If the specified output type is not supported for tools.
         """
         return LlmStructuredOutputSettings(
+            add_thoughts_and_reasoning_field=add_thoughts_and_reasoning_field,
             output_type=LlmStructuredOutputType.parallel_function_calling
             if allow_parallel_function_calling
             else LlmStructuredOutputType.function_calling,

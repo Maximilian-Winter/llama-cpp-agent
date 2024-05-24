@@ -119,7 +119,8 @@ def generate_field_markdown(
     field_description = (
         field_info.description if field_info and field_info.description else ""
     )
-
+    is_enum = False
+    enum_values = None
     if get_origin(field_type) == list:
         element_type = get_args(field_type)[0]
         field_text = (
@@ -145,8 +146,8 @@ def generate_field_markdown(
 
     elif issubclass(field_type, Enum):
         enum_values = [f"'{str(member.value)}'" for member in field_type]
-
-        field_text = f"{indent}{field_name} ({' or '.join(enum_values)})"
+        is_enum = True
+        field_text = f"{indent}{field_name} "
         if field_description != "":
             field_text += ": "
         else:
@@ -162,8 +163,12 @@ def generate_field_markdown(
     if not documentation_with_field_description:
         return field_text
 
-    if field_description != "":
+    if is_enum:
+
+        field_text += field_description + f" Can be one of the following values: {' or '.join(enum_values)}" + "\n"
+    elif field_description != "":
         field_text += field_description + "\n"
+
 
     # Check for and include field-specific examples if available
     if (

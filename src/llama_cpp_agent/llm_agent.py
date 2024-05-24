@@ -451,7 +451,7 @@ class LlamaCppAgent:
 
         if prompt_suffix:
             prompt += prompt_suffix
-        prompt += additional_suffix
+        #prompt += additional_suffix
         if self.debug_output:
             print(prompt, end="")
 

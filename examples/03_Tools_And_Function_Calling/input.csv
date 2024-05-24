@@ -1,0 +1,123 @@
+Country,Region,Hemisphere,HappinessScore,HDI,GDP_PerCapita,Beer_PerCapita,Spirit_PerCapita,Wine_PerCapita
+Denmark,Western Europe,north,7.526,928,53.579,224,81,278
+Switzerland,Western Europe,north,7.509,943,79.866,185,100,280
+Iceland,Western Europe,north,7.501,933,60.530,233,61,78
+Norway,Western Europe,north,7.498,951,70.890,169,71,129
+Finland,Western Europe,north,7.413,918,43.433,263,133,97
+Canada,North America,north,7.404,922,42.349,240,122,100
+Netherlands,Western Europe,north,7.339,928,45.638,251,88,190
+New Zealand,Australia and New Zealand,south,7.334,915,40.332,203,79,175
+Australia,Australia and New Zealand,south,7.313,938,49.897,261,72,212
+Sweden,Western Europe,north,7.291,932,51.845,152,60,186
+Israel,Middle East and Northern Africa,north,7.267,902,37.181,63,69,9
+Austria,Western Europe,north,7.119,906,44.731,279,75,191
+United States,North America,north,7.104,922,57.589,249,158,84
+Costa Rica,Latin America and Caribbean,north,7.087,791,11.733,149,87,11
+Germany,Western Europe,north,6.994,934,42.233,346,117,175
+Brazil,Latin America and Caribbean,both,6.952,758,8.639,245,145,16
+Belgium,Western Europe,north,6.929,915,41.261,295,84,212
+Ireland,Western Europe,north,6.907,934,64.100,313,118,165
+Luxembourg,Western Europe,north,6.871,904,100.739,236,133,271
+Mexico,Latin America and Caribbean,north,6.778,772,8.444,238,68,5
+Singapore,Southeastern Asia,north,6.739,930,55.243,60,12,11
+United Kingdom,Western Europe,north,6.725,920,40.412,219,126,195
+Chile,Latin America and Caribbean,south,6.705,842,13.961,130,124,172
+Panama,Latin America and Caribbean,north,6.701,785,14.333,285,104,18
+Argentina,Latin America and Caribbean,south,6.650,822,12.654,193,25,221
+Czech Republic,Central and Eastern Europe,north,6.596,885,18.484,361,170,134
+United Arab Emirates,Middle East and Northern Africa,north,6.573,862,38.518,16,135,5
+Uruguay,Latin America and Caribbean,south,6.545,802,15.298,115,35,220
+Malta,Western Europe,north,6.488,875,24.771,149,100,120
+Colombia,Latin America and Caribbean,both,6.481,747,5.757,159,76,3
+France,Western Europe,north,6.478,899,36.870,127,151,370
+Thailand,Southeastern Asia,north,6.474,748,5.979,99,258,1
+Qatar,Middle East and Northern Africa,north,6.375,855,59.324,1,42,7
+Spain,Western Europe,north,6.361,889,26.617,284,157,112
+Guatemala,Latin America and Caribbean,north,6.324,649,4.141,53,69,2
+Suriname,Latin America and Caribbean,north,6.269,719,5.871,128,178,7
+Bahrain,Middle East and Northern Africa,north,6.218,846,22.561,42,63,7
+Trinidad and Tobago,Latin America and Caribbean,north,6.168,785,16.352,197,156,7
+Venezuela,Latin America and Caribbean,north,6.084,766,15.692,333,100,3
+Slovakia,Central and Eastern Europe,north,6.078,853,16.530,196,293,116
+El Salvador,Latin America and Caribbean,north,6.068,679,3.769,52,69,2
+Nicaragua,Latin America and Caribbean,north,5.992,657,2.144,78,118,1
+Uzbekistan,Central and Eastern Europe,north,5.987,703,2.106,25,101,8
+Italy,Western Europe,north,5.977,878,30.669,85,42,237
+Ecuador,Latin America and Caribbean,both,5.976,749,6.019,162,74,3
+Belize,Latin America and Caribbean,north,5.956,709,4.960,263,114,8
+Japan,Eastern Asia,noth,5.921,907,38.972,77,202,16
+Kazakhstan,Central and Eastern Europe,north,5.919,797,7.715,124,246,12
+Moldova,Central and Eastern Europe,north,5.897,697,1.913,109,226,18
+Russian Federation,Central and Eastern Europe,north,5.856,815,8.748,247,326,73
+Poland,Central and Eastern Europe,north,5.835,860,12.415,343,215,56
+South Korea,Eastern Asia,noth,5.835,900,27.105,140,16,9
+Bolivia,Latin America and Caribbean,south,5.822,689,3.117,167,41,8
+Lithuania,Central and Eastern Europe,north,5.813,855,14.913,343,244,56
+Belarus,Central and Eastern Europe,north,5.802,805,5.023,142,373,42
+Slovenia,Central and Eastern Europe,north,5.768,894,21.650,270,51,276
+Peru,Latin America and Caribbean,both,5.743,748,6.031,163,160,21
+Turkmenistan,Central and Eastern Europe,north,5.658,705,6.389,19,71,32
+Mauritius,Sub-Saharan Africa,north,5.648,788,9.682,98,31,18
+Latvia,Central and Eastern Europe,north,5.560,844,14.070,281,216,62
+Cyprus,Western Europe,north,5.546,867,23.541,192,154,113
+Paraguay,Latin America and Caribbean,south,5.538,702,4.078,213,117,74
+Romania,Central and Eastern Europe,north,5.528,807,9.532,297,122,167
+Estonia,Central and Eastern Europe,north,5.517,868,17.737,224,194,59
+Jamaica,Latin America and Caribbean,north,5.510,732,4.879,82,97,9
+Croatia,Central and Eastern Europe,north,5.488,828,12.299,230,87,254
+Turkey,Middle East and Northern Africa,north,5.389,787,10.863,51,22,7
+Jordan,Middle East and Northern Africa,north,5.303,735,4.088,6,21,1
+Azerbaijan,Central and Eastern Europe,north,5.291,757,3.881,21,46,5
+Philippines,Southeastern Asia,north,5.279,696,2.951,71,186,1
+China,Eastern Asia,noth,5.245,748,8.117,79,192,8
+Kyrgyzstan,Central and Eastern Europe,north,5.185,669,1.220,31,97,6
+Serbia,Central and Eastern Europe,north,5.177,785,5.426,283,131,127
+Bosnia and Herzegovina,Central and Eastern Europe,north,5.163,766,4.809,76,173,8
+Montenegro,Central and Eastern Europe,north,5.161,810,7.029,31,114,128
+Dominican Republic,Latin America and Caribbean,north,5.155,733,6.794,193,147,9
+Morocco,Middle East and Northern Africa,north,5.151,662,2.893,12,6,10
+Hungary,Central and Eastern Europe,north,5.145,835,12.820,234,215,185
+Lebanon,Middle East and Northern Africa,north,5.129,753,8.257,20,55,31
+Portugal,Western Europe,north,5.123,845,19.872,194,67,339
+Macedonia,Central and Eastern Europe,north,5.121,756,4.834,106,27,86
+Vietnam,Southeastern Asia,north,5.061,689,2.171,111,2,1
+Tunisia,Middle East and Northern Africa,north,5.045,732,3.689,51,3,20
+Greece,Western Europe,north,5.033,868,17.882,133,112,218
+Mongolia,Eastern Asia,noth,4.907,743,3.694,77,189,8
+Nigeria,Sub-Saharan Africa,north,4.875,530,2.176,42,5,2
+Honduras,Latin America and Caribbean,north,4.871,614,2.375,69,98,2
+Zambia,Sub-Saharan Africa,south,4.795,586,1.263,32,19,4
+Albania,Central and Eastern Europe,north,4.655,782,4.132,89,132,54
+Sierra Leone,Sub-Saharan Africa,north,4.635,413,481,25,3,2
+Namibia,Sub-Saharan Africa,south,4.574,645,4.561,376,3,1
+Cameroon,Sub-Saharan Africa,south,4.513,553,1.375,147,1,4
+South Africa,Sub-Saharan Africa,south,4.459,696,5.280,225,76,81
+Egypt,Middle East and Northern Africa,north,4.362,694,3.548,6,4,1
+Armenia,Central and Eastern Europe,north,4.360,749,3.606,21,179,11
+Kenya,Sub-Saharan Africa,both,4.356,585,1.463,58,22,2
+Ukraine,Central and Eastern Europe,north,4.324,746,2.186,206,237,45
+Ghana,Sub-Saharan Africa,north,4.276,588,1.517,31,3,10
+Dem. Rep. Congo,Sub-Saharan Africa,south,4.272,452,1.712,32,3,1
+Georgia,Central and Eastern Europe,north,4.252,776,3.866,52,100,149
+Rep. Congo,Sub-Saharan Africa,south,4.236,612,498,76,1,9
+Senegal,Sub-Saharan Africa,north,4.219,499,953,9,1,7
+Bulgaria,Central and Eastern Europe,north,4.217,810,7.469,231,252,94
+Zimbabwe,Sub-Saharan Africa,south,4.193,532,1.029,64,18,4
+Malawi,Sub-Saharan Africa,south,4.156,474,300,8,11,1
+Gabon,Sub-Saharan Africa,south,4.121,698,7.079,347,98,59
+Mali,Sub-Saharan Africa,north,4.073,421,780,5,1,1
+Haiti,Latin America and Caribbean,north,4.028,496,735,1,326,1
+Botswana,Sub-Saharan Africa,south,3.974,712,6.954,173,35,35
+Comoros,Sub-Saharan Africa,south,3.956,502,775,1,3,1
+Cote d'Ivoire,Sub-Saharan Africa,north,3.916,486,1.535,37,1,7
+Cambodia,Southeastern Asia,north,3.907,576,1.270,57,65,1
+Angola,Sub-Saharan Africa,south,3.866,577,3.309,217,57,45
+Niger,Sub-Saharan Africa,north,3.856,351,368,3,2,1
+Chad,Sub-Saharan Africa,north,3.763,405,651,15,1,1
+Burkina Faso,Sub-Saharan Africa,north,3.739,420,614,25,7,7
+Madagascar,Sub-Saharan Africa,south,3.695,517,402,26,15,4
+Tanzania,Sub-Saharan Africa,south,3.666,533,878,36,6,1
+Liberia,Sub-Saharan Africa,north,3.622,432,455,19,152,2
+Benin,Sub-Saharan Africa,north,3.484,512,789,34,4,13
+Togo,Sub-Saharan Africa,north,3.303,500,577,36,2,19
+Syria,Middle East and Northern Africa,north,3.069,536,2.058,5,35,16

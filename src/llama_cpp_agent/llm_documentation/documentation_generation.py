@@ -30,9 +30,9 @@ def generate_markdown_documentation(
     pyd_models = [(model, True) for model in pydantic_models]
     for model, add_prefix in pyd_models:
         if add_prefix:
-            documentation += f"### {model_prefix} {model.__name__}\n"
+            documentation += f"### {model_prefix} '{model.__name__}'\n"
         else:
-            documentation += f"### {model.__name__}\n"
+            documentation += f"### '{model.__name__}'\n"
 
         # Handling multi-line model description with proper indentation
 
@@ -46,9 +46,9 @@ def generate_markdown_documentation(
 
         if add_prefix:
             # Indenting the fields section
-            documentation += f"{fields_prefix}:\n"
+            documentation += f"#### {fields_prefix}\n"
         else:
-            documentation += f"Fields:\n"
+            documentation += f"#### Fields\n"
         if isclass(model) and issubclass(model, BaseModel):
             count = 1
             for name, field_type in model.__annotations__.items():
@@ -74,10 +74,10 @@ def generate_markdown_documentation(
                     documentation_with_field_description=documentation_with_field_description,
                 )
             if add_prefix:
-                if documentation.endswith(f"{fields_prefix}:\n"):
+                if documentation.endswith(f"#### {fields_prefix}\n"):
                     documentation += "none\n"
             else:
-                if documentation.endswith("Fields:\n"):
+                if documentation.endswith("#### Fields\n"):
                     documentation += "none\n"
             documentation += "\n"
 
@@ -147,7 +147,7 @@ def generate_field_markdown(
     elif issubclass(field_type, Enum):
         enum_values = [f"'{str(member.value)}'" for member in field_type]
         is_enum = True
-        field_text = f"{indent}{field_name} "
+        field_text = f"{indent}{field_name}"
         if field_description != "":
             field_text += ": "
         else:

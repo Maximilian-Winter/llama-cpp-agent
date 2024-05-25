@@ -1,51 +1,29 @@
-import json
-
-from duckduckgo_search import DDGS
-from trafilatura import fetch_url, extract
-
 from llama_cpp_agent import LlamaCppAgent, MessagesFormatterType
 from llama_cpp_agent.chat_history.messages import Roles
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
 from llama_cpp_agent.providers import LlamaCppServerProvider
+from llama_cpp_agent.providers.provider_base import LlmProvider
+from web_search_interfaces import WebCrawler, WebSearchProvider
+from default_web_crawlers import TrafilaturaWebRetriever
+from default_web_search_providers import DDGWebSearchProvider
 
-def send_message_to_user(message: str):
-    """
-    Send a message to user.
-    Args:
-        message (str): Message to send.
-    """
-    print(message)
 
-class DDGWebSearch:
+class WebSearchTool:
 
-    def __init__(self, llm_provider, message_formatter_type):
+    def __init__(self, llm_provider: LlmProvider, message_formatter_type: MessagesFormatterType,
+                 web_crawler: WebCrawler = None, web_search_provider: WebSearchProvider = None):
         self.summarising_agent = LlamaCppAgent(llm_provider, debug_output=True,
                                                system_prompt="You are a text summarization and information extraction specialist and you are able to summarize and filter out information relevant to a specific query.",
                                                predefined_messages_formatter_type=message_formatter_type)
+        if web_crawler is None:
+            self.web_crawler = TrafilaturaWebRetriever()
+        else:
+            self.web_crawler = web_crawler
 
-    def get_website_content_from_url(self, url: str) -> str:
-        """
-        Get website content from a URL using Selenium and BeautifulSoup for improved content extraction and filtering.
-
-        Args:
-            url (str): URL to get website content from.
-
-        Returns:
-            str: Extracted content including title, main text, and tables.
-        """
-
-        try:
-            downloaded = fetch_url(url)
-
-            result = extract(downloaded, include_formatting=True, include_links=True, output_format='json', url=url)
-
-            if result:
-                result = json.loads(result)
-                return f'=========== Website Title: {result["title"]} ===========\n\n=========== Website URL: {url} ===========\n\n=========== Website Content ===========\n\n{result["raw_text"]}\n\n=========== Website Content End ===========\n\n'
-            else:
-                return ""
-        except Exception as e:
-            return f"An error occurred: {str(e)}"
+        if web_search_provider is None:
+            self.web_search_provider = DDGWebSearchProvider
+        else:
+            self.web_search_provider = web_search_provider
 
     def search_web(self, search_query: str):
         """
@@ -53,10 +31,10 @@ class DDGWebSearch:
         Args:
             search_query (str): Search query to search for.
         """
-        results = DDGS().text(search_query, region='wt-wt', safesearch='off', max_results=4)
+        results = self.web_search_provider.search_web(search_query)
         result_string = ''
         for res in results:
-            web_info = self.get_website_content_from_url(res['href'])
+            web_info = self.web_crawler.get_website_content_from_url(res)
             if web_info != "":
                 web_info = self.summarising_agent.get_chat_response(
                     f"Please summarize the following Website content and extract relevant information to this query:'{search_query}'.\n\n" + web_info,
@@ -68,6 +46,15 @@ class DDGWebSearch:
 
     def get_tool(self):
         return self.search_web
+
+
+def send_message_to_user(message: str):
+    """
+    Send a message to user.
+    Args:
+        message (str): Message to send.
+    """
+    print(message)
 
 
 provider = LlamaCppServerProvider("http://hades.hq.solidrust.net:8084")

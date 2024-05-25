@@ -86,7 +86,7 @@ class VLLMServerProvider(LlmProvider):
         return True
 
     def get_provider_identifier(self) -> LlmProviderId:
-        return LlmProviderId.tgi_server
+        return LlmProviderId.vllm_server
 
     def get_provider_default_settings(self) -> VLLMServerSamplingSettings:
         return VLLMServerSamplingSettings()

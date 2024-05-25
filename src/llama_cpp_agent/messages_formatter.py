@@ -241,7 +241,7 @@ chatml_formatter = MessagesFormatter(
     False,
     ["<|im_end|>", "</s>"],
     use_user_role_for_function_call_result=False,
-    strip_prompt=False,
+    strip_prompt=True,
 )
 
 vicuna_formatter = MessagesFormatter(

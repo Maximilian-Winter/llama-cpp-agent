@@ -32,7 +32,7 @@ class core_memory_append(BaseModel):
 
     def run(self, core_memory_manager: CoreMemoryManager):
         return core_memory_manager.add_to_core_memory(
-            self.key.value, self.field, self.value
+            self.key, self.field, self.value
         )
 
 
@@ -50,7 +50,7 @@ class core_memory_replace(BaseModel):
 
     def run(self, core_memory_manager: CoreMemoryManager):
         return core_memory_manager.replace_in_core_memory(
-            self.key.value, self.field, self.new_value
+            self.key, self.field, self.new_value
         )
 
 
@@ -63,7 +63,7 @@ class core_memory_remove(BaseModel):
     field: str = Field(..., description="The field within the core memory.")
 
     def run(self, core_memory_manager: CoreMemoryManager):
-        return core_memory_manager.remove_from_core_memory(self.key.value, self.field)
+        return core_memory_manager.remove_from_core_memory(self.key, self.field)
 
 
 class conversation_search(BaseModel):

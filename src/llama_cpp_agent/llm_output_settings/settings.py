@@ -551,9 +551,11 @@ class LlmStructuredOutputSettings(BaseModel):
                 add_inner_thoughts=self.add_thoughts_and_reasoning_field,
             )
 
-    def handle_structured_output(self, llm_output: str):
+    def handle_structured_output(self, llm_output: str, prompt_suffix: str = None):
         if self.output_raw_json_string:
             return llm_output
+        if prompt_suffix:
+            llm_output = llm_output.replace(prompt_suffix, "", 1)
         if (
             self.output_type is LlmStructuredOutputType.function_calling
             or self.output_type is LlmStructuredOutputType.parallel_function_calling

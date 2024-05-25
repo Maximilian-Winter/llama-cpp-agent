@@ -10,7 +10,7 @@ from default_web_search_providers import DDGWebSearchProvider
 
 class WebSearchTool:
 
-    def __init__(self, llm_provider: LlmProvider, message_formatter_type: MessagesFormatterType,
+    def __init__(self, llm_provider: LlmProvider, message_formatter_type: MessagesFormatterType, context_character_limit: int = 7500,
                  web_crawler: WebCrawler = None, web_search_provider: WebSearchProvider = None):
         self.summarising_agent = LlamaCppAgent(llm_provider, debug_output=True,
                                                system_prompt="You are a text summarization and information extraction specialist and you are able to summarize and filter out information relevant to a specific query.",
@@ -24,6 +24,8 @@ class WebSearchTool:
             self.web_search_provider = DDGWebSearchProvider()
         else:
             self.web_search_provider = web_search_provider
+
+        self.context_character_limit = context_character_limit
 
     def search_web(self, search_query: str):
         """
@@ -42,7 +44,7 @@ class WebSearchTool:
                 result_string += web_info
 
         res = result_string.strip()
-        return "Based on the following results, answer the previous user query:\nResults:\n\n" + res
+        return "Based on the following results, answer the previous user query:\nResults:\n\n" + res[:self.context_character_limit]
 
     def get_tool(self):
         return self.search_web
@@ -67,22 +69,25 @@ agent = LlamaCppAgent(
     add_tools_and_structures_documentation_to_system_prompt=True,
 )
 
-search_tool = WebSearchTool(provider, MessagesFormatterType.CHATML)
+search_tool = WebSearchTool(provider, MessagesFormatterType.CHATML, 20000)
 
 settings = provider.get_provider_default_settings()
 
-settings.temperature = 0.45
-settings.max_tokens = 1024
+settings.temperature = 0.65
+# settings.top_p = 0.85
+# settings.top_k = 60
+# settings.tfs_z = 0.95
+settings.max_tokens = 2048
 output_settings = LlmStructuredOutputSettings.from_functions(
     [search_tool.get_tool(), send_message_to_user])
 user = input(">")
-result = agent.get_chat_response(user,
+result = agent.get_chat_response(user, prompt_suffix="\n```json\n",
                                  llm_sampling_settings=settings, structured_output_settings=output_settings)
 while True:
     if result[0]["function"] == "send_message_to_user":
         user = input(">")
-        result = agent.get_chat_response(user, structured_output_settings=output_settings,
+        result = agent.get_chat_response(user, prompt_suffix="\n```json\n", structured_output_settings=output_settings,
                                          llm_sampling_settings=settings)
     else:
-        result = agent.get_chat_response(result[0]["return_value"], role=Roles.tool,
+        result = agent.get_chat_response(result[0]["return_value"], role=Roles.tool, prompt_suffix="\n```json\n",
                                          structured_output_settings=output_settings, llm_sampling_settings=settings)

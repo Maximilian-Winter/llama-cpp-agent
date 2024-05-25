@@ -298,7 +298,7 @@ class LlamaCppAgent:
                     }
                 )
             return structured_output_settings.handle_structured_output(
-                full_response_stream
+                full_response_stream, prompt_suffix=prompt_suffix
             )
 
         if self.provider:
@@ -334,7 +334,7 @@ class LlamaCppAgent:
                     )
 
                 return structured_output_settings.handle_structured_output(
-                    full_response
+                    full_response, prompt_suffix=prompt_suffix
                 )
             else:
                 text = completion["choices"][0]["text"]
@@ -353,7 +353,7 @@ class LlamaCppAgent:
                         }
                     )
 
-                return structured_output_settings.handle_structured_output(text)
+                return structured_output_settings.handle_structured_output(text, prompt_suffix=prompt_suffix)
         return "Error: No model loaded!"
 
     def get_text_completion(

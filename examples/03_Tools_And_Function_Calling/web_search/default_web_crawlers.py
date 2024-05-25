@@ -4,7 +4,7 @@ from web_search_interfaces import WebCrawler
 from trafilatura import fetch_url, extract
 
 
-class TrafilaturaWebRetriever(WebCrawler):
+class TrafilaturaWebCrawler(WebCrawler):
     def get_website_content_from_url(self, url: str) -> str:
         """
         Get website content from a URL using Selenium and BeautifulSoup for improved content extraction and filtering.

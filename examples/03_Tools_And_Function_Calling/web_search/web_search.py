@@ -4,7 +4,7 @@ from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
 from llama_cpp_agent.providers import LlamaCppServerProvider
 from llama_cpp_agent.providers.provider_base import LlmProvider
 from web_search_interfaces import WebCrawler, WebSearchProvider
-from default_web_crawlers import TrafilaturaWebRetriever
+from default_web_crawlers import TrafilaturaWebCrawler
 from default_web_search_providers import DDGWebSearchProvider
 
 
@@ -16,7 +16,7 @@ class WebSearchTool:
                                                system_prompt="You are a text summarization and information extraction specialist and you are able to summarize and filter out information relevant to a specific query.",
                                                predefined_messages_formatter_type=message_formatter_type)
         if web_crawler is None:
-            self.web_crawler = TrafilaturaWebRetriever()
+            self.web_crawler = TrafilaturaWebCrawler()
         else:
             self.web_crawler = web_crawler
 

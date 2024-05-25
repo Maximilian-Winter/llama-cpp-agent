@@ -21,7 +21,7 @@ class WebSearchTool:
             self.web_crawler = web_crawler
 
         if web_search_provider is None:
-            self.web_search_provider = DDGWebSearchProvider
+            self.web_search_provider = DDGWebSearchProvider()
         else:
             self.web_search_provider = web_search_provider
 
@@ -67,7 +67,7 @@ agent = LlamaCppAgent(
     add_tools_and_structures_documentation_to_system_prompt=True,
 )
 
-search_tool = DDGWebSearch(provider, MessagesFormatterType.CHATML)
+search_tool = WebSearchTool(provider, MessagesFormatterType.CHATML)
 
 settings = provider.get_provider_default_settings()
 

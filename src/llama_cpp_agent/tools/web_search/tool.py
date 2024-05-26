@@ -65,13 +65,13 @@ class WebSearchTool:
         if self.max_tokens_search_results < len(tokens):
             remove_chars = len(tokens) - self.max_tokens_search_results
             while True:
-                tokens = self.llm_provider.tokenize(res[:remove_chars])
+                tokens = self.llm_provider.tokenize(res[:-remove_chars])
                 if self.max_tokens_search_results >= len(tokens):
                     break
                 else:
                     remove_chars += 100
 
-        return "\nResults of searching the web:\n\n" + res[:remove_chars]
+        return "\nResults of searching the web:\n\n" + res[:-remove_chars]
 
     def get_tool(self):
         return self.search_web

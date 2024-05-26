@@ -28,6 +28,7 @@ agent_memory = ["chromadb", "SQLAlchemy", "numpy", "scipy"]
 rag = ["ragatouille"]
 vllm_provider = ["openai"]
 mixtral_agent = ["mistral-common"]
+web_search = ["duckduckgo_search", "trafilatura", "lxml-html-clean", "lxml"]
 
 [project.urls]
 Homepage = "https://github.com/Maximilian-Winter/llama-cpp-agent"

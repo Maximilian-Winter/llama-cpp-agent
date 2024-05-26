@@ -203,5 +203,5 @@ class VLLMServerProvider(LlmProvider):
             return {"choices": [{"text": result.choices[0].message.content}]}
 
     def tokenize(self, prompt: str) -> list[int]:
-        result = self.tokenizer.encode(prompt=prompt)
+        result = self.tokenizer.encode(text=prompt)
         return result

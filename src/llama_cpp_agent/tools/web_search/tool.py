@@ -3,6 +3,7 @@ from llama_cpp_agent.providers.provider_base import LlmProvider, LlmProviderId
 from .web_search_interfaces import WebCrawler, WebSearchProvider
 from .default_web_crawlers import TrafilaturaWebCrawler
 from .default_web_search_providers import DDGWebSearchProvider
+from ...prompt_templates import summarizing_system_prompt
 
 
 class WebSearchTool:
@@ -14,7 +15,7 @@ class WebSearchTool:
                  max_tokens_per_summary: int = 750):
         self.llm_provider = llm_provider
         self.summarising_agent = LlamaCppAgent(llm_provider, debug_output=True,
-                                               system_prompt="You are a text summarization and information extraction specialist and you are able to summarize and filter out information relevant to a specific query.",
+                                               system_prompt=summarizing_system_prompt,
                                                predefined_messages_formatter_type=message_formatter_type)
         if web_crawler is None:
             self.web_crawler = TrafilaturaWebCrawler()
@@ -56,7 +57,7 @@ class WebSearchTool:
                 web_info = self.summarising_agent.get_chat_response(
                     f"Please summarize the following Website content and extract relevant information to this query:'{search_query}'.\n\n" + web_info,
                     add_response_to_chat_history=False, add_message_to_chat_history=False, llm_sampling_settings=self.settings)
-                result_string += web_info
+                result_string += f"\n\n{web_info.strip()}"
 
         res = result_string.strip()
         tokens = self.llm_provider.tokenize(res)
@@ -69,7 +70,7 @@ class WebSearchTool:
                 else:
                     remove_chars += 100
 
-        return "Based on the following results, answer the previous user query:\nResults:\n\n" + res[:self.max_tokens_search_results]
+        return "\nResults of searching the web:\n\n" + res[:self.max_tokens_search_results]
 
     def get_tool(self):
         return self.search_web

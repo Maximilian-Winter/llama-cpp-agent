@@ -61,6 +61,7 @@ class WebSearchTool:
 
         res = result_string.strip()
         tokens = self.llm_provider.tokenize(res)
+        remove_chars = 0
         if self.max_tokens_search_results < len(tokens):
             remove_chars = len(tokens) - self.max_tokens_search_results
             while True:
@@ -70,7 +71,7 @@ class WebSearchTool:
                 else:
                     remove_chars += 100
 
-        return "\nResults of searching the web:\n\n" + res[:self.max_tokens_search_results]
+        return "\nResults of searching the web:\n\n" + res[:remove_chars]
 
     def get_tool(self):
         return self.search_web

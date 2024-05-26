@@ -57,7 +57,7 @@ class WebSearchTool:
                 web_info = self.summarising_agent.get_chat_response(
                     f"Please summarize the following Website content and extract relevant information to this query:'{search_query}'.\n\n" + web_info,
                     add_response_to_chat_history=False, add_message_to_chat_history=False, llm_sampling_settings=self.settings)
-                result_string += f"\n\n{web_info.strip()}"
+                result_string += f"\n{web_info.strip()}"
 
         res = result_string.strip()
         tokens = self.llm_provider.tokenize(res)
@@ -73,8 +73,8 @@ class WebSearchTool:
                     remove_char_count += 50
                     tokens = self.llm_provider.tokenize(res[:remove_char_count])
         if not has_remove_char:
-            return "\nResults of searching the web:\n\n" + res
-        return "\nResults of searching the web:\n\n" + res[:remove_char_count]
+            return res
+        return res[:remove_char_count]
 
     def get_tool(self):
         return self.search_web

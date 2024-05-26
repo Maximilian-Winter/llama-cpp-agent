@@ -414,36 +414,36 @@ class LlamaCppAgent:
                     if structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
                         messages[0][
                             "content"] += function_calling_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
-                            provider=self.provider)
+                            provider=self.provider) + "\n</function-calling-instructions>"
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
                         messages[0][
                             "content"] += function_calling_without_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
-                            provider=self.provider)
+                            provider=self.provider)+ "\n</function-calling-instructions>"
                     elif structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
                         messages[0][
                             "content"] += function_calling_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
-                            provider=self.provider)
+                            provider=self.provider)+ "\n</function-calling-instructions>"
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
                         messages[0][
                             "content"] += function_calling_without_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
-                            provider=self.provider)
+                            provider=self.provider)+ "\n</function-calling-instructions>"
                 elif structured_output_settings.output_type == LlmStructuredOutputType.object_instance or structured_output_settings.output_type == LlmStructuredOutputType.list_of_objects:
                     if structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
                         messages[0][
                             "content"] += structured_output_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
-                            provider=self.provider)
+                            provider=self.provider) + "\n</structured-output-instructions>"
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
                         messages[0][
                             "content"] += structured_output_without_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
-                            provider=self.provider)
+                            provider=self.provider) + "\n</structured-output-instructions>"
                     elif structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
                         messages[0][
                             "content"] += structured_output_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
-                            provider=self.provider)
+                            provider=self.provider) + "\n</structured-output-instructions>"
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
                         messages[0][
                             "content"] += structured_output_without_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
-                            provider=self.provider)
+                            provider=self.provider) + "\n</structured-output-instructions>"
 
         prompt, response_role = self.messages_formatter.format_conversation(
             messages, Roles.assistant

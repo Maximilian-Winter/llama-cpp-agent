@@ -3,6 +3,9 @@ import json
 from .web_search_interfaces import WebCrawler
 from trafilatura import fetch_url, extract
 
+from bs4 import BeautifulSoup
+import requests
+
 
 class TrafilaturaWebCrawler(WebCrawler):
     def get_website_content_from_url(self, url: str) -> str:
@@ -26,5 +29,28 @@ class TrafilaturaWebCrawler(WebCrawler):
                 return f'=========== Website Title: {result["title"]} ===========\n\n=========== Website URL: {url} ===========\n\n=========== Website Content ===========\n\n{result["raw_text"]}\n\n=========== Website Content End ===========\n\n'
             else:
                 return ""
+        except Exception as e:
+            return f"An error occurred: {str(e)}"
+
+
+class BeautifulSoupWebCrawler(WebCrawler):
+    def get_website_content_from_url(self, url: str) -> str:
+        """
+        Get website content from a URL using requests and BeautifulSoup for HTML parsing.
+
+        Args:
+            url (str): URL to get website content from.
+
+        Returns:
+            str: Extracted content including title and main text.
+        """
+        try:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            title = soup.find('title').text if soup.find('title') else "No title found"
+            body = soup.get_text()
+
+            return f'=========== Website Title: {title} ===========\n\n=========== Website URL: {url} ===========\n\n=========== Website Content ===========\n\n{body}\n\n=========== Website Content End ===========\n\n'
         except Exception as e:
             return f"An error occurred: {str(e)}"

@@ -38,7 +38,7 @@ class VLLMServerSamplingSettings(LlmSamplingSettings):
     stream: bool = False
 
     def get_provider_identifier(self) -> LlmProviderId:
-        return LlmProviderId.tgi_server
+        return LlmProviderId.vllm_server
 
     def get_additional_stop_sequences(self) -> Union[List[str], None]:
         return None

@@ -70,8 +70,8 @@ class WebSearchTool:
                 if self.max_tokens_search_results >= len(tokens):
                     break
                 else:
-                    remove_char_count += 25
-                    tokens = self.llm_provider.tokenize(res[:-remove_char_count])
+                    remove_char_count += 50
+                    tokens = self.llm_provider.tokenize(res[:remove_char_count])
         if not has_remove_char:
             return "\nResults of searching the web:\n\n" + res
         return "\nResults of searching the web:\n\n" + res[:remove_char_count]

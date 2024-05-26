@@ -73,9 +73,10 @@ class VLLMServerSamplingSettings(LlmSamplingSettings):
 
 
 class VLLMServerProvider(LlmProvider):
-    def __init__(self, base_url: str, model: str, api_key: str = None):
+    def __init__(self, base_url: str, model: str, huggingface_model: str, api_key: str = None):
         from openai import OpenAI
-
+        from transformers import AutoTokenizer
+        self.tokenizer = AutoTokenizer.from_pretrained(huggingface_model)
         self.client = OpenAI(
             base_url=base_url,
             api_key=api_key,
@@ -202,5 +203,5 @@ class VLLMServerProvider(LlmProvider):
             return {"choices": [{"text": result.choices[0].message.content}]}
 
     def tokenize(self, prompt: str) -> list[int]:
-        result = self.tokenize(prompt=prompt)
+        result = self.tokenizer.encode(prompt=prompt)
         return result

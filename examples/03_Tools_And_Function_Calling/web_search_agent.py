@@ -1,4 +1,5 @@
 from llama_cpp_agent import MessagesFormatterType, LlamaCppAgent
+from llama_cpp_agent.chat_history.messages import Roles
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
 from llama_cpp_agent.providers import LlamaCppServerProvider
 from llama_cpp_agent.tools import WebSearchTool

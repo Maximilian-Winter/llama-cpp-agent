@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llama-cpp-agent"
-version = "0.2.16"
+version = "0.2.17"
 description = "A framework for building LLM based AI agents with llama.cpp."
 
 readme = "ReadMe.md"
@@ -26,7 +26,7 @@ email = "maximilian.winter.91@gmail.com"
 [project.optional-dependencies]
 agent_memory = ["chromadb", "SQLAlchemy", "numpy", "scipy"]
 rag = ["ragatouille"]
-vllm_provider = ["openai"]
+vllm_provider = ["openai", "transformers", "sentencepiece", "protobuf"]
 mixtral_agent = ["mistral-common"]
 web_search = ["duckduckgo_search", "trafilatura", "lxml-html-clean", "lxml"]
 

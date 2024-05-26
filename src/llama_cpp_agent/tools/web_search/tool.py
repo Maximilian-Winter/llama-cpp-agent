@@ -61,17 +61,20 @@ class WebSearchTool:
 
         res = result_string.strip()
         tokens = self.llm_provider.tokenize(res)
-        remove_chars = 0
-        if self.max_tokens_search_results < len(tokens):
-            remove_chars = len(tokens) - self.max_tokens_search_results
+        original_prompt_token_count = len(tokens)
+        remove_char_count = 0
+        has_remove_char = False
+        if original_prompt_token_count > self.max_tokens_search_results:
+            has_remove_char = True
             while True:
-                tokens = self.llm_provider.tokenize(res[:-remove_chars])
                 if self.max_tokens_search_results >= len(tokens):
                     break
                 else:
-                    remove_chars += 100
-
-        return "\nResults of searching the web:\n\n" + res[:-remove_chars]
+                    remove_char_count += 25
+                    tokens = self.llm_provider.tokenize(res[:-remove_char_count])
+        if not has_remove_char:
+            return "\nResults of searching the web:\n\n" + res
+        return "\nResults of searching the web:\n\n" + res[:remove_char_count]
 
     def get_tool(self):
         return self.search_web

@@ -1,1 +1,1 @@
-from web_search import WebSearchTool, WebSearchProvider, WebCrawler, TrafilaturaWebCrawler, DDGWebSearchProvider
+from .web_search import WebSearchTool, WebSearchProvider, WebCrawler, TrafilaturaWebCrawler, DDGWebSearchProvider

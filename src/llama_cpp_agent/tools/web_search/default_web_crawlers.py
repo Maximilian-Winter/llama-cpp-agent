@@ -1,6 +1,6 @@
 import json
 
-from web_search_interfaces import WebCrawler
+from .web_search_interfaces import WebCrawler
 from trafilatura import fetch_url, extract
 
 

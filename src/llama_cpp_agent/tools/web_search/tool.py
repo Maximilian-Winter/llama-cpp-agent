@@ -1,20 +1,18 @@
 from llama_cpp_agent import LlamaCppAgent, MessagesFormatterType
-from llama_cpp_agent.chat_history.messages import Roles
-from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
-from llama_cpp_agent.providers import LlamaCppServerProvider
 from llama_cpp_agent.providers.provider_base import LlmProvider, LlmProviderId
-from web_search_interfaces import WebCrawler, WebSearchProvider
-from default_web_crawlers import TrafilaturaWebCrawler
-from default_web_search_providers import DDGWebSearchProvider
+from .web_search_interfaces import WebCrawler, WebSearchProvider
+from .default_web_crawlers import TrafilaturaWebCrawler
+from .default_web_search_providers import DDGWebSearchProvider
 
 
 class WebSearchTool:
 
-    def __init__(self, llm_provider: LlmProvider, message_formatter_type: MessagesFormatterType, context_character_limit: int = 7500,
+    def __init__(self, llm_provider: LlmProvider, message_formatter_type: MessagesFormatterType,
                  web_crawler: WebCrawler = None, web_search_provider: WebSearchProvider = None, temperature: int = 0.45,
                  top_p: int = 0.95,
-                 top_k: int = 40,
+                 top_k: int = 40, max_tokens_search_results: int = 7500,
                  max_tokens_per_summary: int = 750):
+        self.llm_provider = llm_provider
         self.summarising_agent = LlamaCppAgent(llm_provider, debug_output=True,
                                                system_prompt="You are a text summarization and information extraction specialist and you are able to summarize and filter out information relevant to a specific query.",
                                                predefined_messages_formatter_type=message_formatter_type)
@@ -28,7 +26,7 @@ class WebSearchTool:
         else:
             self.web_search_provider = web_search_provider
 
-        self.context_character_limit = context_character_limit
+        self.max_tokens_search_results = max_tokens_search_results
         settings = llm_provider.get_provider_default_settings()
         provider_id = llm_provider.get_provider_identifier()
         settings.temperature = temperature
@@ -61,7 +59,17 @@ class WebSearchTool:
                 result_string += web_info
 
         res = result_string.strip()
-        return "Based on the following results, answer the previous user query:\nResults:\n\n" + res[:self.context_character_limit]
+        tokens = self.llm_provider.tokenize(res)
+        if self.max_tokens_search_results < len(tokens):
+            remove_chars = len(tokens) - self.max_tokens_search_results
+            while True:
+                tokens = self.llm_provider.tokenize(res[:remove_chars])
+                if self.max_tokens_search_results >= len(tokens):
+                    break
+                else:
+                    remove_chars += 100
+
+        return "Based on the following results, answer the previous user query:\nResults:\n\n" + res[:self.max_tokens_search_results]
 
     def get_tool(self):
         return self.search_web

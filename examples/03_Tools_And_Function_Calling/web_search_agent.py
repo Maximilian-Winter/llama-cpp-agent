@@ -4,6 +4,7 @@ from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
 from llama_cpp_agent.providers import LlamaCppServerProvider
 from llama_cpp_agent.tools import WebSearchTool
 
+
 def send_message_to_user(message: str):
     """
     Send a message to user.
@@ -22,7 +23,7 @@ agent = LlamaCppAgent(
     add_tools_and_structures_documentation_to_system_prompt=True,
 )
 
-search_tool = WebSearchTool(provider, MessagesFormatterType.CHATML, 20000)
+search_tool = WebSearchTool(provider, MessagesFormatterType.CHATML, max_tokens_search_results=20000)
 
 settings = provider.get_provider_default_settings()
 

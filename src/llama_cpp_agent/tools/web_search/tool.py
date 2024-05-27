@@ -15,7 +15,7 @@ class WebSearchTool:
                  model_max_context_tokens=8192,
                  max_tokens_search_results: int = 7500,
                  max_tokens_per_summary: int = 750,
-                 number_of_search_results: int = 2):
+                 number_of_search_results: int = 3):
         self.llm_provider = llm_provider
         self.summarising_agent = LlamaCppAgent(llm_provider, debug_output=True,
                                                system_prompt=summarizing_system_prompt,
@@ -26,7 +26,7 @@ class WebSearchTool:
             self.web_crawler = web_crawler
 
         if web_search_provider is None:
-            self.web_search_provider = GoogleWebSearchProvider()
+            self.web_search_provider = DDGWebSearchProvider()
         else:
             self.web_search_provider = web_search_provider
         self.number_of_search_results = number_of_search_results

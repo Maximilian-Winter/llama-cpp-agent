@@ -1,3 +1,5 @@
+Input: Research the latest advancements in LLM AI agents reasoning techniques.
+
 ---
 Subject: Techniques used to enable complex reasoning in LLM AI agents
 ---

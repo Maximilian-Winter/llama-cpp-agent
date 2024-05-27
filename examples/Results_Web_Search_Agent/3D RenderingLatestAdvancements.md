@@ -1,3 +1,5 @@
+Input: Research the latest advancements in 3D real-time rendering 2024.
+
 ---
 Subject: Research the latest advancements in 3D real-time rendering 2024
 

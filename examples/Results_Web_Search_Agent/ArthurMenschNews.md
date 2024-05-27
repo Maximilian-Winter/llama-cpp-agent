@@ -1,3 +1,5 @@
+Input: Latest News about Arthur Mensch May 2024.
+
 ---
 Subject: Latest News about Arthur Mensch and Mistral AI May 2024
 

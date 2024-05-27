@@ -10,6 +10,6 @@ class WebCrawler(abc.ABC):
 
 class WebSearchProvider(abc.ABC):
     @abc.abstractmethod
-    def search_web(self, query: str):
+    def search_web(self, query: str, number_of_results: int):
         """Searches the web and returns a list of urls of the result"""
         pass

@@ -79,7 +79,7 @@ class VLLMServerProvider(LlmProvider):
         self.tokenizer = AutoTokenizer.from_pretrained(huggingface_model)
         self.client = OpenAI(
             base_url=base_url,
-            api_key=api_key,
+            api_key=api_key if api_key else "xxx-xxxxxxxx",
         )
         self.model = model
 

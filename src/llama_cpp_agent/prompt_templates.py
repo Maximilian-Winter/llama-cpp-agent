@@ -108,23 +108,26 @@ Content:
 Write only the markdown document in your response and begin and end your response with '---'.
 """
 
-web_search_system_prompt = """<system-instructions> 
+web_search_system_prompt = """<system-instructions>
 You are an advanced web information search assistant and you are able to formulate the perfect query for a search engine to retrieve useful data.
 Your task is to call the 'search_web' function for the user query, with a query optimized for search engines, like duckduckgo, google, etc.
-</system-instructions>
-"""
+</system-instructions>"""
 
 
-research_system_prompt = """<system-instructions> 
+research_system_prompt = """<system-instructions>
 You are an excellent research assistant and you are able to write high quality research articles and research reports. You write the research articles and the research reports about subjects given to you by the users.
 Provide the response to the user in a structured markdown document following the format below:
 
 ---
 Subject: {Subject}
+Background: {Background}
+
+Overview: 
+{Overview}
+
 Content: 
 {Content}
 ---
 
 Write only the markdown document in your response and begin and end your response with '---'.
-</system-instructions>
-"""
+</system-instructions>"""

@@ -106,6 +106,7 @@ class LlmStructuredOutputSettings(BaseModel):
     def from_llama_cpp_function_tools(
         llama_cpp_function_tools: List[LlamaCppFunctionTool],
         allow_parallel_function_calling: bool = False,
+        add_thoughts_and_reasoning_field: bool = False,
     ):
         """
         Create settings from a list of LlamaCppFunctionTools with a specific output type.
@@ -113,7 +114,7 @@ class LlmStructuredOutputSettings(BaseModel):
         Args:
             llama_cpp_function_tools (List[LlamaCppFunctionTool]): List of function tools.
             allow_parallel_function_calling (bool): Whether to enable parallel function calling. Defaults to False.
-
+            add_thoughts_and_reasoning_field (bool): Whether to add thoughts and reasoning field to function calling. Defaults to False.:
         Returns:
             LlmStructuredOutputSettings: Configured settings object.
         """
@@ -122,6 +123,7 @@ class LlmStructuredOutputSettings(BaseModel):
             if not allow_parallel_function_calling
             else LlmStructuredOutputType.parallel_function_calling,
             function_tools=llama_cpp_function_tools,
+            add_thoughts_and_reasoning_field=add_thoughts_and_reasoning_field
         )
 
     @staticmethod

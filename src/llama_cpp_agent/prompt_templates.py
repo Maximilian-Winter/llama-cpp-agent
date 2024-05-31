@@ -1,10 +1,7 @@
 from llama_cpp_agent.llm_prompt_template import PromptTemplate
 
-function_calling_system_prompt_template = '''<system-instructions>
-{system_instructions}
-</system-instructions>
+function_calling_system_prompt_template = '''{system_instructions}
 
-<function-calling-instructions>
 You can call functions to help you with your tasks and user queries. To call functions, you respond with a JSON object to call one function or list of JSON objects to call multiple functions, each JSON object containing the following fields:
 
 {thoughts_and_reasoning}
@@ -13,16 +10,15 @@ You can call functions to help you with your tasks and user queries. To call fun
 {heart_beats}
 
 You will get the results of each function call after you finished your response.
-
+---
 {function_list}
-
-</function-calling-instructions>
+---
 '''
 
 thoughts_and_reasoning_template = """"{thoughts_and_reasoning_field_name}": Write down your thoughts and reasoning behind the function call in this field. Think step by step and plan your next action."""
 heart_beats_template = """"{heartbeat_field_name}": Some functions require you to specify this flag. Set this flag to true to be able to perform another function call after this one is executed."""
 
-function_list_template = """### Functions
+function_list_template = """## Functions
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
 Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
 

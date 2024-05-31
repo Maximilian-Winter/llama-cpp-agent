@@ -22,6 +22,17 @@ from .prompt_templates import function_calling_thoughts_and_reasoning_templater,
 from .providers.provider_base import LlmProvider, LlmSamplingSettings
 
 
+class SystemPromptAdditions:
+
+    def __init__(self, additional_sections: dict[str, str]):
+        self.additional_sections = additional_sections
+
+    def get_formatted_sections(self) -> str:
+        result = ""
+        for key, value in self.additional_sections.items():
+            result += f"## {key}\n{value}\n"
+        return result
+
 @dataclass
 class StreamingResponse:
     """
@@ -217,6 +228,7 @@ class LlamaCppAgent:
             prompt_suffix: str = None,
             chat_history: ChatHistory = None,
             system_prompt: str = None,
+            system_prompt_additions: SystemPromptAdditions = None,
             add_message_to_chat_history: bool = True,
             add_response_to_chat_history: bool = True,
             structured_output_settings: LlmStructuredOutputSettings = None,
@@ -239,6 +251,7 @@ class LlamaCppAgent:
             prompt_suffix (str): Suffix to append after the prompt.
             chat_history (ChatHistory): Overwrite internal ChatHistory of the agent.
             system_prompt (str): Overwrites the system prompt set on the agent initialization.
+            system_prompt_additions (SystemPromptAdditions): Additional sections added to the system prompt.
             add_message_to_chat_history (bool): Whether to add the input message to the chat history.
             add_response_to_chat_history (bool): Whether to add the generated response to the chat history.
             structured_output_settings (LlmStructuredOutputSettings): Settings for structured output.
@@ -271,6 +284,7 @@ class LlamaCppAgent:
             message=message,
             chat_history=chat_history,
             system_prompt=system_prompt,
+            system_prompt_additions=system_prompt_additions,
             add_message_to_chat_history=add_message_to_chat_history,
             role=role,
             prompt_suffix=prompt_suffix,
@@ -372,6 +386,7 @@ class LlamaCppAgent:
             message: str = None,
             chat_history: ChatHistory = None,
             system_prompt: str = None,
+            system_prompt_additions: SystemPromptAdditions = None,
             add_message_to_chat_history: bool = True,
             role: Roles = Roles.user,
             prompt_suffix: str = None,
@@ -404,6 +419,8 @@ class LlamaCppAgent:
             messages[0]["content"] = system_prompt
         else:
             messages[0]["content"] = self.system_prompt
+
+
         additional_suffix = ""
         if self.add_tools_and_structures_documentation_to_system_prompt:
             if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
@@ -414,14 +431,15 @@ class LlamaCppAgent:
                     if structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
                         thoughts_and_reasoning = function_calling_thoughts_and_reasoning_templater
                         thoughts_and_reasoning = thoughts_and_reasoning.generate_prompt({
-                                                                                            "thoughts_and_reasoning_field_name": "001_" + structured_output_settings.thoughts_and_reasoning_field_name})
+                            "thoughts_and_reasoning_field_name": "001_" + structured_output_settings.thoughts_and_reasoning_field_name})
                         function_field_name = "002_" + structured_output_settings.function_calling_name_field_name
                         arguments_field_name = "003_" + structured_output_settings.function_calling_content
                         heartbeat_beats = ""
                         if structured_output_settings.add_heartbeat_field:
                             heartbeat_field_name = "004_" + structured_output_settings.heartbeat_field_name
                             heartbeat_beats = function_calling_heart_beats_templater
-                            heartbeat_beats = heartbeat_beats.generate_prompt({"heartbeat_field_name": heartbeat_field_name})
+                            heartbeat_beats = heartbeat_beats.generate_prompt(
+                                {"heartbeat_field_name": heartbeat_field_name})
                         function_list = structured_output_settings.get_llm_documentation(
                             provider=self.provider)
                         system_prompt = function_calling_system_prompt_templater
@@ -430,7 +448,8 @@ class LlamaCppAgent:
                                                                        "function_field_name": function_field_name,
                                                                        "arguments_field_name": arguments_field_name,
                                                                        "heart_beats": heartbeat_beats,
-                                                                       "function_list": function_calling_function_list_templater.generate_prompt({"function_list": function_list})})
+                                                                       "function_list": function_calling_function_list_templater.generate_prompt(
+                                                                           {"function_list": function_list})})
                         messages[0]["content"] = system_prompt
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
                         thoughts_and_reasoning = ""
@@ -440,7 +459,8 @@ class LlamaCppAgent:
                         if structured_output_settings.add_heartbeat_field:
                             heartbeat_field_name = "003_" + structured_output_settings.heartbeat_field_name
                             heartbeat_beats = function_calling_heart_beats_templater
-                            heartbeat_beats = heartbeat_beats.generate_prompt({"heartbeat_field_name": heartbeat_field_name})
+                            heartbeat_beats = heartbeat_beats.generate_prompt(
+                                {"heartbeat_field_name": heartbeat_field_name})
                         function_list = structured_output_settings.get_llm_documentation(
                             provider=self.provider)
                         system_prompt = function_calling_system_prompt_templater
@@ -449,7 +469,8 @@ class LlamaCppAgent:
                                                                        "function_field_name": function_field_name,
                                                                        "arguments_field_name": arguments_field_name,
                                                                        "heart_beats": heartbeat_beats,
-                                                                       "function_list": function_calling_function_list_templater.generate_prompt({"function_list": function_list})})
+                                                                       "function_list": function_calling_function_list_templater.generate_prompt(
+                                                                           {"function_list": function_list})})
                         messages[0]["content"] = system_prompt
                     elif structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
                         thoughts_and_reasoning = function_calling_thoughts_and_reasoning_templater
@@ -461,7 +482,8 @@ class LlamaCppAgent:
                         if structured_output_settings.add_heartbeat_field:
                             heartbeat_field_name = structured_output_settings.heartbeat_field_name
                             heartbeat_beats = function_calling_heart_beats_templater
-                            heartbeat_beats = heartbeat_beats.generate_prompt({"heartbeat_field_name": heartbeat_field_name})
+                            heartbeat_beats = heartbeat_beats.generate_prompt(
+                                {"heartbeat_field_name": heartbeat_field_name})
                         function_list = structured_output_settings.get_llm_documentation(
                             provider=self.provider)
                         system_prompt = function_calling_system_prompt_templater
@@ -470,7 +492,8 @@ class LlamaCppAgent:
                                                                        "function_field_name": function_field_name,
                                                                        "arguments_field_name": arguments_field_name,
                                                                        "heart_beats": heartbeat_beats,
-                                                                       "function_list": function_calling_function_list_templater.generate_prompt({"function_list": function_list})})
+                                                                       "function_list": function_calling_function_list_templater.generate_prompt(
+                                                                           {"function_list": function_list})})
                         messages[0]["content"] = system_prompt
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
                         thoughts_and_reasoning = ""
@@ -480,7 +503,8 @@ class LlamaCppAgent:
                         if structured_output_settings.add_heartbeat_field:
                             heartbeat_field_name = structured_output_settings.heartbeat_field_name
                             heartbeat_beats = function_calling_heart_beats_templater
-                            heartbeat_beats = heartbeat_beats.generate_prompt({"heartbeat_field_name": heartbeat_field_name})
+                            heartbeat_beats = heartbeat_beats.generate_prompt(
+                                {"heartbeat_field_name": heartbeat_field_name})
                         function_list = structured_output_settings.get_llm_documentation(
                             provider=self.provider)
                         system_prompt = function_calling_system_prompt_templater
@@ -489,7 +513,8 @@ class LlamaCppAgent:
                                                                        "function_field_name": function_field_name,
                                                                        "arguments_field_name": arguments_field_name,
                                                                        "heart_beats": heartbeat_beats,
-                                                                       "function_list": function_calling_function_list_templater.generate_prompt({"function_list": function_list})})
+                                                                       "function_list": function_calling_function_list_templater.generate_prompt(
+                                                                           {"function_list": function_list})})
                         messages[0]["content"] = system_prompt
                 elif structured_output_settings.output_type == LlmStructuredOutputType.object_instance or structured_output_settings.output_type == LlmStructuredOutputType.list_of_objects:
                     if structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
@@ -553,6 +578,8 @@ class LlamaCppAgent:
                                                                        "output_models": output_models})
                         messages[0]["content"] = system_prompt
 
+        if system_prompt_additions is not None:
+            messages[0]["content"] += "\n" + system_prompt_additions.get_formatted_sections()
         prompt, response_role = self.messages_formatter.format_conversation(
             messages, Roles.assistant
         )

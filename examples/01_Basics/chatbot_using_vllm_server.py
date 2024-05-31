@@ -2,12 +2,12 @@ from llama_cpp_agent import LlamaCppAgent
 from llama_cpp_agent import MessagesFormatterType
 from llama_cpp_agent.providers import VLLMServerProvider
 
-provider = VLLMServerProvider("http://localhost:8000/v1", "TheBloke/Llama-2-7b-Chat-AWQ", "token-abc123")
+provider = VLLMServerProvider("http://localhost:8123/v1", "TitanML/Mistral-7B-Instruct-v0.2-AWQ-4bit","TitanML/Mistral-7B-Instruct-v0.2-AWQ-4bit", "token-abc123")
 
 agent = LlamaCppAgent(
     provider,
     system_prompt="You are a helpful assistant.",
-    predefined_messages_formatter_type=MessagesFormatterType.LLAMA_2,
+    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL,
 )
 
 settings = provider.get_provider_default_settings()

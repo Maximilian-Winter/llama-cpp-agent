@@ -229,6 +229,8 @@ class AgentCoreMemory:
             core_memory_replace, core_memory_manager=self.core_memory_manager
         )
 
+    def get_core_memory_view(self):
+        return self.core_memory_manager.build_core_memory_context()
     def get_core_memory_manager(self):
         return self.core_memory_manager
 

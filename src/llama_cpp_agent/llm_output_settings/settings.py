@@ -68,7 +68,11 @@ class LlmStructuredOutputSettings(BaseModel):
         None, description="List of pydantic models for structured output"
     )
     add_thoughts_and_reasoning_field: Optional[bool] = Field(
-        False, description="Add thoughts and reasoning field to function calling"
+        False, description="Add thoughts and reasoning field to function calling output"
+    )
+    add_heartbeat_field: Optional[bool] = Field(
+        False,
+        description="Add heartbeat field to function calling output to let the LLM indicate if it wants control back after this function call."
     )
 
     thoughts_and_reasoning_field_name: Optional[str] = Field(
@@ -76,6 +80,15 @@ class LlmStructuredOutputSettings(BaseModel):
         description="Field name for the thoughts and reasoning field",
     )
 
+    heartbeat_field_name: Optional[str] = Field(
+        "heartbeat",
+        description="Field name for the heartbeat field",
+    )
+
+    heartbeat_function_names_list: Optional[List[str]] = Field(
+        [],
+        description="List of function names that get added a heartbeat field to function calling",
+    )
     function_calling_name_field_name: Optional[str] = Field(
         "function",
         description="Name of the JSON field for the name of the used function.",
@@ -104,9 +117,10 @@ class LlmStructuredOutputSettings(BaseModel):
 
     @staticmethod
     def from_llama_cpp_function_tools(
-        llama_cpp_function_tools: List[LlamaCppFunctionTool],
-        allow_parallel_function_calling: bool = False,
-        add_thoughts_and_reasoning_field: bool = False,
+            llama_cpp_function_tools: List[LlamaCppFunctionTool],
+            allow_parallel_function_calling: bool = False,
+            add_thoughts_and_reasoning_field: bool = False,
+            add_heartbeat_field: bool = False,
     ):
         """
         Create settings from a list of LlamaCppFunctionTools with a specific output type.
@@ -115,6 +129,7 @@ class LlmStructuredOutputSettings(BaseModel):
             llama_cpp_function_tools (List[LlamaCppFunctionTool]): List of function tools.
             allow_parallel_function_calling (bool): Whether to enable parallel function calling. Defaults to False.
             add_thoughts_and_reasoning_field (bool): Whether to add thoughts and reasoning field to function calling. Defaults to False.:
+            add_heartbeat_field (bool): Whether to add heartbeat field to function calling. Defaults to False.:
         Returns:
             LlmStructuredOutputSettings: Configured settings object.
         """
@@ -123,12 +138,13 @@ class LlmStructuredOutputSettings(BaseModel):
             if not allow_parallel_function_calling
             else LlmStructuredOutputType.parallel_function_calling,
             function_tools=llama_cpp_function_tools,
-            add_thoughts_and_reasoning_field=add_thoughts_and_reasoning_field
+            add_thoughts_and_reasoning_field=add_thoughts_and_reasoning_field,
+            add_heartbeat_field=add_heartbeat_field
         )
 
     @staticmethod
     def from_pydantic_models(
-        models: List[type[BaseModel]], output_type: LlmStructuredOutputType
+            models: List[type[BaseModel]], output_type: LlmStructuredOutputType
     ):
         """
         Create settings from a list of Pydantic models with a specific output type.
@@ -170,8 +186,8 @@ class LlmStructuredOutputSettings(BaseModel):
 
     @staticmethod
     def from_open_ai_tools(
-        tools: List[Tuple[Dict[str, Any], Callable]],
-        allow_parallel_function_calling: bool = False,
+            tools: List[Tuple[Dict[str, Any], Callable]],
+            allow_parallel_function_calling: bool = False,
     ):
         """
         Create settings from OpenAI tools for structured outputs.
@@ -192,7 +208,9 @@ class LlmStructuredOutputSettings(BaseModel):
 
     @staticmethod
     def from_functions(
-        tools: List[Callable], allow_parallel_function_calling: bool = False, add_thoughts_and_reasoning_field: bool = False,
+            tools: List[Callable], allow_parallel_function_calling: bool = False,
+            add_thoughts_and_reasoning_field: bool = False,
+            add_heartbeat_field: bool = False,
     ):
         """
         Create settings from a list of llama-index tools with a specific output type.
@@ -200,7 +218,8 @@ class LlmStructuredOutputSettings(BaseModel):
         Args:
             tools (list): List of llama-index tools.
             allow_parallel_function_calling (bool): Whether to enable parallel function calling. Defaults to False.
-            add_thoughts_and_reasoning_field_to_output (bool): Whether to add a thoughts and reasoning field to output.
+            add_thoughts_and_reasoning_field (bool): Whether to add a thoughts and reasoning field to output.
+            add_heartbeat_field (bool): Whether to add a heartbeat field to output.
         Returns:
             LlmStructuredOutputSettings: Configured settings object.
 
@@ -213,11 +232,13 @@ class LlmStructuredOutputSettings(BaseModel):
             if allow_parallel_function_calling
             else LlmStructuredOutputType.function_calling,
             function_tools=[LlamaCppFunctionTool(model) for model in tools],
+            add_heartbeat_field=add_heartbeat_field
         )
 
     @staticmethod
     def from_llama_index_tools(
-        tools: list, allow_parallel_function_calling: bool = False
+            tools: list, allow_parallel_function_calling: bool = False, add_thoughts_and_reasoning_field: bool = False,
+            add_heartbeat_field: bool = False,
     ):
         """
         Create settings from a list of llama-index tools with a specific output type. Has to be either LlmOutputType.function_call or LlmOutputType.parallel_function_call.
@@ -225,7 +246,8 @@ class LlmStructuredOutputSettings(BaseModel):
         Args:
             tools (list): List of llama-index tools.
             allow_parallel_function_calling (bool): Whether to enable parallel function calling. Defaults to False.
-
+            add_thoughts_and_reasoning_field (bool): Whether to add a thoughts and reasoning field to output.
+            add_heartbeat_field (bool): Whether to add a heartbeat field to output.
         Returns:
             LlmStructuredOutputSettings: Configured settings object.
 
@@ -239,6 +261,8 @@ class LlmStructuredOutputSettings(BaseModel):
             function_tools=[
                 LlamaCppFunctionTool.from_llama_index_tool(model) for model in tools
             ],
+            add_thoughts_and_reasoning_field=add_thoughts_and_reasoning_field,
+            add_heartbeat_field=add_heartbeat_field
         )
 
     def to_openai_tools(self):
@@ -286,7 +310,7 @@ class LlmStructuredOutputSettings(BaseModel):
             self.function_tools.append(LlamaCppFunctionTool(model))
 
     def add_open_ai_tool(
-        self, open_ai_schema_and_function: Tuple[Dict[str, Any], Callable]
+            self, open_ai_schema_and_function: Tuple[Dict[str, Any], Callable]
     ):
         """
         Add an OpenAI tool to the settings, ensuring it matches the specified output type.
@@ -375,7 +399,7 @@ class LlmStructuredOutputSettings(BaseModel):
         from llama_cpp_agent.providers.vllm_server import VLLMServerProvider
 
         if isinstance(provider, TGIServerProvider) or isinstance(
-            provider, VLLMServerProvider
+                provider, VLLMServerProvider
         ):
             json_schema_mode = True
         if self.output_type == LlmStructuredOutputType.no_structured_output:
@@ -463,7 +487,9 @@ class LlmStructuredOutputSettings(BaseModel):
                 else (self.function_calling_content),
                 inner_thought_field_name=self.thoughts_and_reasoning_field_name,
                 allow_only_inner_thoughts=False,
-                add_request_heartbeat=False,
+                add_request_heartbeat=self.add_heartbeat_field,
+                request_heartbeat_field_name=self.heartbeat_field_name,
+                request_heartbeat_models=self.heartbeat_function_names_list
             )
         elif self.output_type == LlmStructuredOutputType.parallel_function_calling:
             return generate_gbnf_grammar_from_pydantic_models(
@@ -478,7 +504,9 @@ class LlmStructuredOutputSettings(BaseModel):
                 else (self.function_calling_content),
                 inner_thought_field_name=self.thoughts_and_reasoning_field_name,
                 allow_only_inner_thoughts=False,
-                add_request_heartbeat=False,
+                add_request_heartbeat=self.add_heartbeat_field,
+                request_heartbeat_field_name=self.heartbeat_field_name,
+                request_heartbeat_models=self.heartbeat_function_names_list
             )
 
     def get_json_schema(self):
@@ -504,7 +532,7 @@ class LlmStructuredOutputSettings(BaseModel):
                 if not self.add_thoughts_and_reasoning_field
                 else ("002_" + self.output_model_name_field_name),
                 outer_object_properties_name=(
-                    "002_" + self.output_model_attributes_field_name
+                        "002_" + self.output_model_attributes_field_name
                 )
                 if not self.add_thoughts_and_reasoning_field
                 else ("003_" + self.output_model_attributes_field_name),
@@ -519,7 +547,7 @@ class LlmStructuredOutputSettings(BaseModel):
                 if not self.add_thoughts_and_reasoning_field
                 else ("002_" + self.output_model_name_field_name),
                 outer_object_properties_name=(
-                    "002_" + self.output_model_attributes_field_name
+                        "002_" + self.output_model_attributes_field_name
                 )
                 if not self.add_thoughts_and_reasoning_field
                 else ("003_" + self.output_model_attributes_field_name),
@@ -538,6 +566,11 @@ class LlmStructuredOutputSettings(BaseModel):
                 else ("003_" + self.function_calling_content),
                 inner_thoughts_name=("001_" + self.thoughts_and_reasoning_field_name),
                 add_inner_thoughts=self.add_thoughts_and_reasoning_field,
+                add_heartbeat=self.add_heartbeat_field,
+                heartbeat_name=("003_" + self.heartbeat_field_name)
+                if not self.add_thoughts_and_reasoning_field
+                else ("004_" + self.heartbeat_field_name),
+                heartbeat_list=self.heartbeat_function_names_list
             )
         elif self.output_type is LlmStructuredOutputType.parallel_function_calling:
             return generate_json_schemas(
@@ -551,7 +584,18 @@ class LlmStructuredOutputSettings(BaseModel):
                 else ("003_" + self.function_calling_content),
                 inner_thoughts_name=("001_" + self.thoughts_and_reasoning_field_name),
                 add_inner_thoughts=self.add_thoughts_and_reasoning_field,
+                add_heartbeat=self.add_heartbeat_field,
+                heartbeat_name=("003_" + self.heartbeat_field_name)
+                if not self.add_thoughts_and_reasoning_field
+                else ("004_" + self.heartbeat_field_name),
+                heartbeat_list=self.heartbeat_function_names_list
             )
+
+    def add_function_name_to_heartbeat_list(self, function_name: str):
+        """
+        Add a function name to the heartbeat list. This way a heartbeat field get added to the function calling output.
+        """
+        self.heartbeat_function_names_list.append(function_name)
 
     def handle_structured_output(self, llm_output: str, prompt_suffix: str = None):
         if self.output_raw_json_string:
@@ -559,8 +603,8 @@ class LlmStructuredOutputSettings(BaseModel):
         if prompt_suffix:
             llm_output = llm_output.replace(prompt_suffix, "", 1)
         if (
-            self.output_type is LlmStructuredOutputType.function_calling
-            or self.output_type is LlmStructuredOutputType.parallel_function_calling
+                self.output_type is LlmStructuredOutputType.function_calling
+                or self.output_type is LlmStructuredOutputType.parallel_function_calling
         ):
             output = parse_json_response(llm_output)
             output = self.clean_keys(output)

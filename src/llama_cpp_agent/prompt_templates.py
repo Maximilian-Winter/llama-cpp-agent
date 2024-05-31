@@ -1,99 +1,56 @@
-function_calling_thoughts_and_reasoning = '''\n<function-calling-instructions>
-You can call functions to help you with your tasks and user queries. To call functions, you respond with a JSON object containing three fields:
-                        
-"thoughts_and_reasoning": Write down your thoughts and reasoning behind the function call in this field. Think step by step and plan your next action.
-"function": Write down the name of the function you want to call in this field.
-"arguments": Write down arguments for the function in this field.
+from llama_cpp_agent.llm_prompt_template import PromptTemplate
 
-## Functions
+function_calling_system_prompt_template = '''<system-instructions>
+{system_instructions}
+</system-instructions>
+
+<function-calling-instructions>
+You can call functions to help you with your tasks and user queries. To call functions, you respond with a JSON object to call one function or list of JSON objects to call multiple functions, each JSON object containing the following fields:
+
+{thoughts_and_reasoning}
+"{function_field_name}": Write down the name of the function you want to call in this field.
+"{arguments_field_name}": Write down arguments for the function in this field.
+{heart_beats}
+
+You will get the results of each function call after you finished your response.
+
+{function_list}
+
+</function-calling-instructions>
+'''
+
+thoughts_and_reasoning_template = """"{thoughts_and_reasoning_field_name}": Write down your thoughts and reasoning behind the function call in this field. Think step by step and plan your next action."""
+heart_beats_template = """"{heartbeat_field_name}": Some functions require you to specify this flag. Set this flag to true to be able to perform another function call after this one is executed."""
+
+function_list_template = """### Functions
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
 Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
 
-'''
+{function_list}"""
 
-function_calling_without_thoughts_and_reasoning = '''\n<function-calling-instructions>
-You can call functions to help you with your tasks and user queries. To call functions, you respond with a JSON object containing two fields:
-                        
-"function": Write down the name of the function you want to call in this field.
-"arguments": Write down arguments for the function in this field.
+function_calling_system_prompt_templater = PromptTemplate.from_string(function_calling_system_prompt_template)
+function_calling_thoughts_and_reasoning_templater = PromptTemplate.from_string(thoughts_and_reasoning_template)
+function_calling_heart_beats_templater = PromptTemplate.from_string(heart_beats_template)
+function_calling_function_list_templater = PromptTemplate.from_string(function_list_template)
 
-## Functions
-Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
-Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
+structured_output_template = '''<system-instructions>
+{system_instructions}
+</system-instructions>
 
-'''
-
-
-function_calling_thoughts_and_reasoning_json_schema = '''\n<function-calling-instructions>
-You can call functions to help you with your tasks and user queries. To call functions, you respond with a JSON object containing three fields:
-                        
-"001_thoughts_and_reasoning": Write down your thoughts and reasoning behind the function call in this field. Think step by step and plan your next action.
-"002_function": Write down the name of the function you want to call in this field.
-"003_arguments": Write down arguments for the function in this field.
-
-## Functions
-Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
-Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
-
-'''
-
-function_calling_without_thoughts_and_reasoning_json_schema = '''\n<function-calling-instructions>
-You can call functions to help you with your tasks and user queries. To call functions, you respond with a JSON object containing two fields:
-                        
-"001_function": Write down the name of the function you want to call in this field.
-"002_arguments": Write down arguments for the function in this field.
-
-## Functions
-Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
-Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format.
-
-'''
-
-
-structured_output_thoughts_and_reasoning = '''\n<structured-output-instructions>
+<structured-output-instructions>
 Your output is constrained to JSON objects containing the content of specific models, each JSON object has three fields:
                         
-"thoughts_and_reasoning": Your thoughts and reasoning behind the model you will output.
-"model": The name of the model you will output.
-"fields": The fields of the model.
+{thoughts_and_reasoning}
+"{model_field_name}": The name of the model you will output.
+"{fields_field_name}": The fields of the model.
 
 ## Output Models
 
+{output_models}
+
+</structured-output-instructions>
 '''
-
-structured_output_without_thoughts_and_reasoning = '''\n<structured-output-instructions>
-Your output is constrained to JSON objects containing the content of specific models, each JSON object has two fields:
-                        
-"model": The name of the model you will output.
-"fields": The fields of the model.
-
-## Output Models
-
-'''
-
-
-structured_output_thoughts_and_reasoning_json_schema = '''\n<structured-output-instructions>
-Your output is constrained to JSON objects containing the content of specific models, each JSON object has three fields:
-                        
-"001_thoughts_and_reasoning": Your thoughts and reasoning behind the model you will output.
-"002_model": The name of the model you will output.
-"003_fields": The fields of the model.
-
-## Output Models
-
-'''
-
-structured_output_without_thoughts_and_reasoning_json_schema = '''\n<structured-output-instructions>
-Your output is constrained to JSON objects containing the content of specific models, each JSON object has two fields:
-                        
-"001_model": The name of the model you will output.
-"002_fields": The fields of the model.
-
-## Output Models
-
-'''
-
-
+structured_output_templater = PromptTemplate.from_string(structured_output_template)
 summarizing_system_prompt = """You are a text summarization and information extraction specialist and you are able to summarize and filter out information of websites relevant to a specific query.
 Provide all the relevant information of the website in a structured markdown document following the format below:
 
@@ -133,7 +90,6 @@ Guidelines:
    - Avoid overly technical language unless the user specifies a need for it.
 </system-instructions>"""
 
-
 research_system_prompt = """<system-instructions>
 You are an excellent research assistant and you are able to write high quality research articles and research reports. You write the research articles and the research reports about subjects given to you by the users.
 Provide the response to the user in a structured markdown document following the format below:
@@ -168,7 +124,6 @@ Guidelines:
 
 By adhering to these guidelines, you will help users receive the information they need in a reliable and efficient manner. Your goal is to be a trusted source of information, providing valuable insights and answers to a wide range of queries.
 </system-instructions>"""
-
 
 url_agent_system = """<system-instructions>
 You are a agent with the task to pass a list urls given by the user to the 'summarize_urls' tool.

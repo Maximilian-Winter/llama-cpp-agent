@@ -15,11 +15,9 @@ from .messages_formatter import (
     get_predefined_messages_formatter,
     MessagesFormatter,
 )
-from .prompt_templates import function_calling_thoughts_and_reasoning, \
-    function_calling_thoughts_and_reasoning_json_schema, function_calling_without_thoughts_and_reasoning_json_schema, \
-    function_calling_without_thoughts_and_reasoning, structured_output_thoughts_and_reasoning_json_schema, \
-    structured_output_without_thoughts_and_reasoning_json_schema, structured_output_thoughts_and_reasoning, \
-    structured_output_without_thoughts_and_reasoning
+from .prompt_templates import function_calling_thoughts_and_reasoning_templater, \
+    function_calling_system_prompt_templater, function_calling_heart_beats_templater, \
+    function_calling_function_list_templater, structured_output_templater
 
 from .providers.provider_base import LlmProvider, LlmSamplingSettings
 
@@ -410,40 +408,150 @@ class LlamaCppAgent:
         if self.add_tools_and_structures_documentation_to_system_prompt:
             if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
                 # additional_suffix = "\n"
+                thoughts_and_reasoning = ""
+
                 if structured_output_settings.output_type == LlmStructuredOutputType.function_calling or structured_output_settings.output_type == LlmStructuredOutputType.parallel_function_calling:
                     if structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
-                        messages[0][
-                            "content"] += function_calling_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
-                            provider=self.provider) + "\n</function-calling-instructions>"
+                        thoughts_and_reasoning = function_calling_thoughts_and_reasoning_templater
+                        thoughts_and_reasoning = thoughts_and_reasoning.generate_prompt({
+                                                                                            "thoughts_and_reasoning_field_name": "001_" + structured_output_settings.thoughts_and_reasoning_field_name})
+                        function_field_name = "002_" + structured_output_settings.function_calling_name_field_name
+                        arguments_field_name = "003_" + structured_output_settings.function_calling_content
+                        heartbeat_beats = ""
+                        if structured_output_settings.add_heartbeat_field:
+                            heartbeat_field_name = "004_" + structured_output_settings.heartbeat_field_name
+                            heartbeat_beats = function_calling_heart_beats_templater
+                            heartbeat_beats = heartbeat_beats.generate_prompt({"heartbeat_field_name": heartbeat_field_name})
+                        function_list = structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
+                        system_prompt = function_calling_system_prompt_templater
+                        system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "thoughts_and_reasoning": thoughts_and_reasoning,
+                                                                       "function_field_name": function_field_name,
+                                                                       "arguments_field_name": arguments_field_name,
+                                                                       "heart_beats": heartbeat_beats,
+                                                                       "function_list": function_calling_function_list_templater.generate_prompt({"function_list": function_list})})
+                        messages[0]["content"] = system_prompt
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
-                        messages[0][
-                            "content"] += function_calling_without_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
-                            provider=self.provider)+ "\n</function-calling-instructions>"
+                        thoughts_and_reasoning = ""
+                        function_field_name = "001_" + structured_output_settings.function_calling_name_field_name
+                        arguments_field_name = "002_" + structured_output_settings.function_calling_content
+                        heartbeat_beats = ""
+                        if structured_output_settings.add_heartbeat_field:
+                            heartbeat_field_name = "003_" + structured_output_settings.heartbeat_field_name
+                            heartbeat_beats = function_calling_heart_beats_templater
+                            heartbeat_beats = heartbeat_beats.generate_prompt({"heartbeat_field_name": heartbeat_field_name})
+                        function_list = structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
+                        system_prompt = function_calling_system_prompt_templater
+                        system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "thoughts_and_reasoning": thoughts_and_reasoning,
+                                                                       "function_field_name": function_field_name,
+                                                                       "arguments_field_name": arguments_field_name,
+                                                                       "heart_beats": heartbeat_beats,
+                                                                       "function_list": function_calling_function_list_templater.generate_prompt({"function_list": function_list})})
+                        messages[0]["content"] = system_prompt
                     elif structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
-                        messages[0][
-                            "content"] += function_calling_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
-                            provider=self.provider)+ "\n</function-calling-instructions>"
+                        thoughts_and_reasoning = function_calling_thoughts_and_reasoning_templater
+                        thoughts_and_reasoning = thoughts_and_reasoning.generate_prompt({
+                            "thoughts_and_reasoning_field_name": structured_output_settings.thoughts_and_reasoning_field_name})
+                        function_field_name = structured_output_settings.function_calling_name_field_name
+                        arguments_field_name = structured_output_settings.function_calling_content
+                        heartbeat_beats = ""
+                        if structured_output_settings.add_heartbeat_field:
+                            heartbeat_field_name = structured_output_settings.heartbeat_field_name
+                            heartbeat_beats = function_calling_heart_beats_templater
+                            heartbeat_beats = heartbeat_beats.generate_prompt({"heartbeat_field_name": heartbeat_field_name})
+                        function_list = structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
+                        system_prompt = function_calling_system_prompt_templater
+                        system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "thoughts_and_reasoning": thoughts_and_reasoning,
+                                                                       "function_field_name": function_field_name,
+                                                                       "arguments_field_name": arguments_field_name,
+                                                                       "heart_beats": heartbeat_beats,
+                                                                       "function_list": function_calling_function_list_templater.generate_prompt({"function_list": function_list})})
+                        messages[0]["content"] = system_prompt
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
-                        messages[0][
-                            "content"] += function_calling_without_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
-                            provider=self.provider)+ "\n</function-calling-instructions>"
+                        thoughts_and_reasoning = ""
+                        function_field_name = structured_output_settings.function_calling_name_field_name
+                        arguments_field_name = structured_output_settings.function_calling_content
+                        heartbeat_beats = ""
+                        if structured_output_settings.add_heartbeat_field:
+                            heartbeat_field_name = structured_output_settings.heartbeat_field_name
+                            heartbeat_beats = function_calling_heart_beats_templater
+                            heartbeat_beats = heartbeat_beats.generate_prompt({"heartbeat_field_name": heartbeat_field_name})
+                        function_list = structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
+                        system_prompt = function_calling_system_prompt_templater
+                        system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "thoughts_and_reasoning": thoughts_and_reasoning,
+                                                                       "function_field_name": function_field_name,
+                                                                       "arguments_field_name": arguments_field_name,
+                                                                       "heart_beats": heartbeat_beats,
+                                                                       "function_list": function_calling_function_list_templater.generate_prompt({"function_list": function_list})})
+                        messages[0]["content"] = system_prompt
                 elif structured_output_settings.output_type == LlmStructuredOutputType.object_instance or structured_output_settings.output_type == LlmStructuredOutputType.list_of_objects:
                     if structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
-                        messages[0][
-                            "content"] += structured_output_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
-                            provider=self.provider) + "\n</structured-output-instructions>"
+                        thoughts_and_reasoning = function_calling_thoughts_and_reasoning_templater
+                        thoughts_and_reasoning = thoughts_and_reasoning.generate_prompt({
+                            "thoughts_and_reasoning_field_name": "001_" + structured_output_settings.thoughts_and_reasoning_field_name})
+                        model_field_name = "002_" + structured_output_settings.output_model_name_field_name
+                        fields_field_name = "003_" + structured_output_settings.output_model_attributes_field_name
+
+                        output_models = structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
+                        system_prompt = structured_output_templater
+                        system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "thoughts_and_reasoning": thoughts_and_reasoning,
+                                                                       "model_field_name": model_field_name,
+                                                                       "fields_field_name": fields_field_name,
+                                                                       "output_models": output_models})
+                        messages[0]["content"] = system_prompt
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
-                        messages[0][
-                            "content"] += structured_output_without_thoughts_and_reasoning_json_schema + structured_output_settings.get_llm_documentation(
-                            provider=self.provider) + "\n</structured-output-instructions>"
+                        thoughts_and_reasoning = ""
+                        model_field_name = "001_" + structured_output_settings.output_model_name_field_name
+                        fields_field_name = "002_" + structured_output_settings.output_model_attributes_field_name
+
+                        output_models = structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
+                        system_prompt = structured_output_templater
+                        system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "thoughts_and_reasoning": thoughts_and_reasoning,
+                                                                       "model_field_name": model_field_name,
+                                                                       "fields_field_name": fields_field_name,
+                                                                       "output_models": output_models})
+                        messages[0]["content"] = system_prompt
                     elif structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
-                        messages[0][
-                            "content"] += structured_output_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
-                            provider=self.provider) + "\n</structured-output-instructions>"
+                        thoughts_and_reasoning = function_calling_thoughts_and_reasoning_templater
+                        thoughts_and_reasoning = thoughts_and_reasoning.generate_prompt({
+                            "thoughts_and_reasoning_field_name": structured_output_settings.thoughts_and_reasoning_field_name})
+                        model_field_name = structured_output_settings.output_model_name_field_name
+                        fields_field_name = structured_output_settings.output_model_attributes_field_name
+
+                        output_models = structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
+                        system_prompt = structured_output_templater
+                        system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "thoughts_and_reasoning": thoughts_and_reasoning,
+                                                                       "model_field_name": model_field_name,
+                                                                       "fields_field_name": fields_field_name,
+                                                                       "output_models": output_models})
+                        messages[0]["content"] = system_prompt
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
-                        messages[0][
-                            "content"] += structured_output_without_thoughts_and_reasoning + structured_output_settings.get_llm_documentation(
-                            provider=self.provider) + "\n</structured-output-instructions>"
+                        thoughts_and_reasoning = ""
+                        model_field_name = structured_output_settings.output_model_name_field_name
+                        fields_field_name = structured_output_settings.output_model_attributes_field_name
+
+                        output_models = structured_output_settings.get_llm_documentation(
+                            provider=self.provider)
+                        system_prompt = structured_output_templater
+                        system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "thoughts_and_reasoning": thoughts_and_reasoning,
+                                                                       "model_field_name": model_field_name,
+                                                                       "fields_field_name": fields_field_name,
+                                                                       "output_models": output_models})
+                        messages[0]["content"] = system_prompt
 
         prompt, response_role = self.messages_formatter.format_conversation(
             messages, Roles.assistant

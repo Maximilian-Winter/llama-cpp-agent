@@ -73,6 +73,7 @@ def generate_markdown_documentation(
                     model,
                     documentation_with_field_description=documentation_with_field_description,
                 )
+                count += 1
             if add_prefix:
                 if documentation.endswith(f"#### {fields_prefix}\n"):
                     documentation += "none\n"
@@ -165,7 +166,7 @@ def generate_field_markdown(
 
     if is_enum:
 
-        field_text += field_description + f" Can be one of the following values: {' or '.join(enum_values)}" + "\n"
+        field_text = field_text.strip() + field_description.strip() + f" Can be one of the following values: {' or '.join(enum_values)}" + "\n"
     elif field_description != "":
         field_text += field_description + "\n"
 

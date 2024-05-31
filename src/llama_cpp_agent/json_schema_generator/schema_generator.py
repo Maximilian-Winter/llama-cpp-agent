@@ -158,6 +158,9 @@ def generate_list(
     outer_object_properties_name=None,
     add_inner_thoughts: bool = False,
     inner_thoughts_name: str = "thoughts_and_reasoning",
+    add_heartbeat: bool = False,
+    heartbeat_name: str = "heartbeat",
+    heartbeat_list: List[str] = None,
     min_items: int = 1,
     max_items: int = 1000,
 ):
@@ -171,7 +174,7 @@ def generate_list(
             ):
                 function_name_object = {"enum": [model.__name__], "type": "string"}
                 model_schema_object = schema
-                if add_inner_thoughts:
+                if (add_inner_thoughts and not add_heartbeat) or (add_inner_thoughts and add_heartbeat and model.__name__ not in heartbeat_list):
                     # Create a wrapper object that contains the function name and the model schema
                     wrapper_object = {
                         "type": "object",
@@ -184,6 +187,38 @@ def generate_list(
                             inner_thoughts_name,
                             outer_object_name,
                             outer_object_properties_name,
+                        ],
+                    }
+                elif add_inner_thoughts and add_heartbeat and model.__name__ in heartbeat_list:
+                    # Create a wrapper object that contains the function name and the model schema
+                    wrapper_object = {
+                        "type": "object",
+                        "properties": {
+                            inner_thoughts_name: {"type": "string"},
+                            outer_object_name: function_name_object,
+                            outer_object_properties_name: model_schema_object,
+                            heartbeat_name: {"type": "boolean"},
+                        },
+                        "required": [
+                            inner_thoughts_name,
+                            outer_object_name,
+                            outer_object_properties_name,
+                            heartbeat_name
+                        ],
+                    }
+                elif not add_inner_thoughts and add_heartbeat and model.__name__ in heartbeat_list:
+                    # Create a wrapper object that contains the function name and the model schema
+                    wrapper_object = {
+                        "type": "object",
+                        "properties": {
+                            outer_object_name: function_name_object,
+                            outer_object_properties_name: model_schema_object,
+                            heartbeat_name: {"type": "boolean"},
+                        },
+                        "required": [
+                            outer_object_name,
+                            outer_object_properties_name,
+                            heartbeat_name
                         ],
                     }
                 else:
@@ -211,7 +246,7 @@ def generate_list(
             function_name_object = {"enum": [model.__name__], "type": "string"}
             model_schema_object = schema
 
-            if add_inner_thoughts:
+            if (add_inner_thoughts and not add_heartbeat) or (add_inner_thoughts and add_heartbeat and model.__name__ not in heartbeat_list):
                 # Create a wrapper object that contains the function name and the model schema
                 wrapper_object = {
                     "type": "object",
@@ -224,6 +259,40 @@ def generate_list(
                         inner_thoughts_name,
                         outer_object_name,
                         outer_object_properties_name,
+                    ],
+                }
+
+            elif add_inner_thoughts and add_heartbeat and model.__name__ in heartbeat_list:
+                # Create a wrapper object that contains the function name and the model schema
+                wrapper_object = {
+                    "type": "object",
+                    "properties": {
+                        inner_thoughts_name: {"type": "string"},
+                        outer_object_name: function_name_object,
+                        outer_object_properties_name: model_schema_object,
+                        heartbeat_name: {"type": "boolean"},
+                    },
+                    "required": [
+                        inner_thoughts_name,
+                        outer_object_name,
+                        outer_object_properties_name,
+                        heartbeat_name
+                    ],
+                }
+
+            elif not add_inner_thoughts and add_heartbeat and model.__name__ in heartbeat_list:
+                # Create a wrapper object that contains the function name and the model schema
+                wrapper_object = {
+                    "type": "object",
+                    "properties": {
+                        outer_object_name: function_name_object,
+                        outer_object_properties_name: model_schema_object,
+                        heartbeat_name: {"type": "boolean"},
+                    },
+                    "required": [
+                        outer_object_name,
+                        outer_object_properties_name,
+                        heartbeat_name
                     ],
                 }
             else:
@@ -256,7 +325,12 @@ def generate_json_schemas(
     allow_list=False,
     add_inner_thoughts: bool = False,
     inner_thoughts_name: str = "thoughts_and_reasoning",
+    add_heartbeat: bool = False,
+    heartbeat_name: str = "heartbeat",
+    heartbeat_list=None,
 ):
+    if heartbeat_list is None:
+        heartbeat_list = []
     if allow_list:
         model_schema_list = generate_list(
             models,
@@ -264,6 +338,9 @@ def generate_json_schemas(
             outer_object_properties_name,
             add_inner_thoughts,
             inner_thoughts_name,
+            add_heartbeat=add_heartbeat,
+            heartbeat_name=heartbeat_name,
+            heartbeat_list=heartbeat_list
         )
     else:
         model_schema_list = generate_list(
@@ -272,6 +349,9 @@ def generate_json_schemas(
             outer_object_properties_name,
             add_inner_thoughts,
             inner_thoughts_name,
+            add_heartbeat=add_heartbeat,
+            heartbeat_name=heartbeat_name,
+            heartbeat_list=heartbeat_list,
             max_items=1,
         )
     return model_schema_list

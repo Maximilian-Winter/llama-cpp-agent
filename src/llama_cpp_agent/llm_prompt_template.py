@@ -149,11 +149,19 @@ class PromptTemplate:
         Returns:
             str: Text with empty placeholders removed.
         """
-        # Remove lines that contain only the empty placeholder
-        text = re.sub(rf'^{"__EMPTY_TEMPLATE_FIELD__"}$', "", text, flags=re.MULTILINE)
-        # Remove the empty placeholder from lines with other content
-        text = re.sub(rf'{"__EMPTY_TEMPLATE_FIELD__"}', "", text)
-        return text
+        # Split text into lines
+        lines = text.split('\n')
+        # Process each line individually
+        processed_lines = []
+        for line in lines:
+            if '__EMPTY_TEMPLATE_FIELD__' in line:
+                new_line = line.replace('__EMPTY_TEMPLATE_FIELD__', '')
+                if new_line.strip():
+                    processed_lines.append(new_line)
+            else:
+                processed_lines.append(line)
+        # Join the lines back into a single string
+        return '\n'.join(processed_lines)
 
     def generate_prompt(
         self,

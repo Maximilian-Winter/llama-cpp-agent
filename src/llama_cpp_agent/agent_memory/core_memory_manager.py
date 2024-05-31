@@ -11,6 +11,7 @@ class CoreMemoryManager:
         """
         Adds or updates an entry in the IAM.
         """
+
         if key not in self.core_memory:
             self.core_memory[key] = {}
         self.core_memory[key][child_key] = value
@@ -21,6 +22,7 @@ class CoreMemoryManager:
         """
         Replaces an existing entry in the IAM.
         """
+
         if key in self.core_memory and child_key in self.core_memory[key]:
             self.core_memory[key][child_key] = new_value
             self.last_modified = datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
@@ -32,6 +34,7 @@ class CoreMemoryManager:
         """
         Removes a specific field from a IAM entry.
         """
+
         if key in self.core_memory and child_key in self.core_memory[key]:
             del self.core_memory[key][child_key]
             self.last_modified = datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
@@ -41,20 +44,21 @@ class CoreMemoryManager:
 
     def build_core_memory_context(self):
         context = ""
-        # for key, item in self.core_memory.items():
-        #     context += f"""#### {key} ####\n"""
-        #     for key2, item2 in item.items():
-        #         context += f"""{key2}:\n{self.format_multiline_description(item2.strip(), 0)}\n\n"""
-        #     if item == {}:
-        #         context += "Empty Section\n"
-        # context = json.dumps(self.core_memory, indent=2)
         for key, item in self.core_memory.items():
-            context += f"""<{key}>\n"""
+            context += f"""#### {key} ####\n"""
             for key2, item2 in item.items():
-                context += f"""  <{key2}>\n{self.format_multiline_description(item2.strip(), 1)}\n  </{key2}>\n"""
-            context += f"</{key}>\n"
-        if context == "":
-            context = "No Core Memories!"
+                context += f"""{key2}:\n{self.format_multiline_description(item2.strip(), 0)}\n\n"""
+            if item == {}:
+                context += "Empty Section\n"
+        #context = json.dumps(self.core_memory, indent=2)
+        # for key, item in self.core_memory.items():
+        #     context += f"""<{key}>\n"""
+        #     for key2, item2 in item.items():
+        #         context += f"""  <{key2}>\n{self.format_multiline_description(item2.strip(), 1)}\n  </{key2}>\n"""
+        #     context += f"</{key}>\n"
+        # if context == "":
+        #     context = "No Core Memories!"
+
         return context
 
     def format_multiline_description(self, description: str, indent_level: int) -> str:

@@ -11,7 +11,7 @@ class EventType(PyEnum):
     SystemMessage = "system"
     AgentMessage = "assistant"
     UserMessage = "user"
-    FunctionMessage = "function"
+    FunctionMessage = "tool"
 
 
 Base = declarative_base()

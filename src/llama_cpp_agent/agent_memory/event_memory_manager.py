@@ -3,6 +3,8 @@ from .event_memory import Event, EventType
 import datetime
 import json
 
+from ..chat_history.messages import Roles
+
 
 class EventMemoryManager:
     def __init__(self, session: Session, event_queue_limit: int = 10):
@@ -13,7 +15,7 @@ class EventMemoryManager:
     def build_event_memory_context(self):
         messages = []
         for event in self.event_queue:
-            messages.append({"role": event.event_type.value, "content": event.content})
+            messages.append({"role": Roles(event.event_type.value), "content": event.content})
         return messages
 
     def add_event_to_queue(self, event_type, content, metadata):

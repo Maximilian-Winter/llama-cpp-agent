@@ -597,6 +597,18 @@ class LlmStructuredOutputSettings(BaseModel):
         """
         self.heartbeat_function_names_list.append(function_name)
 
+    def add_all_current_functions_to_heartbeat_list(self, excluded: list[str] = None):
+        """
+        Add a function name to the heartbeat list. This way a heartbeat field get added to the function calling output.
+        """
+        if excluded is None:
+            excluded = []
+
+        self.heartbeat_function_names_list.extend(
+            [tool.model.__name__ for tool in self.function_tools if tool.model.__name__ not in excluded]
+        )
+
+
     def handle_structured_output(self, llm_output: str, prompt_suffix: str = None):
         if self.output_raw_json_string:
             return llm_output
@@ -716,6 +728,7 @@ class LlmStructuredOutputSettings(BaseModel):
                                 "return_value": output,
                             }
                         )
+
                     except AttributeError as e:
                         return f"Error: {e}"
 

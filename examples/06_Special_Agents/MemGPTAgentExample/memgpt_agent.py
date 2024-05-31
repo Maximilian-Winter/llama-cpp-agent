@@ -5,17 +5,17 @@ from llama_cpp import Llama
 from pydantic import BaseModel
 
 from llama_cpp_agent.agent_memory.event_memory import EventType, Event
+from llama_cpp_agent.chat_history import BasicChatHistory
 from llama_cpp_agent.function_calling import LlamaCppFunctionTool
 from llama_cpp_agent.llm_agent import LlamaCppAgent, StreamingResponse
+from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
 from llama_cpp_agent.llm_prompt_template import PromptTemplate
-from llama_cpp_agent.llm_settings import LlamaLLMSettings, LlamaLLMGenerationSettings
+
 from llama_cpp_agent.messages_formatter import MessagesFormatterType, MessagesFormatter
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings, \
-    LlamaCppGenerationSettings
-from llama_cpp_agent.providers.openai_endpoint_provider import OpenAIEndpointSettings, OpenAIGenerationSettings
 
 from llama_cpp_agent.agent_memory.memory_tools import AgentCoreMemory, AgentRetrievalMemory, AgentEventMemory
-
+from llama_cpp_agent.providers import LlamaCppSamplingSettings
+from llama_cpp_agent.providers.provider_base import LlmProvider, LlmSamplingSettings
 
 sys_prompt2 = """As MemGPT, you are a digital companion designed to provide an immersive and interactive conversation experience while maintaining realism and authenticity. You have access to four types of memory:
 
@@ -32,8 +32,6 @@ To interact with these memories or perform other tasks, you respond with a JSON 
 - "function": The name of the function you want to call.
 - "params": The parameters required for the function.
 - "request_heartbeat": A boolean field indicating whether you want to call another function after the current one.
-
-To send a message to the user, use the 'activate_message_mode' function. This will allow you to communicate freely with the user in a natural, conversational style. Remember to conclude your message with '(End of message)' to indicate the end of the message.
 
 ### Functions:
 Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
@@ -57,46 +55,52 @@ last modified: {last_modified}
 """.strip()
 
 
-class activate_message_mode(BaseModel):
+class write_message_to_user(BaseModel):
     """
-    Activate the message mode.
+    Lets you write a message to the user.
     """
 
-    def run(self, agent):
+    def run(self, agent: ["MemGptAgent"]):
         agent.event_memory.get_event_memory_manager().add_event_to_queue(EventType.AgentMessage,
                                                                          agent.llama_cpp_agent.last_response, {})
-        function_message = f"""Function: activate_message_mode\nTimestamp: {datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}\nReturn Value: Message mode activated."""
+        function_message = f"""Function: write_message_to_user\nTimestamp: {datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}\nReturn Value: Write your message to the user."""
         agent.event_memory.get_event_memory_manager().add_event_to_queue(EventType.FunctionMessage, function_message,
                                                                          {})
         messages = agent.event_memory.get_event_memory_manager().build_event_memory_context()
-        agent.llama_cpp_agent.messages = messages
+        agent.llama_cpp_agent.chat_history = BasicChatHistory()
+        [agent.llama_cpp_agent.chat_history.add_message({"role": msg["role"], "content": msg["content"]}) for msg in messages]
         query = agent.event_memory.event_memory_manager.session.query(Event).all()
         system_prompt = agent.system_prompt_template.generate_prompt(
-            {"documentation": agent.function_tool_registry.get_documentation().strip(),
+            {"documentation": agent.function_tool_registry.get_llm_documentation(agent.provider).strip(),
              "last_modified": agent.core_memory.get_core_memory_manager().last_modified,
              "iam_content": agent.core_memory.get_core_memory_manager().build_core_memory_context(),
              "current_date_time": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
              "ckv_count": agent.retrieval_memory.retrieval_memory.collection.count(),
              "imb_count": len(query)}).strip()
 
+        sampling_settings = LlamaCppSamplingSettings()
+
+        sampling_settings.n_predict = 1024,
+        sampling_settings.temperature = 0.7
+        sampling_settings.top_k = 0
+        sampling_settings.top_p = 1.0
+        sampling_settings.repeat_penalty = 1.2,
+        sampling_settings.repeat_last_n = 512,
+        sampling_settings.min_p = 0.0
+        sampling_settings.tfs_z = 1.0
+        sampling_settings.penalize_nl = False
         result = agent.llama_cpp_agent.get_chat_response(system_prompt=system_prompt,
                                                          streaming_callback=agent.streaming_callback,
-                                                         additional_stop_sequences=["<|endoftext|>"],
-                                                         n_predict=1024,
-                                                         temperature=0.7, top_k=0, top_p=1.0, repeat_penalty=1.2,
-                                                         repeat_last_n=512,
-                                                         min_p=0.0, tfs_z=1.0, penalize_nl=False)
+                                                         llm_sampling_settings=sampling_settings)
 
         # print("Message: " + result)
         agent.send_message_to_user(result)
-        return "Message mode activated."
+        return "Write your message to the user."
 
 
 class MemGptAgent:
 
-    def __init__(self, llama_llm: Union[Llama, LlamaLLMSettings, LlamaCppEndpointSettings, OpenAIEndpointSettings],
-                 llama_generation_settings: Union[
-                     LlamaLLMGenerationSettings, LlamaCppGenerationSettings, OpenAIGenerationSettings] = None,
+    def __init__(self, provider: LlmProvider,
                  core_memory_file: str = None,
                  event_queue_file: str = None,
                  messages_formatter_type: MessagesFormatterType = MessagesFormatterType.CHATML,
@@ -104,44 +108,25 @@ class MemGptAgent:
                  streaming_callback: Callable[[StreamingResponse], None] = None,
                  send_message_to_user_callback: Callable[[str], None] = None,
                  debug_output: bool = False):
-        if llama_generation_settings is None:
-            if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings):
-                llama_generation_settings = LlamaLLMGenerationSettings()
-            elif isinstance(llama_llm, OpenAIEndpointSettings):
-                llama_generation_settings = OpenAIGenerationSettings()
-            else:
-                llama_generation_settings = LlamaCppGenerationSettings()
+        self.provider = provider
         self.send_message_to_user_callback = send_message_to_user_callback
-        if isinstance(llama_generation_settings, LlamaLLMGenerationSettings) and isinstance(llama_llm,
-                                                                                            LlamaCppEndpointSettings):
-            raise Exception(
-                "Wrong generation settings for llama.cpp server endpoint, use LlamaCppServerGenerationSettings under llama_cpp_agent.providers.llama_cpp_server_provider!")
-        if isinstance(llama_llm, Llama) or isinstance(llama_llm, LlamaLLMSettings) and isinstance(
-                llama_generation_settings, LlamaCppGenerationSettings):
-            raise Exception(
-                "Wrong generation settings for llama-cpp-python, use LlamaLLMGenerationSettings under llama_cpp_agent.llm_settings!")
-
-        if isinstance(llama_llm, OpenAIEndpointSettings) and not isinstance(
-                llama_generation_settings, OpenAIGenerationSettings):
-            raise Exception(
-                "Wrong generation settings for OpenAI endpoint, use CompletionRequestSettings under llama_cpp_agent.providers.openai_endpoint_provider!")
-
-        self.llama_generation_settings = llama_generation_settings
 
         self.system_prompt_template = PromptTemplate.from_string(sys_prompt2)
 
         if custom_messages_formatter is not None:
-            self.llama_cpp_agent = LlamaCppAgent(llama_llm, debug_output=debug_output,
+            self.llama_cpp_agent = LlamaCppAgent(provider, debug_output=debug_output,
                                                  system_prompt="",
-                                                 custom_messages_formatter=custom_messages_formatter)
+                                                 custom_messages_formatter=custom_messages_formatter,
+                                                 add_tools_and_structures_documentation_to_system_prompt=False)
         else:
-            self.llama_cpp_agent = LlamaCppAgent(llama_llm, debug_output=debug_output,
+            self.llama_cpp_agent = LlamaCppAgent(provider, debug_output=debug_output,
                                                  system_prompt="",
-                                                 predefined_messages_formatter_type=messages_formatter_type)
+                                                 predefined_messages_formatter_type=messages_formatter_type,
+                                                 add_tools_and_structures_documentation_to_system_prompt=False)
         self.streaming_callback = streaming_callback
 
         function_tools = [
-            LlamaCppFunctionTool(activate_message_mode, add_outer_request_heartbeat_field=False, agent=self)]
+            LlamaCppFunctionTool(write_message_to_user, add_outer_request_heartbeat_field=False, agent=self)]
 
         if core_memory_file is not None:
             self.core_memory = AgentCoreMemory(core_memory_file=core_memory_file)
@@ -159,13 +144,11 @@ class MemGptAgent:
         function_tools.extend(self.retrieval_memory.get_tool_list())
         function_tools.extend(self.event_memory.get_tool_list())
 
-        self.function_tool_registry = LlamaCppAgent.get_function_tool_registry(function_tools, add_inner_thoughts=True,
-                                                                               allow_inner_thoughts_only=False,
-                                                                               add_request_heartbeat=True,
-                                                                               tool_root="function",
-                                                                               tool_rule_content="params",
-                                                                               model_prefix="",
-                                                                               fields_prefix="")
+        self.function_tool_registry = LlmStructuredOutputSettings.from_llama_cpp_function_tools(function_tools,
+                                                                                                add_thoughts_and_reasoning_field=True,
+                                                                                                add_heartbeat_field=True)
+
+        self.function_tool_registry.add_all_current_functions_to_heartbeat_list(["write_message_to_user"])
         # print(self.function_tool_registry.gbnf_grammar)
         self.last_update_date_time = datetime.datetime.now()
         self.is_first_message = True
@@ -177,7 +160,7 @@ class MemGptAgent:
 
         while True:
             if not isinstance(result[0], str):
-                if result[0]["function"] != "activate_message_mode":
+                if result[0]["function"] != "write_message_to_user":
                     function_message = f"""Function: {result[0]["function"]}\nTimestamp: {datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}\nReturn Value: {result[0]["return_value"]}"""
 
                     self.event_memory.get_event_memory_manager().add_event_to_queue(EventType.FunctionMessage,
@@ -186,32 +169,39 @@ class MemGptAgent:
             else:
                 self.event_memory.get_event_memory_manager().add_event_to_queue(EventType.FunctionMessage, result, {})
                 result = self.intern_get_response()
-            if not isinstance(result[0], str) and result[0]["request_heartbeat"] is not None and result[0]["request_heartbeat"]:
+            if not isinstance(result[0], str) and "request_heartbeat" in result[0]["arguments"] and result[0]["request_heartbeat"]:
                 result = self.intern_get_response()
             else:
                 break
 
     def intern_get_response(self):
         messages = self.event_memory.get_event_memory_manager().build_event_memory_context()
-        self.llama_cpp_agent.messages = messages
+        self.llama_cpp_agent.chat_history = BasicChatHistory()
+        [self.llama_cpp_agent.chat_history.add_message({"role": msg["role"], "content": msg["content"]}) for msg in messages]
         query = self.event_memory.event_memory_manager.session.query(Event).all()
 
         system_prompt = self.system_prompt_template.generate_prompt(
-            {"documentation": self.function_tool_registry.get_documentation().strip(),
+            {"documentation": self.function_tool_registry.get_llm_documentation(self.provider).strip(),
              "last_modified": self.core_memory.get_core_memory_manager().last_modified,
              "iam_content": self.core_memory.get_core_memory_manager().build_core_memory_context(),
              "current_date_time": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
              "ckv_count": self.retrieval_memory.retrieval_memory.collection.count(),
              "imb_count": len(query)}).strip()
 
+        sampling_settings = LlamaCppSamplingSettings()
+
+        sampling_settings.n_predict = 1024,
+        sampling_settings.temperature = 0.7
+        sampling_settings.top_k = 0
+        sampling_settings.top_p = 1.0
+        sampling_settings.repeat_penalty = 1.2,
+        sampling_settings.repeat_last_n = 512,
+        sampling_settings.min_p = 0.0
+        sampling_settings.tfs_z = 1.0
+        sampling_settings.penalize_nl = False
         result = self.llama_cpp_agent.get_chat_response(system_prompt=system_prompt,
                                                         streaming_callback=self.streaming_callback,
-                                                        function_tool_registry=self.function_tool_registry,
-                                                        additional_stop_sequences=["<|endoftext|>"],
-                                                        n_predict=1024,
-                                                        temperature=0.7, top_k=0, top_p=1.0, repeat_penalty=1.2,
-                                                        repeat_last_n=512,
-                                                        min_p=0.0, tfs_z=1.0, penalize_nl=False)
+                                                        structured_output_settings=self.function_tool_registry)
         self.event_memory.get_event_memory_manager().add_event_to_queue(EventType.AgentMessage,
                                                                         self.llama_cpp_agent.last_response, {})
 

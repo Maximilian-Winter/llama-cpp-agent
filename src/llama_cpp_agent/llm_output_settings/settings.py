@@ -144,7 +144,7 @@ class LlmStructuredOutputSettings(BaseModel):
 
     @staticmethod
     def from_pydantic_models(
-            models: List[type[BaseModel]], output_type: LlmStructuredOutputType
+            models: List[type[BaseModel]], output_type: LlmStructuredOutputType, add_thoughts_and_reasoning_field: bool = False
     ):
         """
         Create settings from a list of Pydantic models with a specific output type.
@@ -167,21 +167,25 @@ class LlmStructuredOutputSettings(BaseModel):
             return LlmStructuredOutputSettings(
                 output_type=LlmStructuredOutputType.object_instance,
                 pydantic_models=models,
+                add_thoughts_and_reasoning_field=add_thoughts_and_reasoning_field
             )
         elif output_type is LlmStructuredOutputType.list_of_objects:
             return LlmStructuredOutputSettings(
                 output_type=LlmStructuredOutputType.list_of_objects,
                 pydantic_models=models,
+                add_thoughts_and_reasoning_field=add_thoughts_and_reasoning_field
             )
         elif output_type is LlmStructuredOutputType.function_calling:
             return LlmStructuredOutputSettings(
                 output_type=LlmStructuredOutputType.function_calling,
                 function_tools=[LlamaCppFunctionTool(model) for model in models],
+                add_thoughts_and_reasoning_field=add_thoughts_and_reasoning_field
             )
         elif output_type is LlmStructuredOutputType.parallel_function_calling:
             return LlmStructuredOutputSettings(
                 output_type=LlmStructuredOutputType.parallel_function_calling,
                 function_tools=[LlamaCppFunctionTool(model) for model in models],
+                add_thoughts_and_reasoning_field=add_thoughts_and_reasoning_field
             )
 
     @staticmethod
@@ -407,22 +411,22 @@ class LlmStructuredOutputSettings(BaseModel):
                 "LlmOutputType: no_structured_output not supported for structured output and function calling!"
             )
         elif self.output_type == LlmStructuredOutputType.object_instance:
-            return generate_markdown_documentation(
+            return generate_text_documentation(
                 self.pydantic_models, ordered_json_mode=json_schema_mode
             ).strip()
         elif self.output_type == LlmStructuredOutputType.list_of_objects:
-            return generate_markdown_documentation(
+            return generate_text_documentation(
                 self.pydantic_models, ordered_json_mode=json_schema_mode
             ).strip()
         elif self.output_type == LlmStructuredOutputType.function_calling:
-            return generate_markdown_documentation(
+            return generate_text_documentation(
                 [tool.model for tool in self.function_tools],
                 model_prefix="Function",
                 fields_prefix="Parameters",
                 ordered_json_mode=json_schema_mode,
             ).strip()
         elif self.output_type == LlmStructuredOutputType.parallel_function_calling:
-            return generate_markdown_documentation(
+            return generate_text_documentation(
                 [tool.model for tool in self.function_tools],
                 model_prefix="Function",
                 fields_prefix="Parameters",

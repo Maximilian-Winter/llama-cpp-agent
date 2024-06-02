@@ -54,7 +54,7 @@ while True:
         user_input,
         llm_sampling_settings=llm_settings,
         system_prompt=f"You are Cory, an advanced AI assistant. You have access to a core memory section, which is always visible to you and you can write to it.",
-        system_prompt_additions=SystemPromptAdditions({"Core Memory": agent_core_memory.get_core_memory_view().strip(), "Current Date": datetime.datetime.now().strftime("%d.%m.%Y") + "\nFormat: dd.mm.yyyy"}),
+        system_prompt_additions=SystemPromptAdditions({"core_memory": agent_core_memory.get_core_memory_view().strip(), "current_date": datetime.datetime.now().strftime("%d.%m.%Y") + "\nFormat: dd.mm.yyyy"}),
         structured_output_settings=output_settings,
     )
 

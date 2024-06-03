@@ -18,54 +18,6 @@ class CoreMemoryKey(Enum):
     HUMAN: str = "human"
 
 
-class core_memory_append(BaseModel):
-    """
-    Append a new entry to the Core Memory.
-    """
-
-    key: str = Field(..., description="The key identifier of the core memory.")
-    field: str = Field(..., description="The field within the core memory.")
-    value: str = Field(
-        ...,
-        description="The value or data to be stored in the specified core memory entry.",
-    )
-
-    def run(self, core_memory_manager: CoreMemoryManager):
-        return core_memory_manager.add_to_core_memory(
-            self.key, self.field, self.value
-        )
-
-
-class core_memory_replace(BaseModel):
-    """
-    Replace an entry in the Core Memory.
-    """
-
-    key: str = Field(..., description="The key identifier of the core memory.")
-    field: str = Field(..., description="The field within the core memory.")
-    new_value: str = Field(
-        ...,
-        description="The new value to replace with the existing data in the specified Core Memory field.",
-    )
-
-    def run(self, core_memory_manager: CoreMemoryManager):
-        return core_memory_manager.replace_in_core_memory(
-            self.key, self.field, self.new_value
-        )
-
-
-class core_memory_remove(BaseModel):
-    """
-    Remove an entry from the Core Memory.
-    """
-
-    key: str = Field(..., description="The key identifier of the core memory.")
-    field: str = Field(..., description="The field within the core memory.")
-
-    def run(self, core_memory_manager: CoreMemoryManager):
-        return core_memory_manager.remove_from_core_memory(self.key, self.field)
-
-
 class conversation_search(BaseModel):
     """
     Search prior conversation history using case-insensitive string matching.
@@ -182,10 +134,10 @@ class archival_memory_insert(BaseModel):
 
 class AgentRetrievalMemory:
     def __init__(
-        self,
-        persistent_db_path="./retrieval_memory",
-        embedding_model_name="all-MiniLM-L6-v2",
-        collection_name="retrieval_memory_collection",
+            self,
+            persistent_db_path="./retrieval_memory",
+            embedding_model_name="all-MiniLM-L6-v2",
+            collection_name="retrieval_memory_collection",
     ):
         self.retrieval_memory = RetrievalMemory(
             persistent_db_path, embedding_model_name, collection_name
@@ -210,10 +162,60 @@ class AgentRetrievalMemory:
         return self.add_retrieval_memory_tool
 
 
+def create_enum(enum_name, enum_values):
+    return Enum(enum_name, {value: value for value in enum_values})
+
+
 class AgentCoreMemory:
-    def __init__(self, core_memory=None, core_memory_file=None):
+    def __init__(self, core_memory_sections: list[str], core_memory=None, core_memory_file=None):
         if core_memory is None:
             core_memory = {}
+        custom_enum = create_enum("core_memory_sections", core_memory_sections)
+
+        class core_memory_append(BaseModel):
+            """
+            Append a new entry to the Core Memory.
+            """
+
+            key: custom_enum = Field(..., description="The key identifier of the core memory.")
+            field: str = Field(..., description="The field within the core memory.")
+            value: str = Field(
+                ...,
+                description="The value or data to be stored in the specified core memory entry.",
+            )
+
+            def run(self, core_memory_manager: CoreMemoryManager):
+                return core_memory_manager.add_to_core_memory(
+                    self.key, self.field, self.value
+                )
+
+        class core_memory_replace(BaseModel):
+            """
+            Replace an entry in the Core Memory.
+            """
+
+            key: custom_enum = Field(..., description="The key identifier of the core memory.")
+            field: str = Field(..., description="The field within the core memory.")
+            new_value: str = Field(
+                ...,
+                description="The new value to replace with the existing data in the specified Core Memory field.",
+            )
+
+            def run(self, core_memory_manager: CoreMemoryManager):
+                return core_memory_manager.replace_in_core_memory(
+                    self.key, self.field, self.new_value
+                )
+
+        class core_memory_remove(BaseModel):
+            """
+            Remove an entry from the Core Memory.
+            """
+
+            key: custom_enum = Field(..., description="The key identifier of the core memory.")
+            field: str = Field(..., description="The field within the core memory.")
+
+            def run(self, core_memory_manager: CoreMemoryManager):
+                return core_memory_manager.remove_from_core_memory(self.key, self.field)
 
         self.core_memory_manager = CoreMemoryManager(core_memory)
         if core_memory_file is not None:
@@ -231,6 +233,7 @@ class AgentCoreMemory:
 
     def get_core_memory_view(self):
         return self.core_memory_manager.build_core_memory_context()
+
     def get_core_memory_manager(self):
         return self.core_memory_manager
 

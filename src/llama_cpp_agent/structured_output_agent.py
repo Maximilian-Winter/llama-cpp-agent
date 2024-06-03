@@ -115,6 +115,7 @@ class StructuredOutputAgent:
         model: Type[BaseModel],
         data: str = "",
         llm_sampling_settings: LlmSamplingSettings = None,
+        returns_streaming_generator: bool = False,
     ) -> object:
         """
         Creates an object of the given model from the given data.
@@ -144,6 +145,7 @@ class StructuredOutputAgent:
         response = self.llama_cpp_agent.get_chat_response(
             prompt,
             system_prompt=system_prompt,
+            returns_streaming_generator=returns_streaming_generator,
             add_response_to_chat_history=False,
             add_message_to_chat_history=False,
             streaming_callback=self.streaming_callback,

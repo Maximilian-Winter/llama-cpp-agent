@@ -25,7 +25,7 @@ class SendMessageToUser(BaseModel):
 
 
 function_tools = [LlamaCppFunctionTool(SendMessageToUser)]
-agent_core_memory = AgentCoreMemory()
+agent_core_memory = AgentCoreMemory(["user_information", "assistants_information"])
 
 if os.path.exists("core_memory.json"):
     agent_core_memory.load_core_memory("core_memory.json")

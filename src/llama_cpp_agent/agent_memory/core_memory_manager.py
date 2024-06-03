@@ -9,7 +9,7 @@ class CoreMemoryManager:
 
     def add_to_core_memory(self, key: str, child_key: str, value) -> str:
         """
-        Adds or updates an entry in the IAM.
+        Adds or updates an entry in the core memory.
         """
 
         if key not in self.core_memory:
@@ -20,7 +20,7 @@ class CoreMemoryManager:
 
     def replace_in_core_memory(self, key: str, child_key: str, new_value) -> str:
         """
-        Replaces an existing entry in the IAM.
+        Replaces an existing entry in the core memory.
         """
 
         if key in self.core_memory and child_key in self.core_memory[key]:
@@ -32,7 +32,7 @@ class CoreMemoryManager:
 
     def remove_from_core_memory(self, key: str, child_key: str) -> str:
         """
-        Removes a specific field from a IAM entry.
+        Removes a specific field from a core memory entry.
         """
 
         if key in self.core_memory and child_key in self.core_memory[key]:
@@ -44,17 +44,10 @@ class CoreMemoryManager:
 
     def build_core_memory_context(self):
         context = ""
-        # for key, item in self.core_memory.items():
-        #     context += f"""#### {key} ####\n"""
-        #     for key2, item2 in item.items():
-        #         context += f"""{key2}:\n{self.format_multiline_description(item2.strip(), 0)}\n\n"""
-        #     if item == {}:
-        #         context += "Empty Section\n"
-        #context = json.dumps(self.core_memory, indent=2)
         for key, item in self.core_memory.items():
             context += f"""<{key}>\n"""
             for key2, item2 in item.items():
-                context += f"""  <{key2}>{self.format_multiline_description(item2.strip(), 1)}</{key2}>\n"""
+                context += f"""  <{key2}> {self.format_multiline_description(item2.strip(), 1)} </{key2}>\n"""
             context += f"</{key}>\n"
         if context == "":
             context = "No Core Memories!"

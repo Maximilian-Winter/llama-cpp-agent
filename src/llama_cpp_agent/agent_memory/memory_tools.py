@@ -186,7 +186,7 @@ class AgentCoreMemory:
 
             def run(self, core_memory_manager: CoreMemoryManager):
                 return core_memory_manager.add_to_core_memory(
-                    self.key, self.field, self.value
+                    self.key.value, self.field, self.value
                 )
 
         class core_memory_replace(BaseModel):
@@ -203,7 +203,7 @@ class AgentCoreMemory:
 
             def run(self, core_memory_manager: CoreMemoryManager):
                 return core_memory_manager.replace_in_core_memory(
-                    self.key, self.field, self.new_value
+                    self.key.value, self.field, self.new_value
                 )
 
         class core_memory_remove(BaseModel):
@@ -215,7 +215,7 @@ class AgentCoreMemory:
             field: str = Field(..., description="The field within the core memory.")
 
             def run(self, core_memory_manager: CoreMemoryManager):
-                return core_memory_manager.remove_from_core_memory(self.key, self.field)
+                return core_memory_manager.remove_from_core_memory(self.key.value, self.field)
 
         self.core_memory_manager = CoreMemoryManager(core_memory)
         if core_memory_file is not None:

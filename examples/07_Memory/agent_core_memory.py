@@ -3,7 +3,7 @@ import os
 
 from pydantic import BaseModel, Field
 
-from llama_cpp_agent.llm_agent import LlamaCppAgent, SystemPromptAdditions
+from llama_cpp_agent.llm_agent import LlamaCppAgent, SystemPromptAdditions, SystemPromptAddition
 from llama_cpp_agent.llm_output_settings import LlmStructuredOutputSettings
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 from llama_cpp_agent.agent_memory.memory_tools import AgentCoreMemory
@@ -25,7 +25,7 @@ class SendMessageToUser(BaseModel):
 
 
 function_tools = [LlamaCppFunctionTool(SendMessageToUser)]
-agent_core_memory = AgentCoreMemory(["user_information", "assistants_information"])
+agent_core_memory = AgentCoreMemory(["persona", "human"])
 
 if os.path.exists("core_memory.json"):
     agent_core_memory.load_core_memory("core_memory.json")
@@ -44,17 +44,23 @@ llm_settings.n_predict = 1024
 llm_settings.temperature = 0.35
 llm_settings.top_k = 0
 llm_settings.top_p = 1.0
+
+core_memory_section = SystemPromptAddition("core_memory", "The following section shows the current content of your core memory with information about your persona and the human you are interacting with:")
+date_time_section = SystemPromptAddition("current_date_time", "The following section shows the current date and time:")
 while True:
     user_input = input("USER> ")
 
     if "exit" in user_input:
         break
 
+    core_memory_section.set_content(agent_core_memory.get_core_memory_view().strip())
+    date_time_section.set_content(datetime.datetime.now().strftime("%d.%m.%Y") + "\nFormat: dd.mm.yyyy")
+
     output = llama_cpp_agent.get_chat_response(
         user_input,
         llm_sampling_settings=llm_settings,
         system_prompt=f"You are Cory, an advanced AI assistant. You have access to a core memory section, which is always visible to you and you can write to it.",
-        system_prompt_additions=SystemPromptAdditions({"core_memory": agent_core_memory.get_core_memory_view().strip(), "current_date": datetime.datetime.now().strftime("%d.%m.%Y") + "\nFormat: dd.mm.yyyy"}),
+        system_prompt_additions=SystemPromptAdditions([core_memory_section, date_time_section]),
         structured_output_settings=output_settings,
     )
 

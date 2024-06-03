@@ -23,16 +23,29 @@ from .prompt_templates import function_calling_thoughts_and_reasoning_templater,
 from .providers.provider_base import LlmProvider, LlmSamplingSettings
 
 
+class SystemPromptAddition:
+
+    def __init__(self, section_name: str, prefix: str = "", suffix: str = ""):
+        self.section_name = section_name
+        self.prefix = prefix
+        self.suffix = suffix
+        self.content = ""
+
+    def set_content(self, content: str):
+        self.content = content
+
+
 class SystemPromptAdditions:
 
-    def __init__(self, additional_sections: dict[str, str]):
+    def __init__(self, additional_sections: list[SystemPromptAddition]):
         self.additional_sections = additional_sections
 
     def get_formatted_sections(self) -> str:
-        result = ""
-        for key, value in self.additional_sections.items():
-            result += f"<{key}>\n{value}\n</{key}>\n"
-        return result
+        result = "\n"
+        for section in self.additional_sections:
+            result += f"{section.prefix}\n<{section.section_name}>\n{section.content}\n</{section.section_name}>\n{section.suffix}\n"
+        return result.rstrip()
+
 
 @dataclass
 class StreamingResponse:
@@ -420,7 +433,6 @@ class LlamaCppAgent:
             messages[0]["content"] = system_prompt
         else:
             messages[0]["content"] = self.system_prompt
-
 
         additional_suffix = ""
         if self.add_tools_and_structures_documentation_to_system_prompt:

@@ -45,10 +45,10 @@ class CoreMemoryManager:
     def build_core_memory_context(self):
         context = ""
         for key, item in self.core_memory.items():
-            context += f"""<{key}>\n"""
+            context += f"""  <{key}>\n"""
             for key2, item2 in item.items():
-                context += f"""  <{key2}>{self.format_multiline_description(item2.strip(), 1)}</{key2}>\n"""
-            context += f"</{key}>\n"
+                context += f"""    <{key2}>{self.format_multiline_description(item2.strip(), 4)}</{key2}>\n"""
+            context += f"  </{key}>\n"
         if context == "":
             context = "No Core Memories!"
 
@@ -65,8 +65,8 @@ class CoreMemoryManager:
         Returns:
             str: Formatted multiline description.
         """
-        indent = "    " * indent_level
-        return indent + description.replace("\n", "\n" + indent)
+        indent = " " * indent_level
+        return description.replace("\n", "\n" + indent)
 
     def load(self, file_path):
         with open(file_path, "r", encoding="utf-8") as file:

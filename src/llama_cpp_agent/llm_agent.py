@@ -23,7 +23,7 @@ from .prompt_templates import function_calling_thoughts_and_reasoning_templater,
 from .providers.provider_base import LlmProvider, LlmSamplingSettings
 
 
-class SystemPromptAddition:
+class SystemPromptModule:
 
     def __init__(self, section_name: str, prefix: str = "", suffix: str = ""):
         self.section_name = section_name
@@ -35,9 +35,9 @@ class SystemPromptAddition:
         self.content = content
 
 
-class SystemPromptAdditions:
+class SystemPromptModules:
 
-    def __init__(self, additional_sections: list[SystemPromptAddition]):
+    def __init__(self, additional_sections: list[SystemPromptModule]):
         self.additional_sections = additional_sections
 
     def get_formatted_sections(self) -> str:
@@ -242,7 +242,7 @@ class LlamaCppAgent:
             prompt_suffix: str = None,
             chat_history: ChatHistory = None,
             system_prompt: str = None,
-            system_prompt_additions: SystemPromptAdditions = None,
+            system_prompt_additions: SystemPromptModules = None,
             add_message_to_chat_history: bool = True,
             add_response_to_chat_history: bool = True,
             structured_output_settings: LlmStructuredOutputSettings = None,
@@ -265,7 +265,7 @@ class LlamaCppAgent:
             prompt_suffix (str): Suffix to append after the prompt.
             chat_history (ChatHistory): Overwrite internal ChatHistory of the agent.
             system_prompt (str): Overwrites the system prompt set on the agent initialization.
-            system_prompt_additions (SystemPromptAdditions): Additional sections added to the system prompt.
+            system_prompt_additions (SystemPromptModules): Additional sections added to the system prompt.
             add_message_to_chat_history (bool): Whether to add the input message to the chat history.
             add_response_to_chat_history (bool): Whether to add the generated response to the chat history.
             structured_output_settings (LlmStructuredOutputSettings): Settings for structured output.
@@ -400,7 +400,7 @@ class LlamaCppAgent:
             message: str = None,
             chat_history: ChatHistory = None,
             system_prompt: str = None,
-            system_prompt_additions: SystemPromptAdditions = None,
+            system_prompt_additions: SystemPromptModules = None,
             add_message_to_chat_history: bool = True,
             role: Roles = Roles.user,
             prompt_suffix: str = None,

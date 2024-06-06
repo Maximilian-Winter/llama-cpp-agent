@@ -42,23 +42,21 @@ structured_output_template = '''You are an AI assistant with the following instr
 
 {after_system_instructions}
 
-Your task is to output a JSON object containing the content of a specific model, based on the system instructions provided. Your output should be structured in the following way: 
-
-{thoughts_and_reasoning}
-
-The {model_field_name} field should contain the name of the specific model that you are outputting, based on the system instructions. 
-
-The {fields_field_name} field should contain the actual fields and content of the model you are outputting, filled out according to the system instructions.
-
-Here are the output models you can choose from:
+Your output should be structured as JSON and represent one of the following output models: 
 
 <output_models>
 {output_models}
 </output_models>
 
-Please read the system instructions and output models carefully before proceeding.'''
+You JSON output should have the following fields:
 
-thoughts_and_reasoning_structured_output = "The {thoughts_and_reasoning_field_name} field should contain your step-by-step reasoning and decision making process as you work through the task. Explain how you are interpreting the instructions and planning your response."
+{thoughts_and_reasoning}
+
+The '{model_field_name}' field should contain the name of the specific model that you are outputting, based on the system instructions. 
+
+The '{fields_field_name}' field should contain the actual fields and content of the model you are outputting, filled out according to the system instructions.'''
+
+thoughts_and_reasoning_structured_output = "The '{thoughts_and_reasoning_field_name}' field should contain your step-by-step reasoning and decision making process as you work through the task. Explain how you are interpreting the instructions and planning your response."
 structured_output_templater = PromptTemplate.from_string(structured_output_template)
 structured_output_thoughts_and_reasoning_templater = PromptTemplate.from_string(thoughts_and_reasoning_structured_output)
 general_summarizing_system_prompt = """Your task is to summarize and extract relevant information from a text based on a specific query.

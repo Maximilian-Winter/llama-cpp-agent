@@ -616,8 +616,11 @@ class LlmStructuredOutputSettings(BaseModel):
     def handle_structured_output(self, llm_output: str, prompt_suffix: str = None):
         if self.output_raw_json_string:
             return llm_output
+
         if prompt_suffix:
             llm_output = llm_output.replace(prompt_suffix, "", 1)
+
+
         if (
                 self.output_type is LlmStructuredOutputType.function_calling
                 or self.output_type is LlmStructuredOutputType.parallel_function_calling
@@ -627,7 +630,7 @@ class LlmStructuredOutputSettings(BaseModel):
 
             return self.handle_function_call(output)
         elif self.output_type == LlmStructuredOutputType.object_instance:
-            output = json.loads(llm_output)
+            output = parse_json_response(llm_output)
             output = self.clean_keys(output)
             model_name = output[self.output_model_name_field_name]
             model_attributes = output[self.output_model_attributes_field_name]
@@ -636,7 +639,7 @@ class LlmStructuredOutputSettings(BaseModel):
                     return model(**model_attributes)
 
         elif self.output_type == LlmStructuredOutputType.list_of_objects:
-            output = json.loads(llm_output)
+            output = parse_json_response(llm_output)
             output = self.clean_keys(output)
             models = []
             for out in output:

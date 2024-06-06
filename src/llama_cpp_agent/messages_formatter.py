@@ -25,6 +25,7 @@ class MessagesFormatterType(Enum):
     LLAMA_3 = 12
     PHI_3 = 13
     OPEN_INTERPRETER = 14
+    AUTOCODER = 15
 
 @dataclass
 class PromptMarkers:
@@ -223,6 +224,12 @@ open_interpreter_chat_prompt_markers = {
     Roles.assistant: PromptMarkers("### Response:\n", "\n"),
     Roles.tool: PromptMarkers("", ""),
 }
+autocoder_chat_prompt_markers = {
+    Roles.system: PromptMarkers("", "\n"),
+    Roles.user: PromptMarkers("Human: ", "\n"),
+    Roles.assistant: PromptMarkers("Assistant: ", "<|EOT|>\n"),
+    Roles.tool: PromptMarkers("", ""),
+}
 
 """
 ### Instruction:
@@ -336,6 +343,15 @@ open_interpreter_chat_formatter = MessagesFormatter(
     use_user_role_for_function_call_result=True,
 )
 
+autocoder_chat_formatter = MessagesFormatter(
+    "",
+    autocoder_chat_prompt_markers,
+    True,
+    ["<|EOT|>"],
+    bos_token="<｜begin▁of▁sentence｜>",
+    eos_token="<|EOT|>",
+)
+
 predefined_formatter = {
     MessagesFormatterType.MISTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
@@ -351,6 +367,7 @@ predefined_formatter = {
     MessagesFormatterType.LLAMA_3: llama_3_formatter,
     MessagesFormatterType.PHI_3: phi_3_chat_formatter,
     MessagesFormatterType.OPEN_INTERPRETER: open_interpreter_chat_formatter,
+    MessagesFormatterType.AUTOCODER: autocoder_chat_formatter,
 }
 
 

@@ -435,13 +435,15 @@ class LlamaCppAgent:
         additional_suffix = ""
         if self.add_tools_and_structures_documentation_to_system_prompt:
             after_system_instructions_list = []
-            for module in system_prompt_modules:
-                if module.position == SystemPromptModulePosition.after_system_instructions:
-                    after_system_instructions_list.append(module.get_formatted_content())
-            if len(after_system_instructions_list) > 0:
-                after_system_instructions = "\n\n".join(after_system_instructions_list)
-            else:
-                after_system_instructions = ""
+            after_system_instructions = ""
+            if system_prompt_modules is not None:
+                for module in system_prompt_modules:
+                    if module.position == SystemPromptModulePosition.after_system_instructions:
+                        after_system_instructions_list.append(module.get_formatted_content())
+                if len(after_system_instructions_list) > 0:
+                    after_system_instructions = "\n\n".join(after_system_instructions_list)
+                else:
+                    after_system_instructions = ""
             if structured_output_settings.output_type != LlmStructuredOutputType.no_structured_output:
                 # additional_suffix = "\n"
                 thoughts_and_reasoning = ""
@@ -621,22 +623,23 @@ class LlamaCppAgent:
             if structured_output_settings.output_type == LlmStructuredOutputType.no_structured_output or structured_output_settings is None:
                 messages[0]["content"] += "\n" + after_system_instructions
         at_end_list = []
-        for module in system_prompt_modules:
-            if module.position == SystemPromptModulePosition.at_end:
-                at_end_list.append(module.get_formatted_content())
-        if len(at_end_list) > 0:
-            at_end_list = "\n\n".join(at_end_list)
-        else:
-            at_end_list = ""
+        if system_prompt_modules is not None:
+            for module in system_prompt_modules:
+                if module.position == SystemPromptModulePosition.at_end:
+                    at_end_list.append(module.get_formatted_content())
+            if len(at_end_list) > 0:
+                at_end_list = "\n\n".join(at_end_list)
+            else:
+                at_end_list = ""
 
-        messages[0]["content"] += at_end_list
+            messages[0]["content"] += at_end_list
         prompt, response_role = self.messages_formatter.format_conversation(
             messages, Roles.assistant
         )
 
         if prompt_suffix:
             prompt += prompt_suffix
-        #prompt += additional_suffix
+
         if self.debug_output:
             print(prompt, end="")
 

@@ -629,7 +629,7 @@ class LlamaCppAgent:
         else:
             at_end_list = ""
 
-        messages[0]["content"] += "\n" + at_end_list
+        messages[0]["content"] += at_end_list
         prompt, response_role = self.messages_formatter.format_conversation(
             messages, Roles.assistant
         )

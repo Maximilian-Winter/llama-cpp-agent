@@ -6,6 +6,8 @@ function_calling_system_prompt_template = '''You are an AI assistant with the fo
 {system_instructions}
 </system_instructions>
 
+{after_system_instructions}
+
 You can call functions to help you with your tasks and user queries. The available functions are:
 
 <function_list>
@@ -37,6 +39,8 @@ structured_output_template = '''You are an AI assistant with the following instr
 <system_instructions>
 {system_instructions}
 </system_instructions>
+
+{after_system_instructions}
 
 Your task is to output a JSON object containing the content of a specific model, based on the system instructions provided. Your output should be structured in the following way: 
 

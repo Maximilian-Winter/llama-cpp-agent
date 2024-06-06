@@ -63,18 +63,18 @@ class Mixtral8x22BAgent:
         request = ChatCompletionRequest(
             tools=mistral_tools,
             messages=self.messages,
-            model="open-mixtral-8x22b",
+            model="open-mistral-7b",
         )
         tokenized = self.tokenizer_v3.encode_chat_completion(request)
         tokens, text = tokenized.tokens, tokenized.text
         if self.debug_output:
             print(text)
         result = self.agent.get_text_response(
-            text,
+            text[1:],
             llm_sampling_settings=llm_sampling_settings,
             print_output=self.debug_output,
         )
-
+        self.tokenizer_v3.instruct_tokenizer.tokenizer.get_control_token()
         if result.strip().startswith("[TOOL_CALLS]"):
             tool_calls = []
 

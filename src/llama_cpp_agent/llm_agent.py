@@ -1,5 +1,6 @@
 from copy import deepcopy
 from dataclasses import dataclass
+from enum import Enum
 from typing import List, Literal, Callable, Union, Generator, Any
 
 from pydantic import BaseModel
@@ -22,29 +23,26 @@ from .prompt_templates import function_calling_thoughts_and_reasoning_templater,
 
 from .providers.provider_base import LlmProvider, LlmSamplingSettings
 
+class SystemPromptModulePosition(Enum):
+    after_system_instructions = 1
+    at_end = 2
+
 
 class SystemPromptModule:
 
-    def __init__(self, section_name: str, prefix: str = "", suffix: str = ""):
+    def __init__(self, section_name: str, prefix: str = "", suffix: str = "", position: SystemPromptModulePosition = SystemPromptModulePosition.at_end):
         self.section_name = section_name
         self.prefix = prefix
         self.suffix = suffix
         self.content = ""
+        self.position = position
 
     def set_content(self, content: str):
         self.content = content
 
+    def get_formatted_content(self):
+        return f"{self.prefix}\n<{self.section_name}>\n{self.content}\n</{self.section_name}>\n{self.suffix}\n"
 
-class SystemPromptModules:
-
-    def __init__(self, additional_sections: list[SystemPromptModule]):
-        self.additional_sections = additional_sections
-
-    def get_formatted_sections(self) -> str:
-        result = "\n"
-        for section in self.additional_sections:
-            result += f"{section.prefix}\n<{section.section_name}>\n{section.content}\n</{section.section_name}>\n{section.suffix}\n"
-        return result.rstrip()
 
 
 @dataclass
@@ -242,7 +240,7 @@ class LlamaCppAgent:
             prompt_suffix: str = None,
             chat_history: ChatHistory = None,
             system_prompt: str = None,
-            system_prompt_additions: SystemPromptModules = None,
+            system_prompt_additions: list[SystemPromptModule] = None,
             add_message_to_chat_history: bool = True,
             add_response_to_chat_history: bool = True,
             structured_output_settings: LlmStructuredOutputSettings = None,
@@ -298,7 +296,7 @@ class LlamaCppAgent:
             message=message,
             chat_history=chat_history,
             system_prompt=system_prompt,
-            system_prompt_additions=system_prompt_additions,
+            system_prompt_modules=system_prompt_additions,
             add_message_to_chat_history=add_message_to_chat_history,
             role=role,
             prompt_suffix=prompt_suffix,
@@ -400,7 +398,7 @@ class LlamaCppAgent:
             message: str = None,
             chat_history: ChatHistory = None,
             system_prompt: str = None,
-            system_prompt_additions: SystemPromptModules = None,
+            system_prompt_modules: list[SystemPromptModule] = None,
             add_message_to_chat_history: bool = True,
             role: Roles = Roles.user,
             prompt_suffix: str = None,
@@ -442,6 +440,14 @@ class LlamaCppAgent:
 
                 if structured_output_settings.output_type == LlmStructuredOutputType.function_calling or structured_output_settings.output_type == LlmStructuredOutputType.parallel_function_calling:
                     if structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
+                        after_system_instructions_list = []
+                        for module in system_prompt_modules:
+                            if module.position == SystemPromptModulePosition.after_system_instructions:
+                                after_system_instructions_list.append(module.get_formatted_content())
+                        if len(after_system_instructions_list) > 0:
+                            after_system_instructions = "\n\n".join(after_system_instructions_list)
+                        else:
+                            after_system_instructions = ""
                         thoughts_and_reasoning = function_calling_thoughts_and_reasoning_templater
                         thoughts_and_reasoning = thoughts_and_reasoning.generate_prompt({
                             "thoughts_and_reasoning_field_name": "001_" + structured_output_settings.thoughts_and_reasoning_field_name})
@@ -457,6 +463,7 @@ class LlamaCppAgent:
                             provider=self.provider)
                         system_prompt = function_calling_system_prompt_templater
                         system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "after_system_instructions": after_system_instructions,
                                                                        "thoughts_and_reasoning": thoughts_and_reasoning,
                                                                        "function_field_name": function_field_name,
                                                                        "arguments_field_name": arguments_field_name,
@@ -465,6 +472,14 @@ class LlamaCppAgent:
                                                                            {"function_list": function_list})})
                         messages[0]["content"] = system_prompt
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
+                        after_system_instructions_list = []
+                        for module in system_prompt_modules:
+                            if module.position == SystemPromptModulePosition.after_system_instructions:
+                                after_system_instructions_list.append(module.get_formatted_content())
+                        if len(after_system_instructions_list) > 0:
+                            after_system_instructions = "\n\n".join(after_system_instructions_list)
+                        else:
+                            after_system_instructions = ""
                         thoughts_and_reasoning = ""
                         function_field_name = "001_" + structured_output_settings.function_calling_name_field_name
                         arguments_field_name = "002_" + structured_output_settings.function_calling_content
@@ -478,6 +493,7 @@ class LlamaCppAgent:
                             provider=self.provider)
                         system_prompt = function_calling_system_prompt_templater
                         system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "after_system_instructions": after_system_instructions,
                                                                        "thoughts_and_reasoning": thoughts_and_reasoning,
                                                                        "function_field_name": function_field_name,
                                                                        "arguments_field_name": arguments_field_name,
@@ -486,6 +502,14 @@ class LlamaCppAgent:
                                                                            {"function_list": function_list})})
                         messages[0]["content"] = system_prompt
                     elif structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
+                        after_system_instructions_list = []
+                        for module in system_prompt_modules:
+                            if module.position == SystemPromptModulePosition.after_system_instructions:
+                                after_system_instructions_list.append(module.get_formatted_content())
+                        if len(after_system_instructions_list) > 0:
+                            after_system_instructions = "\n\n".join(after_system_instructions_list)
+                        else:
+                            after_system_instructions = ""
                         thoughts_and_reasoning = function_calling_thoughts_and_reasoning_templater
                         thoughts_and_reasoning = thoughts_and_reasoning.generate_prompt({
                             "thoughts_and_reasoning_field_name": structured_output_settings.thoughts_and_reasoning_field_name})
@@ -501,6 +525,7 @@ class LlamaCppAgent:
                             provider=self.provider)
                         system_prompt = function_calling_system_prompt_templater
                         system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "after_system_instructions": after_system_instructions,
                                                                        "thoughts_and_reasoning": thoughts_and_reasoning,
                                                                        "function_field_name": function_field_name,
                                                                        "arguments_field_name": arguments_field_name,
@@ -509,6 +534,14 @@ class LlamaCppAgent:
                                                                            {"function_list": function_list})})
                         messages[0]["content"] = system_prompt
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
+                        after_system_instructions_list = []
+                        for module in system_prompt_modules:
+                            if module.position == SystemPromptModulePosition.after_system_instructions:
+                                after_system_instructions_list.append(module.get_formatted_content())
+                        if len(after_system_instructions_list) > 0:
+                            after_system_instructions = "\n\n".join(after_system_instructions_list)
+                        else:
+                            after_system_instructions = ""
                         thoughts_and_reasoning = ""
                         function_field_name = structured_output_settings.function_calling_name_field_name
                         arguments_field_name = structured_output_settings.function_calling_content
@@ -522,6 +555,7 @@ class LlamaCppAgent:
                             provider=self.provider)
                         system_prompt = function_calling_system_prompt_templater
                         system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "after_system_instructions": after_system_instructions,
                                                                        "thoughts_and_reasoning": thoughts_and_reasoning,
                                                                        "function_field_name": function_field_name,
                                                                        "arguments_field_name": arguments_field_name,
@@ -531,6 +565,14 @@ class LlamaCppAgent:
                         messages[0]["content"] = system_prompt
                 elif structured_output_settings.output_type == LlmStructuredOutputType.object_instance or structured_output_settings.output_type == LlmStructuredOutputType.list_of_objects:
                     if structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
+                        after_system_instructions_list = []
+                        for module in system_prompt_modules:
+                            if module.position == SystemPromptModulePosition.after_system_instructions:
+                                after_system_instructions_list.append(module.get_formatted_content())
+                        if len(after_system_instructions_list) > 0:
+                            after_system_instructions = "\n\n".join(after_system_instructions_list)
+                        else:
+                            after_system_instructions = ""
                         thoughts_and_reasoning = structured_output_thoughts_and_reasoning_templater
                         thoughts_and_reasoning = thoughts_and_reasoning.generate_prompt({
                             "thoughts_and_reasoning_field_name": "001_" + structured_output_settings.thoughts_and_reasoning_field_name})
@@ -541,12 +583,21 @@ class LlamaCppAgent:
                             provider=self.provider)
                         system_prompt = structured_output_templater
                         system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "after_system_instructions": after_system_instructions,
                                                                        "thoughts_and_reasoning": thoughts_and_reasoning,
                                                                        "model_field_name": model_field_name,
                                                                        "fields_field_name": fields_field_name,
                                                                        "output_models": output_models})
                         messages[0]["content"] = system_prompt
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
+                        after_system_instructions_list = []
+                        for module in system_prompt_modules:
+                            if module.position == SystemPromptModulePosition.after_system_instructions:
+                                after_system_instructions_list.append(module.get_formatted_content())
+                        if len(after_system_instructions_list) > 0:
+                            after_system_instructions = "\n\n".join(after_system_instructions_list)
+                        else:
+                            after_system_instructions = ""
                         thoughts_and_reasoning = ""
                         model_field_name = "001_" + structured_output_settings.output_model_name_field_name
                         fields_field_name = "002_" + structured_output_settings.output_model_attributes_field_name
@@ -555,12 +606,21 @@ class LlamaCppAgent:
                             provider=self.provider)
                         system_prompt = structured_output_templater
                         system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "after_system_instructions": after_system_instructions,
                                                                        "thoughts_and_reasoning": thoughts_and_reasoning,
                                                                        "model_field_name": model_field_name,
                                                                        "fields_field_name": fields_field_name,
                                                                        "output_models": output_models})
                         messages[0]["content"] = system_prompt
                     elif structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
+                        after_system_instructions_list = []
+                        for module in system_prompt_modules:
+                            if module.position == SystemPromptModulePosition.after_system_instructions:
+                                after_system_instructions_list.append(module.get_formatted_content())
+                        if len(after_system_instructions_list) > 0:
+                            after_system_instructions = "\n\n".join(after_system_instructions_list)
+                        else:
+                            after_system_instructions = ""
                         thoughts_and_reasoning = structured_output_thoughts_and_reasoning_templater
                         thoughts_and_reasoning = thoughts_and_reasoning.generate_prompt({
                             "thoughts_and_reasoning_field_name": structured_output_settings.thoughts_and_reasoning_field_name})
@@ -571,12 +631,21 @@ class LlamaCppAgent:
                             provider=self.provider)
                         system_prompt = structured_output_templater
                         system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "after_system_instructions": after_system_instructions,
                                                                        "thoughts_and_reasoning": thoughts_and_reasoning,
                                                                        "model_field_name": model_field_name,
                                                                        "fields_field_name": fields_field_name,
                                                                        "output_models": output_models})
                         messages[0]["content"] = system_prompt
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and not self.provider.is_using_json_schema_constraints():
+                        after_system_instructions_list = []
+                        for module in system_prompt_modules:
+                            if module.position == SystemPromptModulePosition.after_system_instructions:
+                                after_system_instructions_list.append(module.get_formatted_content())
+                        if len(after_system_instructions_list) > 0:
+                            after_system_instructions = "\n\n".join(after_system_instructions_list)
+                        else:
+                            after_system_instructions = ""
                         thoughts_and_reasoning = ""
                         model_field_name = structured_output_settings.output_model_name_field_name
                         fields_field_name = structured_output_settings.output_model_attributes_field_name
@@ -585,14 +654,23 @@ class LlamaCppAgent:
                             provider=self.provider)
                         system_prompt = structured_output_templater
                         system_prompt = system_prompt.generate_prompt({"system_instructions": messages[0]["content"],
+                                                                       "after_system_instructions": after_system_instructions,
                                                                        "thoughts_and_reasoning": thoughts_and_reasoning,
                                                                        "model_field_name": model_field_name,
                                                                        "fields_field_name": fields_field_name,
                                                                        "output_models": output_models})
                         messages[0]["content"] = system_prompt
 
-        if system_prompt_additions is not None:
-            messages[0]["content"] += "\n" + system_prompt_additions.get_formatted_sections()
+        at_end_list = []
+        for module in system_prompt_modules:
+            if module.position == SystemPromptModulePosition.at_end:
+                at_end_list.append(module.get_formatted_content())
+        if len(at_end_list) > 0:
+            after_system_instructions = "\n\n".join(at_end_list)
+        else:
+            after_system_instructions = ""
+
+        messages[0]["content"] += after_system_instructions
         prompt, response_role = self.messages_formatter.format_conversation(
             messages, Roles.assistant
         )

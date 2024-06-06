@@ -45,10 +45,10 @@ class CoreMemoryManager:
     def build_core_memory_context(self):
         context = ""
         for key, item in self.core_memory.items():
-            context += f"""  <{key}>\n"""
+            context += f"""<{key}>\n"""
             for key2, item2 in item.items():
-                context += f"""    <{key2}>{self.format_multiline_description(item2.strip(), 4)}</{key2}>\n"""
-            context += f"  </{key}>\n"
+                context += f"""  <{key2}>{self.format_multiline_description(item2.strip(), 2)}</{key2}>\n"""
+            context += f"</{key}>\n"
         if context == "":
             context = "No Core Memories!"
 

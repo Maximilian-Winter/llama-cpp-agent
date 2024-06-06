@@ -20,9 +20,9 @@ agent = LlamaCppAgent(
 
 settings = provider.get_provider_default_settings()
 settings.n_predict = 1024
-settings.temperature = 0.35
-settings.top_k = 0
-settings.top_p = 1.0
+settings.temperature = 0.65
+settings.top_k = 40
+settings.top_p = 0.85
 
 memory_section = SystemPromptModule("memory",
                                     "The following section shows the count of memories in archival memory and chat history memory and the current content of your core memory:")

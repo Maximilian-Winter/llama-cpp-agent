@@ -41,6 +41,6 @@ memory_prompt = """1. Core Memory - Stores essential context about the game and 
 
 2. Archival Memory - Archive to store and retrieve general information and events about the player and the game-world. Can be used by calling the functions: 'archival_memory_search' and 'archival_memory_insert'.
 
-3. Conversation History - Since you are only seeing the latest player message, you have access to a conversation history. Stores the conversation history between you and the player. Can be searched by using: 'conversation_search' and 'conversation_search_date'.
+3. Conversation History - Since you are only seeing the latest conversation history, you can search the rest of the conversation history. Search it by using: 'conversation_search' and 'conversation_search_date'.
 
-Always remember tha!"""
+Always remember that the player can't see your memory or your interactions with it!"""

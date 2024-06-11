@@ -70,11 +70,10 @@ class Mixtral8x22BAgent:
         if self.debug_output:
             print(text)
         result = self.agent.get_text_response(
-            text[1:],
+            text,
             llm_sampling_settings=llm_sampling_settings,
             print_output=self.debug_output,
         )
-        self.tokenizer_v3.instruct_tokenizer.tokenizer.get_control_token()
         if result.strip().startswith("[TOOL_CALLS]"):
             tool_calls = []
 

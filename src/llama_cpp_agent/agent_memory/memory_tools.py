@@ -262,13 +262,13 @@ class AgentCoreMemory:
 
 
 class AgentEventMemory:
-    def __init__(self, event_queue_file=None, db_path="sqlite:///events.db"):
+    def __init__(self, event_queue_limit=30, event_queue_file=None, db_path="sqlite:///events.db"):
         self.engine = create_engine(db_path)
         session_factory = sessionmaker(bind=self.engine)
         Base.metadata.create_all(self.engine)
         self.Session = scoped_session(session_factory)
         self.session = self.Session()
-        self.event_memory_manager = EventMemoryManager(self.session)
+        self.event_memory_manager = EventMemoryManager(self.session, event_queue_limit=event_queue_limit)
 
         if event_queue_file is not None:
             self.event_memory_manager.load_event_queue(event_queue_file)

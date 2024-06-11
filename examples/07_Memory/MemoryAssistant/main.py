@@ -10,20 +10,20 @@ from memory import output_settings, agent_core_memory, agent_retrieval_memory, a
 from prompts import assistant_prompt,  memory_prompt, wrap_function_response_in_xml_tags_json_mode, \
     generate_write_message, generate_write_message_with_examples, wrap_user_message_in_xml_tags_json_mode
 
-provider = LlamaCppServerProvider("http://localhost:8080")
+provider = LlamaCppServerProvider("http://hades.hq.solidrust.net:8084")
 
 agent = LlamaCppAgent(
     provider,
     system_prompt=assistant_prompt,
     debug_output=True,
-    predefined_messages_formatter_type=MessagesFormatterType.MISTRAL,
+    predefined_messages_formatter_type=MessagesFormatterType.CHATML,
 )
 
 settings = provider.get_provider_default_settings()
 settings.n_predict = 1024
-settings.temperature = 0.35
-settings.top_k = 0
-settings.top_p = 0.5
+settings.temperature = 0.65
+settings.top_k = 40
+settings.top_p = 0.85
 
 memory_section = SystemPromptModule("memory",
                                     "The following section shows the count of memories in archival memory and chat history memory and the current content of your core memory:")

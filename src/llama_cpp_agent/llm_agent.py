@@ -429,12 +429,12 @@ class LlamaCppAgent:
             )
 
         if system_prompt:
-            if messages[0]["role"] != Roles.system:
+            if messages[0]["role"] != Roles.system and (messages[0]["role"] != Roles.system.value):
                 messages.insert(0, {"role": Roles.system, "content": system_prompt})
             else:
                 messages[0]["content"] = system_prompt
         else:
-            if messages[0]["role"] != Roles.system:
+            if messages[0]["role"] != Roles.system and (messages[0]["role"] != Roles.system.value):
                 messages.insert(0, {"role": Roles.system, "content": self.system_prompt})
             else:
                 messages[0]["content"] = self.system_prompt

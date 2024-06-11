@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from .event_memory import Event, EventType
+from .event_memory import Event
 import datetime
 import json
 
@@ -24,7 +24,7 @@ class EventMemoryManager:
         messages = self.build_event_memory_context()
         for message in messages:
             history.add_message(message)
-        return messages
+        return history
 
     def add_event_to_queue(self, event_type: Roles, content: str, metadata: dict):
         new_event = Event(

@@ -6,8 +6,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from .event_memory import EventType, Base
+from .event_memory import Base
 from .event_memory_manager import EventMemoryManager
+from ..chat_history.messages import Roles
 from ..function_calling import LlamaCppFunctionTool
 from .core_memory_manager import CoreMemoryManager
 from .retrieval_memory_manager import RetrievalMemoryManager, RetrievalMemory
@@ -39,10 +40,10 @@ class conversation_search(BaseModel):
             self.page = 0
         return event_memory_manager.query_events(
             event_types=[
-                EventType.UserMessage,
-                EventType.AgentMessage,
-                EventType.SystemMessage,
-                EventType.FunctionMessage,
+                Roles.user,
+                Roles.assistant,
+                Roles.system,
+                Roles.tool,
             ],
             content_keywords=self.keywords,
             start_date=parsed_start_datetime,
@@ -83,10 +84,10 @@ class conversation_search_date(BaseModel):
 
         return event_memory_manager.query_events(
             event_types=[
-                EventType.UserMessage,
-                EventType.AgentMessage,
-                EventType.SystemMessage,
-                EventType.FunctionMessage,
+                Roles.user,
+                Roles.assistant,
+                Roles.system,
+                Roles.tool,
             ],
             start_date=parsed_start_datetime,
             end_date=parsed_end_datetime,
@@ -279,6 +280,8 @@ class AgentEventMemory:
             conversation_search_date, event_memory_manager=self.event_memory_manager
         )
 
+    def add_event(self, role: Roles, content:str):
+        self.event_memory_manager.add_event_to_queue(role, content, {})
     def get_event_memory_manager(self):
         return self.event_memory_manager
 

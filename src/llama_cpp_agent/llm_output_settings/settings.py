@@ -111,7 +111,10 @@ class LlmStructuredOutputSettings(BaseModel):
         False,
         description="If the output should be just the generated JSON string by the LLM",
     )
-
+    output_structured_output_and_raw_json_string: Optional[bool] = Field(
+        False,
+        description="If the output should be a tuple of the output and the generated JSON string by the LLM",
+    )
     class Config:
         arbitrary_types_allowed = True
 
@@ -144,7 +147,8 @@ class LlmStructuredOutputSettings(BaseModel):
 
     @staticmethod
     def from_pydantic_models(
-            models: List[type[BaseModel]], output_type: LlmStructuredOutputType, add_thoughts_and_reasoning_field: bool = False
+            models: List[type[BaseModel]], output_type: LlmStructuredOutputType,
+            add_thoughts_and_reasoning_field: bool = False
     ):
         """
         Create settings from a list of Pydantic models with a specific output type.
@@ -612,7 +616,6 @@ class LlmStructuredOutputSettings(BaseModel):
             [tool.model.__name__ for tool in self.function_tools if tool.model.__name__ not in excluded]
         )
 
-
     def handle_structured_output(self, llm_output: str, prompt_suffix: str = None):
         if self.output_raw_json_string:
             return llm_output
@@ -620,14 +623,14 @@ class LlmStructuredOutputSettings(BaseModel):
         if prompt_suffix:
             llm_output = llm_output.replace(prompt_suffix, "", 1)
 
-
         if (
                 self.output_type is LlmStructuredOutputType.function_calling
                 or self.output_type is LlmStructuredOutputType.parallel_function_calling
         ):
             output = parse_json_response(llm_output)
             output = self.clean_keys(output)
-
+            if self.output_structured_output_and_raw_json_string:
+                return self.handle_function_call(output), llm_output
             return self.handle_function_call(output)
         elif self.output_type == LlmStructuredOutputType.object_instance:
             output = parse_json_response(llm_output)
@@ -636,6 +639,8 @@ class LlmStructuredOutputSettings(BaseModel):
             model_attributes = output[self.output_model_attributes_field_name]
             for model in self.pydantic_models:
                 if model_name == model.__name__:
+                    if self.output_structured_output_and_raw_json_string:
+                        return model(**model_attributes), llm_output
                     return model(**model_attributes)
 
         elif self.output_type == LlmStructuredOutputType.list_of_objects:
@@ -648,6 +653,8 @@ class LlmStructuredOutputSettings(BaseModel):
                     model_attributes = out[self.output_model_attributes_field_name]
                     if model_name == model.__name__:
                         models.append(model(**model_attributes))
+            if self.output_structured_output_and_raw_json_string:
+                return models, llm_output
             return models
         return llm_output
 

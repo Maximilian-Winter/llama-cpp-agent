@@ -427,10 +427,17 @@ class LlamaCppAgent:
                     "content": message,
                 },
             )
+
         if system_prompt:
-            messages[0]["content"] = system_prompt
+            if messages[0]["role"] != Roles.system:
+                messages.insert(0, {"role": Roles.system, "content": system_prompt})
+            else:
+                messages[0]["content"] = system_prompt
         else:
-            messages[0]["content"] = self.system_prompt
+            if messages[0]["role"] != Roles.system:
+                messages.insert(0, {"role": Roles.system, "content": self.system_prompt})
+            else:
+                messages[0]["content"] = self.system_prompt
 
         additional_suffix = ""
         if self.add_tools_and_structures_documentation_to_system_prompt:

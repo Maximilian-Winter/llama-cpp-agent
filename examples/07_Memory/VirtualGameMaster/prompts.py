@@ -1,4 +1,3 @@
-
 examples = """Example 1:
 Scenario:
 Imagine the players are a group of adventurers who have just arrived in a small, frontier town, seeking rest and resupply after a long journey through the wilderness. They decide to visit the local tavern, a rustic establishment called the Drunken Dragon, hoping to find a hot meal, a cold drink, and perhaps some interesting rumors or leads for their next adventure.
@@ -34,7 +33,6 @@ Imagine the players are a group of down-on-their-luck mercenaries, seeking to ma
 Output:
 The dimly lit tavern is a haven for the city's downtrodden and desperate. The air is thick with the stench of cheap ale and unwashed bodies, and the floorboards creak under the weight of heavy boots. As you sit at a battered table, nursing your drinks, a grizzled old man with a patch over one eye slumps into the chair beside you. He leans in close, his breath reeking of whiskey, and rasps, "You look like the kind of folks who ain't afraid of a little danger. I got a map to a place where the dead don't rest easy, and treasure beyond your wildest dreams awaits. But it ain't gonna be a cakewalk. You up for the challenge?" He slides a tattered, blood-stained map across the table, his one good eye glinting with a mixture of desperation and greed. What do you do?"""
 
-
 game_master_prompt = """You are the Game Master in a virtual pen-and-paper role-playing game. As a game master, your task is to facilitate an immersive and engaging storytelling experience for your players. You are responsible for crafting the narrative, portraying non-player characters (NPCs), describing the game world, and adjudicating the rules of the game. Your role is to create a rich, interactive environment where the players' characters can explore, make meaningful choices, and shape the story through their actions."""
 
 memory_prompt = """1. Core Memory - Stores essential context about the game and the player, divided into 4 sections: General Game Info, Players, Game Progress, Miscellaneous. You can edit the core memory by calling the functions: 'core_memory_append', 'core_memory_remove' and 'core_memory_replace'.
@@ -44,3 +42,16 @@ memory_prompt = """1. Core Memory - Stores essential context about the game and 
 3. Conversation History - Since you are only seeing the latest conversation history, you can search the rest of the conversation history. Search it by using: 'conversation_search' and 'conversation_search_date'.
 
 Always remember that the player can't see your memory or your interactions with it!"""
+
+def wrap_player_message_in_xml_tags_json_mode(user_input):
+    return "<player_message>\n" + user_input + "\n</player_message>\n<response_format>\nJSON function call.\n</response_format>"
+
+def wrap_function_response_in_xml_tags_json_mode(value):
+    return "<function_response>\n" + value + "\n</function_response>\n<response_format>\nJSON function call.\n</response_format>"
+
+
+def generate_fake_write_message():
+    return f"<function_response>\nWrite your message to the user.\n</function_response>\n<response_format>\nText\n</response_format>"
+
+def generate_write_message_with_examples(examples):
+    return f"<function_response>\nWrite your message to the user.\n{examples}</function_response>\n<response_format>\nText\n</response_format>"

@@ -3,6 +3,7 @@ from .event_memory import Event, EventType
 import datetime
 import json
 
+from ..chat_history import BasicChatHistory
 from ..chat_history.messages import Roles
 
 
@@ -18,7 +19,14 @@ class EventMemoryManager:
             messages.append({"role": Roles(event.event_type.value), "content": event.content})
         return messages
 
-    def add_event_to_queue(self, event_type, content, metadata):
+    def build_chat_history(self):
+        history = BasicChatHistory(k=self.event_queue_limit)
+        messages = self.build_event_memory_context()
+        for message in messages:
+            history.add_message(message)
+        return messages
+
+    def add_event_to_queue(self, event_type: Roles, content: str, metadata: dict):
         new_event = Event(
             event_type=event_type,
             timestamp=datetime.datetime.now(),

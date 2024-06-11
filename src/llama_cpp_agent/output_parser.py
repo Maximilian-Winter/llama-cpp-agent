@@ -2,6 +2,10 @@ import json
 import re
 
 
+def escape_latex_slashes(json_string):
+    return re.sub(r'(?<!\\)\\(?!["\\/bfnrt])', r'\\\\', json_string)
+
+
 def preprocess_json_string(json_string):
     # Regular expression to find string values in JSON (this is a simplification and might not cover all edge cases)
     string_regex = r'"([^"]*)"'
@@ -9,6 +13,7 @@ def preprocess_json_string(json_string):
     # Function to escape newlines within string values
     def escape_newlines(match):
         escaped_string = match.group(0).replace("\n", "\\n")
+        escaped_string = escape_latex_slashes(escaped_string)
         return escaped_string
 
     # Replace unescaped newlines in string values
@@ -60,7 +65,7 @@ def parse_json_response(response: str):
 
 
 def parse_json_response_with_markdown_code_block_or_triple_quoted_string(
-    json_response, marker
+        json_response, marker
 ):
     """
     Parses a JSON response string followed by a Markdown code block or triple-quoted string.

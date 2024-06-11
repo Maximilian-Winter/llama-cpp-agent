@@ -47,7 +47,7 @@ while True:
     agent_output = agent.get_chat_response(
         "<player_message>\n" + user_input + "\n</player_message>\n<response_format>\nJSON function call.\n</response_format>",
         llm_sampling_settings=settings,
-        system_prompt_additions=[memory_intro_section, memory_section, date_time_section],
+        system_prompt_modules=[memory_intro_section, memory_section, date_time_section],
         structured_output_settings=output_settings)
 
     while True:
@@ -60,7 +60,7 @@ while True:
             output = agent.get_chat_response(
                 f"<function_response>\nWrite your message to the user.\n{example_section.prefix + example_section.content}</function_response>\n<response_format>\nText\n</response_format>",
                 role=Roles.tool, add_message_to_chat_history=False, add_response_to_chat_history=False,
-                system_prompt_additions=[memory_intro_section, memory_section, date_time_section],
+                system_prompt_modules=[memory_intro_section, memory_section, date_time_section],
                 llm_sampling_settings=settings)
             agent.chat_history.add_message({"role": Roles.tool,
                                             "content": f"<function_response>\nWrite your message to the user.\n</function_response>\n<response_format>\nText\n</response_format>"})
@@ -70,6 +70,6 @@ while True:
         agent_output = agent.get_chat_response("<function_response>\n" + agent_output[0][
             "return_value"] + "\n</function_response>\n<response_format>\nJSON function call.\n</response_format>",
                                                role=Roles.tool, llm_sampling_settings=settings,
-                                               system_prompt_additions=[memory_intro_section, memory_section,
-                                                                        date_time_section],
+                                               system_prompt_modules=[memory_intro_section, memory_section,
+                                                                      date_time_section],
                                                structured_output_settings=output_settings)

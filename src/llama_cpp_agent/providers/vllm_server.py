@@ -131,8 +131,9 @@ class VLLMServerProvider(LlmProvider):
 
             def generate_chunks():
                 for chunk in result:
-                    if chunk.choices[0].text is not None:
-                        yield {"choices": [{"text": chunk.choices[0].text}]}
+                    if chunk.choices is not None:
+                        if chunk.choices[0].text is not None:
+                            yield {"choices": [{"text": chunk.choices[0].text}]}
 
             return generate_chunks()
         else:

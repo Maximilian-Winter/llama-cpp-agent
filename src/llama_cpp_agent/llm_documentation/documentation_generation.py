@@ -297,9 +297,9 @@ def generate_text_documentation(
                 if isclass(field_type) and issubclass(field_type, BaseModel):
                     pyd_models.append((field_type, False))
                 documentation += generate_field_text(
-                    name
-                    if not ordered_json_mode
+                    name if not ordered_json_mode
                     else "{:03}".format(count) + "_" + name,
+                    name,
                     field_type,
                     model,
                     documentation_with_field_description=documentation_with_field_description,
@@ -327,6 +327,7 @@ def generate_text_documentation(
 
 def generate_field_text(
     field_name: str,
+    field_real_name: str,
     field_type: type[Any],
     model: type[BaseModel],
     depth=1,
@@ -336,22 +337,26 @@ def generate_field_text(
     Generate markdown documentation for a Pydantic model field.
 
     Args:
-        field_name (str): Name of the field.
+        field_name (str): Output Name of the field.
+        field_real_name (str): Real Name of the field.:
         field_type (type[Any]): Type of the field.
+
         model (type[BaseModel]): Pydantic model class.
         depth (int): Indentation depth in the documentation.
         documentation_with_field_description (bool): Include field descriptions in the documentation.
 
     Returns:
         str: Generated text documentation for the field.
+
     """
     indent = "    " * depth
 
-    field_info = model.model_fields.get(field_name)
+    field_info = model.model_fields.get(field_real_name)
     field_description = (
         field_info.description if field_info and field_info.description else ""
     )
     field_text = ""
+    is_enum = False
     if get_origin(field_type) == list:
         element_type = get_args(field_type)[0]
         if get_origin(element_type) == Union or isinstance(element_type, UnionType):
@@ -429,8 +434,8 @@ def generate_field_text(
                 field_text += "\n"
     elif issubclass(field_type, Enum):
         enum_values = [f"'{str(member.value)}'" for member in field_type]
-
-        field_text = f"{indent}{field_name} ({' or '.join(enum_values)})"
+        is_enum = True
+        field_text = f"{indent}{field_name} (enum)"
         if field_description != "":
             field_text += ": "
         else:
@@ -446,7 +451,10 @@ def generate_field_text(
     if not documentation_with_field_description:
         return field_text
 
-    if field_description != "":
+    if is_enum:
+
+        field_text = field_text + field_description.strip() + f" Can be one of the following values: {' or '.join(enum_values)}" + "\n"
+    elif field_description != "":
         field_text += field_description + "\n"
 
     # Check for and include field-specific examples if available
@@ -455,7 +463,7 @@ def generate_field_text(
         and hasattr(model.Config, "json_schema_extra")
         and "example" in model.Config.json_schema_extra
     ):
-        field_example = model.Config.json_schema_extra["example"].get(field_name)
+        field_example = model.Config.json_schema_extra["example"].get(field_real_name)
         if field_example is not None:
             example_text = (
                 f"'{field_example}'"

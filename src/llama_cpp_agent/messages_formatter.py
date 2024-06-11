@@ -144,7 +144,7 @@ chatml_prompt_markers = {
 
 vicuna_prompt_markers = {
     Roles.system: PromptMarkers("", """\n\n"""),
-    Roles.user: PromptMarkers("""USER:""", """\n"""),
+    Roles.user: PromptMarkers("""USER: """, """\n"""),
     Roles.assistant: PromptMarkers("""ASSISTANT:""", ""),
     Roles.tool: PromptMarkers("", ""),
 }

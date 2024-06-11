@@ -1,6 +1,6 @@
 from llama_cpp_agent.llm_prompt_template import PromptTemplate
 
-function_calling_system_prompt_template = '''You are an AI assistant with the following instructions:
+function_calling_system_prompt_template = '''Read and follow the instructions below:
 
 <system_instructions>
 {system_instructions}
@@ -34,7 +34,7 @@ function_calling_thoughts_and_reasoning_templater = PromptTemplate.from_string(t
 function_calling_heart_beats_templater = PromptTemplate.from_string(heart_beats_template)
 function_calling_function_list_templater = PromptTemplate.from_string(function_list_template)
 
-structured_output_template = '''You are an AI assistant with the following instructions:
+structured_output_template = '''Read and follow the instructions below:
 
 <system_instructions>
 {system_instructions}
@@ -48,7 +48,7 @@ Your output should be structured as JSON and represent one of the following outp
 {output_models}
 </output_models>
 
-You JSON output should have the following fields:
+Your JSON output should have the following fields:
 
 {thoughts_and_reasoning}
 

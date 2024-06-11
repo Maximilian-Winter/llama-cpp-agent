@@ -60,7 +60,7 @@ while True:
         user_input,
         llm_sampling_settings=llm_settings,
         system_prompt=f"You are an advanced AI assistant. You have access to a core memory section, which is always visible to you and you can write to it.",
-        system_prompt_additions=SystemPromptModules([core_memory_section, date_time_section]),
+        system_prompt_modules=SystemPromptModules([core_memory_section, date_time_section]),
         structured_output_settings=output_settings,
     )
 

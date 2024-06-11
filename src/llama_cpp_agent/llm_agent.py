@@ -240,7 +240,7 @@ class LlamaCppAgent:
             prompt_suffix: str = None,
             chat_history: ChatHistory = None,
             system_prompt: str = None,
-            system_prompt_additions: list[SystemPromptModule] = None,
+            system_prompt_modules: list[SystemPromptModule] = None,
             add_message_to_chat_history: bool = True,
             add_response_to_chat_history: bool = True,
             structured_output_settings: LlmStructuredOutputSettings = None,
@@ -263,7 +263,7 @@ class LlamaCppAgent:
             prompt_suffix (str): Suffix to append after the prompt.
             chat_history (ChatHistory): Overwrite internal ChatHistory of the agent.
             system_prompt (str): Overwrites the system prompt set on the agent initialization.
-            system_prompt_additions (SystemPromptModules): Additional sections added to the system prompt.
+            system_prompt_modules (SystemPromptModules): Additional sections added to the system prompt.
             add_message_to_chat_history (bool): Whether to add the input message to the chat history.
             add_response_to_chat_history (bool): Whether to add the generated response to the chat history.
             structured_output_settings (LlmStructuredOutputSettings): Settings for structured output.
@@ -296,7 +296,7 @@ class LlamaCppAgent:
             message=message,
             chat_history=chat_history,
             system_prompt=system_prompt,
-            system_prompt_modules=system_prompt_additions,
+            system_prompt_modules=system_prompt_modules,
             add_message_to_chat_history=add_message_to_chat_history,
             role=role,
             prompt_suffix=prompt_suffix,
@@ -564,14 +564,7 @@ class LlamaCppAgent:
                                                                        "output_models": output_models})
                         messages[0]["content"] = system_prompt
                     elif not structured_output_settings.add_thoughts_and_reasoning_field and self.provider.is_using_json_schema_constraints():
-                        after_system_instructions_list = []
-                        for module in system_prompt_modules:
-                            if module.position == SystemPromptModulePosition.after_system_instructions:
-                                after_system_instructions_list.append(module.get_formatted_content())
-                        if len(after_system_instructions_list) > 0:
-                            after_system_instructions = "\n\n".join(after_system_instructions_list)
-                        else:
-                            after_system_instructions = ""
+
                         thoughts_and_reasoning = ""
                         model_field_name = "001_" + structured_output_settings.output_model_name_field_name
                         fields_field_name = "002_" + structured_output_settings.output_model_attributes_field_name

@@ -83,7 +83,7 @@ def pydantic_model_to_openai_function_definition(pydantic_model: Type[BaseModel]
     function_definition = {
         "type": "function",
         "function": {
-            "name": pydantic_model.__name__.lower(),
+            "name": pydantic_model.__name__,
             "description": class_description,
             "parameters": {
                 "type": "object",

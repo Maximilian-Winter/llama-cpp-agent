@@ -21,7 +21,8 @@ from .prompt_templates import function_calling_thoughts_and_reasoning_templater,
     function_calling_function_list_templater, structured_output_templater, \
     structured_output_thoughts_and_reasoning_templater
 
-from .providers.provider_base import LlmProvider, LlmSamplingSettings
+from .providers.provider_base import LlmProvider, LlmSamplingSettings, LlmProviderId
+
 
 class SystemPromptModulePosition(Enum):
     after_system_instructions = 1
@@ -195,7 +196,7 @@ class LlamaCppAgent:
                     yield out_text
 
                 return structured_output_settings.handle_structured_output(
-                    full_response_stream
+                    full_response_stream, provider=self.provider
                 )
 
             if llm_sampling_settings.is_streaming():
@@ -219,7 +220,7 @@ class LlamaCppAgent:
                     print("")
                 self.last_response = full_response
                 return structured_output_settings.handle_structured_output(
-                    full_response
+                    full_response, provider=self.provider
                 )
             else:
                 full_response = ""
@@ -229,7 +230,7 @@ class LlamaCppAgent:
                     print(full_response)
                 self.last_response = full_response
                 return structured_output_settings.handle_structured_output(
-                    full_response
+                    full_response, provider=self.provider
                 )
         return "Error: No model loaded!"
 
@@ -322,7 +323,7 @@ class LlamaCppAgent:
                     }
                 )
             return structured_output_settings.handle_structured_output(
-                full_response_stream, prompt_suffix=prompt_suffix
+                full_response_stream, prompt_suffix=prompt_suffix, provider=self.provider
             )
 
         if self.provider:
@@ -358,7 +359,7 @@ class LlamaCppAgent:
                     )
 
                 return structured_output_settings.handle_structured_output(
-                    full_response, prompt_suffix=prompt_suffix
+                    full_response, prompt_suffix=prompt_suffix, provider=self.provider
                 )
             else:
                 text = completion["choices"][0]["text"]
@@ -377,7 +378,7 @@ class LlamaCppAgent:
                         }
                     )
 
-                return structured_output_settings.handle_structured_output(text, prompt_suffix=prompt_suffix)
+                return structured_output_settings.handle_structured_output(text, prompt_suffix=prompt_suffix, provider=self.provider)
         return "Error: No model loaded!"
 
     def get_text_completion(
@@ -645,7 +646,7 @@ class LlamaCppAgent:
 
         return (
             self.provider.create_completion(
-                prompt,
+                prompt if self.provider.get_provider_identifier() is not LlmProviderId.groq else messages,
                 structured_output_settings,
                 llm_sampling_settings,
                 self.messages_formatter.bos_token,

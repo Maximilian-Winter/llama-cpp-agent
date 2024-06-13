@@ -22,6 +22,7 @@ class LlmProviderId(Enum):
     llama_cpp_python = "llama_cpp_python"
     tgi_server = "text_generation_inference"
     vllm_server = "vllm"
+    groq = "groq"
 
 
 class LlmSamplingSettings(ABC):
@@ -146,11 +147,11 @@ class LlmProvider(ABC):
 
     @abstractmethod
     def create_completion(
-        self,
-        prompt: str,
-        structured_output_settings: LlmStructuredOutputSettings,
-        settings: LlmSamplingSettings,
-        bos_token: str,
+            self,
+            prompt: str | list[dict],
+            structured_output_settings: LlmStructuredOutputSettings,
+            settings: LlmSamplingSettings,
+            bos_token: str,
     ):
         """
         Create a completion request with the LLM provider and returns the result.
@@ -168,10 +169,10 @@ class LlmProvider(ABC):
 
     @abstractmethod
     def create_chat_completion(
-        self,
-        messages: List[Dict[str, str]],
-        structured_output_settings: LlmStructuredOutputSettings,
-        settings: LlmSamplingSettings
+            self,
+            messages: List[Dict[str, str]],
+            structured_output_settings: LlmStructuredOutputSettings,
+            settings: LlmSamplingSettings
     ):
         """
         Create a chat completion request with the LLM provider and returns the result.

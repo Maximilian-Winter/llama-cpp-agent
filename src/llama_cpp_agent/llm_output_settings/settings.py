@@ -115,6 +115,7 @@ class LlmStructuredOutputSettings(BaseModel):
         False,
         description="If the output should be a tuple of the output and the generated JSON string by the LLM",
     )
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -616,7 +617,8 @@ class LlmStructuredOutputSettings(BaseModel):
             [tool.model.__name__ for tool in self.function_tools if tool.model.__name__ not in excluded]
         )
 
-    def handle_structured_output(self, llm_output: str, prompt_suffix: str = None):
+    def handle_structured_output(self, llm_output: str, prompt_suffix: str = None, provider=None):
+
         if self.output_raw_json_string:
             return llm_output
 

@@ -27,6 +27,7 @@ email = "maximilian.winter.91@gmail.com"
 agent_memory = ["chromadb", "SQLAlchemy", "numpy", "scipy"]
 rag = ["ragatouille"]
 vllm_provider = ["openai", "transformers", "sentencepiece", "protobuf"]
+groq_provider = ["groq"]
 mixtral_agent = ["mistral-common"]
 web_search_summarization = ["duckduckgo_search", "trafilatura", "lxml-html-clean", "lxml", "googlesearch-python" , "beautifulsoup4", "readability-lxml"]
 

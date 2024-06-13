@@ -10,7 +10,7 @@ from memory import output_settings, agent_core_memory, agent_retrieval_memory, a
 from prompts import assistant_prompt,  memory_prompt, wrap_function_response_in_xml_tags_json_mode, \
     generate_write_message, generate_write_message_with_examples, wrap_user_message_in_xml_tags_json_mode
 
-provider = LlamaCppServerProvider("http://hades.hq.solidrust.net:8084")
+provider = LlamaCppServerProvider("http://localhost:8080")
 
 agent = LlamaCppAgent(
     provider,

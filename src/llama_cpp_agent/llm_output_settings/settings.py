@@ -295,7 +295,7 @@ class LlmStructuredOutputSettings(BaseModel):
         """
         self.function_tools.append(tool)
 
-    def add_pydantic_model(self, model: BaseModel):
+    def add_pydantic_model(self, model: BaseModel, name: str = None):
         """
         Add a Pydantic model to the settings, ensuring it matches the specified output type.
 
@@ -305,6 +305,8 @@ class LlmStructuredOutputSettings(BaseModel):
         Raises:
             NotImplementedError: If no structured output is specified.
         """
+        if name is not None:
+            model.__name__ = name
         if self.output_type is LlmStructuredOutputType.no_structured_output:
             raise NotImplementedError(
                 "LlmOutputType: no_structured_output not supported for structured output and function calling!"
@@ -319,7 +321,7 @@ class LlmStructuredOutputSettings(BaseModel):
             self.function_tools.append(LlamaCppFunctionTool(model))
 
     def add_open_ai_tool(
-            self, open_ai_schema_and_function: Tuple[Dict[str, Any], Callable]
+            self, open_ai_schema_and_function: Tuple[Dict[str, Any], Callable], name: str = None
     ):
         """
         Add an OpenAI tool to the settings, ensuring it matches the specified output type.
@@ -334,20 +336,19 @@ class LlmStructuredOutputSettings(BaseModel):
             raise NotImplementedError(
                 "LlmOutputType: no_structured_output not supported for structured output and function calling!"
             )
-        elif self.output_type is LlmStructuredOutputType.function_calling:
+        elif self.output_type is LlmStructuredOutputType.function_calling or self.output_type is LlmStructuredOutputType.parallel_function_calling:
+            tool = LlamaCppFunctionTool(open_ai_schema_and_function)
+            if name is not None:
+                tool.set_name(name)
             self.function_tools.append(
-                LlamaCppFunctionTool(open_ai_schema_and_function)
-            )
-        elif self.output_type is LlmStructuredOutputType.parallel_function_calling:
-            self.function_tools.append(
-                LlamaCppFunctionTool(open_ai_schema_and_function)
+                tool
             )
         else:
             raise NotImplementedError(
                 f"LlmOutputType: {self.output_type.value} not supported for tools!"
             )
 
-    def add_function_tool(self, function: Callable):
+    def add_function_tool(self, function: Callable, name: str = None):
         """
         Add a callable function to the settings, ensuring it matches the specified output type.
 
@@ -361,16 +362,19 @@ class LlmStructuredOutputSettings(BaseModel):
             raise NotImplementedError(
                 "LlmOutputType: no_structured_output not supported for structured output and function calling!"
             )
-        elif self.output_type is LlmStructuredOutputType.function_calling:
-            self.function_tools.append(LlamaCppFunctionTool(function))
-        elif self.output_type is LlmStructuredOutputType.parallel_function_calling:
-            self.function_tools.append(LlamaCppFunctionTool(function))
+        elif self.output_type is LlmStructuredOutputType.function_calling or self.output_type is LlmStructuredOutputType.parallel_function_calling:
+            tool = LlamaCppFunctionTool(function)
+            if name is not None:
+                tool.set_name(name)
+            self.function_tools.append(
+                tool
+            )
         else:
             raise NotImplementedError(
                 f"LlmOutputType: {self.output_type.value} not supported for tools!"
             )
 
-    def add_llama_index_tool(self, tool):
+    def add_llama_index_tool(self, tool, name: str = None):
         """
         Add a llama-index tool, like QueryEngineTool, to the settings, ensuring it matches the specified output type.
 
@@ -384,14 +388,27 @@ class LlmStructuredOutputSettings(BaseModel):
             raise NotImplementedError(
                 "LlmOutputType: no_structured_output not supported for structured output and function calling!"
             )
-        elif self.output_type is LlmStructuredOutputType.function_calling:
-            self.function_tools.append(LlamaCppFunctionTool.from_llama_index_tool(tool))
-        elif self.output_type is LlmStructuredOutputType.parallel_function_calling:
-            self.function_tools.append(LlamaCppFunctionTool.from_llama_index_tool(tool))
+        elif self.output_type is LlmStructuredOutputType.function_calling or self.output_type is LlmStructuredOutputType.parallel_function_calling:
+            tool = LlamaCppFunctionTool.from_llama_index_tool(tool)
+            if name is not None:
+                tool.set_name(name)
+            self.function_tools.append(
+                tool
+            )
         else:
             raise NotImplementedError(
                 f"LlmOutputType: {self.output_type.value} not supported for tools!"
             )
+
+    def set_name(self, index: int, name: str):
+        if self.output_type is LlmStructuredOutputType.no_structured_output:
+            raise NotImplementedError(
+                "LlmOutputType: no_structured_output not supported for structured output and function calling!"
+            )
+        elif self.output_type is LlmStructuredOutputType.function_calling or self.output_type is LlmStructuredOutputType.parallel_function_calling:
+            self.function_tools[index].set_name(name)
+        else:
+            self.pydantic_models[index].__name__ = name
 
     def get_llm_documentation(self, provider):
         """

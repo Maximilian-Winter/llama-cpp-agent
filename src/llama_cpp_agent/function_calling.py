@@ -195,6 +195,9 @@ class LlamaCppFunctionTool:
         pydantic_model = add_run_method_to_dynamic_model(pydantic_model, tool_function)
         return LlamaCppFunctionTool(pydantic_model)
 
+    def set_name(self, new_name: str):
+        self.model.__name__ = new_name
+
     @staticmethod
     def from_openai_tool(openai_tool_schema: dict, tool_function: Callable):
         """

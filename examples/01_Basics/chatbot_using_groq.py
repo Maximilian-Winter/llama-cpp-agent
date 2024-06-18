@@ -2,7 +2,7 @@ from llama_cpp_agent import LlamaCppAgent
 from llama_cpp_agent import MessagesFormatterType
 from llama_cpp_agent.providers.groq import GroqProvider
 
-provider = GroqProvider(base_url="https://api.groq.com/openai/v1", model="mixtral-8x7b-32768", huggingface_model="mistralai/Mixtral-8x7B-Instruct-v0.1", api_key="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")
+provider = GroqProvider(base_url="https://api.groq.com/openai/v1", model="mixtral-8x7b-32768", huggingface_model="mistralai/Mixtral-8x7B-Instruct-v0.1", api_key="xxxxxo")
 
 agent = LlamaCppAgent(
     provider,

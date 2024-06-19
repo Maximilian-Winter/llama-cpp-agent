@@ -184,7 +184,8 @@ class FunctionCallingAgent:
         if system_prompt is not None:
             self.system_prompt = system_prompt
         else:
-            self.system_prompt = """You are Funky, an AI assistant that calls functions to perform tasks."""
+            self.system_prompt = """You are Funky, an AI assistant that calls functions to perform tasks. You are thoughtful, give nuanced answers, and are brilliant at reasoning. Below is a list of functions you can use to interact with the system. Each function has specific parameters and requirements. Make sure to follow the instructions for each function carefully.
+Choose the appropriate function based on the task you want to perform. Provide your function calls in JSON format."""
         self.llama_cpp_agent = LlamaCppAgent(
             llama_llm,
             debug_output=debug_output,

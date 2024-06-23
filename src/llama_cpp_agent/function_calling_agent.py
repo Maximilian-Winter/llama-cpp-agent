@@ -177,7 +177,7 @@ class FunctionCallingAgent:
                 self.llama_cpp_tools, self.allow_parallel_function_calling
             )
         )
-
+        self.structured_output_settings.add_thoughts_and_reasoning_field = True
         self.without_grammar_mode = False
         self.without_grammar_mode_function = []
         self.prompt_suffix = ""
@@ -227,6 +227,9 @@ Choose the appropriate function based on the task you want to perform. Provide y
         structured_output_settings: LlmStructuredOutputSettings = None,
     ):
         self.llama_cpp_agent.add_message(role=Roles.user, message=message)
+        
+        if structured_output_settings is not None:
+            structured_output_settings.add_thoughts_and_reasoning_field = True
 
         result = self.intern_get_response(llm_sampling_settings=llm_sampling_settings, structured_output_settings=structured_output_settings)
 

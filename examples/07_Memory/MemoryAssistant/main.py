@@ -29,8 +29,9 @@ memory_section = SystemPromptModule("memory",
                                     "The following section shows the count of memories in archival memory and chat history memory and the current content of your core memory:")
 date_time_section = SystemPromptModule("current_date_time", "The following section shows the current date and time:")
 
-memory_intro_section = SystemPromptModule("memory_intro",
-                                          "To support you in your task as a game master and to help you remembering things, you have access to 3 different types of memory.",
+
+memory_intro_section = SystemPromptModule(section_name="memory_intro",
+                                          prefix="To support you in your task as a AI assistant and to help you remembering things, you have access to 3 different types of memory.",
                                           position=SystemPromptModulePosition.after_system_instructions)
 memory_intro_section.set_content(memory_prompt)
 output_settings.output_structured_output_and_raw_json_string = True

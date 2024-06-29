@@ -26,6 +26,7 @@ class MessagesFormatterType(Enum):
     PHI_3 = 13
     OPEN_INTERPRETER = 14
     AUTOCODER = 15
+    GEMMA_2 = 16
 
 @dataclass
 class PromptMarkers:
@@ -176,7 +177,12 @@ neural_chat_prompt_markers = {
     Roles.assistant: PromptMarkers("""### Assistant:\n""", """\n"""),
     Roles.tool: PromptMarkers("", ""),
 }
-
+gemma_2_prompt_markers = {
+    Roles.system: PromptMarkers("""""", """\n\n"""),
+    Roles.user: PromptMarkers("""<start_of_turn>user\n""", """<end_of_turn>\n"""),
+    Roles.assistant: PromptMarkers("""<start_of_turn>model\n""", """<end_of_turn>\n"""),
+    Roles.tool: PromptMarkers("", ""),
+}
 code_ds_prompt_markers = {
     Roles.system: PromptMarkers("", """\n\n"""),
     Roles.user: PromptMarkers("""@@ Instruction\n""", """\n\n"""),
@@ -352,6 +358,7 @@ autocoder_chat_formatter = MessagesFormatter(
     eos_token="<|EOT|>",
 )
 
+gemma_2_chat_formatter = MessagesFormatter("", gemma_2_prompt_markers, True, ["<end_of_turn>", "<start_of_turn>"])
 predefined_formatter = {
     MessagesFormatterType.MISTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
@@ -368,6 +375,7 @@ predefined_formatter = {
     MessagesFormatterType.PHI_3: phi_3_chat_formatter,
     MessagesFormatterType.OPEN_INTERPRETER: open_interpreter_chat_formatter,
     MessagesFormatterType.AUTOCODER: autocoder_chat_formatter,
+    MessagesFormatterType.GEMMA_2: gemma_2_chat_formatter
 }
 
 

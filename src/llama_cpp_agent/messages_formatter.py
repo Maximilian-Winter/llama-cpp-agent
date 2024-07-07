@@ -337,7 +337,7 @@ phi_3_chat_formatter = MessagesFormatter(
     "",
     phi_3_chat_prompt_markers,
     True,
-    ["<|end|>", "<|end_of_turn|>"],
+    ["<|end|>", "<|endoftext|>"],
     use_user_role_for_function_call_result=True,
 )
 

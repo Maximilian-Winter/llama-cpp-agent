@@ -160,7 +160,7 @@ llama_2_prompt_markers = {
 llama_3_prompt_markers = {
     Roles.system: PromptMarkers("""<|start_header_id|>system<|end_header_id|>\n""", """<|eot_id|>"""),
     Roles.user: PromptMarkers("""<|start_header_id|>user<|end_header_id|>\n""", """<|eot_id|>"""),
-    Roles.assistant: PromptMarkers("""<|start_header_id|>assistant<|end_header_id|>\n""", """<|eot_id|>"""),
+    Roles.assistant: PromptMarkers("""<|start_header_id|>assistant<|end_header_id|>\n\n""", """<|eot_id|>"""),
     Roles.tool: PromptMarkers("""<|start_header_id|>function_calling_results<|end_header_id|>\n""", """<|eot_id|>"""),
 }
 

@@ -238,8 +238,8 @@ autocoder_chat_prompt_markers = {
     Roles.tool: PromptMarkers("", ""),
 }
 deep_seek_coder_chat_prompt_markers = {
-    Roles.system: PromptMarkers("""<｜begin▁of▁sentence｜>""", """\n"""),
-    Roles.user: PromptMarkers("""User: """, """ \n"""),
+    Roles.system: PromptMarkers("""<｜begin▁of▁sentence｜>""", """\n\n"""),
+    Roles.user: PromptMarkers("""User: """, """ \n\n"""),
     Roles.assistant: PromptMarkers("""Assistant: """, """<｜end▁of▁sentence｜>"""),
     Roles.tool: PromptMarkers("", ""),
 }

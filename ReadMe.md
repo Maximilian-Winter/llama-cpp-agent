@@ -127,7 +127,7 @@ The llama-cpp-agent framework provides predefined message formatters to format m
 - `MessagesFormatterType.LLAMA_3`: Formats messages using the LLAMA 3 format.
 - `MessagesFormatterType.PHI_3`: Formats messages using the PHI 3 format.
 - `MessagesFormatterType.AUTOCODER`: Formats messages using the Autocoder format.
-- `MessagesFormatterType.DEEP_SEEK_CODER`: Formats messages using the DeepSeek Coder v2 format.
+- `MessagesFormatterType.DEEP_SEEK_CODER_2`: Formats messages using the DeepSeek Coder v2 format.
 
 ### Creating Custom Messages Formatter
 

@@ -1,7 +1,7 @@
 # llama-cpp-agent
 
 [![PyPI - Version](https://img.shields.io/pypi/v/llama-cpp-agent?logo=pypi&color=%2341bb13)](https://pypi.org/project/llama-cpp-agent/)
-[![Discord](https://img.shields.io/discord/1237393014154985582?logo=Discord&logoColor=%23ffffff&label=Discord&link=https%3A%2F%2Fdiscord.gg%2FsRMvWKrh)](https://discord.gg/sRMvWKrh)
+[![Discord](https://img.shields.io/discord/1237393014154985582?logo=Discord&logoColor=%23ffffff&label=Discord&link=https%3A%2F%2Fdiscord.gg%2FsRMvWKrh)](https://discord.gg/fgr5RycPFP)
 
 ![llama-cpp-agent logo](https://raw.githubusercontent.com/Maximilian-Winter/llama-cpp-agent/master/logo/logo_orange.png)
 
@@ -126,6 +126,8 @@ The llama-cpp-agent framework provides predefined message formatters to format m
 - `MessagesFormatterType.B22`: Formats messages using the B22 format.
 - `MessagesFormatterType.LLAMA_3`: Formats messages using the LLAMA 3 format.
 - `MessagesFormatterType.PHI_3`: Formats messages using the PHI 3 format.
+- `MessagesFormatterType.AUTOCODER`: Formats messages using the Autocoder format.
+- `MessagesFormatterType.DEEP_SEEK_CODER_2`: Formats messages using the DeepSeek Coder v2 format.
 
 ### Creating Custom Messages Formatter
 

@@ -27,6 +27,7 @@ class MessagesFormatterType(Enum):
     OPEN_INTERPRETER = 14
     AUTOCODER = 15
     GEMMA_2 = 16
+    DEEP_SEEK_CODER_2 = 17
 
 @dataclass
 class PromptMarkers:
@@ -236,6 +237,12 @@ autocoder_chat_prompt_markers = {
     Roles.assistant: PromptMarkers("Assistant: ", "<|EOT|>\n"),
     Roles.tool: PromptMarkers("", ""),
 }
+deep_seek_coder_2_chat_prompt_markers = {
+    Roles.system: PromptMarkers("""<｜begin▁of▁sentence｜>""", """\n\n"""),
+    Roles.user: PromptMarkers("""User: """, """ \n\n"""),
+    Roles.assistant: PromptMarkers("""Assistant: """, """<｜end▁of▁sentence｜>"""),
+    Roles.tool: PromptMarkers("", ""),
+}
 
 """
 ### Instruction:
@@ -358,7 +365,22 @@ autocoder_chat_formatter = MessagesFormatter(
     eos_token="<|EOT|>",
 )
 
-gemma_2_chat_formatter = MessagesFormatter("", gemma_2_prompt_markers, True, ["<end_of_turn>", "<start_of_turn>"])
+gemma_2_chat_formatter = MessagesFormatter(
+    "",
+    gemma_2_prompt_markers,
+    True,
+    ["<end_of_turn>", "<start_of_turn>"]
+)
+
+deep_seek_coder_2_chat_formatter = MessagesFormatter(
+    "",
+    deep_seek_coder_2_chat_prompt_markers,
+    True,
+    ["<｜end▁of▁sentence｜>"],
+    bos_token="<｜begin▁of▁sentence｜>",
+    eos_token="<｜end▁of▁sentence｜>",
+)
+
 predefined_formatter = {
     MessagesFormatterType.MISTRAL: mixtral_formatter,
     MessagesFormatterType.CHATML: chatml_formatter,
@@ -375,7 +397,8 @@ predefined_formatter = {
     MessagesFormatterType.PHI_3: phi_3_chat_formatter,
     MessagesFormatterType.OPEN_INTERPRETER: open_interpreter_chat_formatter,
     MessagesFormatterType.AUTOCODER: autocoder_chat_formatter,
-    MessagesFormatterType.GEMMA_2: gemma_2_chat_formatter
+    MessagesFormatterType.GEMMA_2: gemma_2_chat_formatter,
+    MessagesFormatterType.DEEP_SEEK_CODER_2: deep_seek_coder_2_chat_formatter
 }
 
 

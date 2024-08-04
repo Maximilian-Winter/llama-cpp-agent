@@ -151,7 +151,7 @@ class LlamaCppPythonProvider(LlmProvider):
             if grammar in self.grammar_cache:
                 grammar = self.grammar_cache[grammar]
             else:
-                self.grammar_cache[grammar] = LlamaGrammar.from_string(grammar)
+                self.grammar_cache[grammar] = LlamaGrammar.from_string(grammar, verbose=self.llama_model.verbose)
                 grammar = self.grammar_cache[grammar]
 
         settings_dictionary = deepcopy(settings.as_dict())
@@ -179,7 +179,7 @@ class LlamaCppPythonProvider(LlmProvider):
             if grammar in self.grammar_cache:
                 grammar = self.grammar_cache[grammar]
             else:
-                self.grammar_cache[grammar] = LlamaGrammar.from_string(grammar)
+                self.grammar_cache[grammar] = LlamaGrammar.from_string(grammar, verbose=self.llama_model.verbose)
                 grammar = self.grammar_cache[grammar]
         settings_dictionary = deepcopy(settings.as_dict())
         settings_dictionary["max_tokens"] = settings_dictionary.pop("n_predict")

@@ -1,6 +1,6 @@
 # llama-cpp-agent
 
-[![New framework for commerical APIs and models with built in tool support](https://github.com/Maximilian-Winter/ToolAgents)]
+[![ToolAgents - New framework for commerical APIs and models with built in tool support](https://github.com/Maximilian-Winter/ToolAgents)]
 
 Will be integrated into the llama-cpp-agent framework later.
 

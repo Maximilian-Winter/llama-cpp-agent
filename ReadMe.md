@@ -1,5 +1,7 @@
 # llama-cpp-agent
 
+[![New framework for commerical APIs and models with built in tool support](https://github.com/Maximilian-Winter/ToolAgents)
+
 [![PyPI - Version](https://img.shields.io/pypi/v/llama-cpp-agent?logo=pypi&color=%2341bb13)](https://pypi.org/project/llama-cpp-agent/)
 [![Discord](https://img.shields.io/discord/1237393014154985582?logo=Discord&logoColor=%23ffffff&label=Discord&link=https%3A%2F%2Fdiscord.gg%2FsRMvWKrh)](https://discord.gg/fgr5RycPFP)
 

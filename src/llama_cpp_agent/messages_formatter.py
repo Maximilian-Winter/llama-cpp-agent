@@ -161,7 +161,7 @@ llama_2_prompt_markers = {
 llama_3_prompt_markers = {
     Roles.system: PromptMarkers("""<|start_header_id|>system<|end_header_id|>\n""", """<|eot_id|>"""),
     Roles.user: PromptMarkers("""<|start_header_id|>user<|end_header_id|>\n""", """<|eot_id|>"""),
-    Roles.assistant: PromptMarkers("""<|start_header_id|>assistant<|end_header_id|>\n""", """<|eot_id|>"""),
+    Roles.assistant: PromptMarkers("""<|start_header_id|>assistant<|end_header_id|>\n\n""", """<|eot_id|>"""),
     Roles.tool: PromptMarkers("""<|start_header_id|>function_calling_results<|end_header_id|>\n""", """<|eot_id|>"""),
 }
 
@@ -181,7 +181,7 @@ neural_chat_prompt_markers = {
 gemma_2_prompt_markers = {
     Roles.system: PromptMarkers("""""", """\n\n"""),
     Roles.user: PromptMarkers("""<start_of_turn>user\n""", """<end_of_turn>\n"""),
-    Roles.assistant: PromptMarkers("""<start_of_turn>model\n""", """<end_of_turn>\n"""),
+    Roles.assistant: PromptMarkers("""<start_of_turn>model\n\n""", """<end_of_turn>\n"""),
     Roles.tool: PromptMarkers("", ""),
 }
 code_ds_prompt_markers = {
@@ -344,7 +344,7 @@ phi_3_chat_formatter = MessagesFormatter(
     "",
     phi_3_chat_prompt_markers,
     True,
-    ["<|end|>", "<|end_of_turn|>"],
+    ["<|end|>", "<|endoftext|>"],
     use_user_role_for_function_call_result=True,
 )
 

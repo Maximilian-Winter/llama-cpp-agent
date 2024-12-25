@@ -200,7 +200,7 @@ class LlamaCppServerProvider(LlmProvider):
         )
         data = response.json()
 
-        returned_data = {"choices": [{"text": data["content"]}]}
+        returned_data = data # This follows the same structure used by agent
         return returned_data
 
     def create_chat_completion(
@@ -309,7 +309,11 @@ class LlamaCppServerProvider(LlmProvider):
         if not self.llama_cpp_python_server:
             settings_dictionary["mirostat"] = settings_dictionary.pop("mirostat_mode")
         if self.llama_cpp_python_server:
+            # Max tokens shouldn't be -1
             settings_dictionary["max_tokens"] = settings_dictionary.pop("n_predict")
+            if settings_dictionary["max_tokens"] == -1:
+                settings_dictionary["max_tokens"] = 8192 # A good value for non-limited responses
+                # But tests can be done in case of value stoping structured output generation
 
         settings_dictionary["stop"] = settings_dictionary.pop(
             "additional_stop_sequences"

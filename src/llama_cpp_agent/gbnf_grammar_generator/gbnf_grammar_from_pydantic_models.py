@@ -641,7 +641,7 @@ def generate_gbnf_grammar(
 
     fields_joined = r' "," '.join(model_rule_parts)
     if fields_joined != "":
-        model_rule = rf'{model_name} ::= "{{" {fields_joined} ws "}}"'
+        model_rule = rf'{model_name} ::= "{{" {fields_joined} '
     else:
         model_rule = rf'{model_name} ::= "{{" "}}"'
 
@@ -650,10 +650,12 @@ def generate_gbnf_grammar(
         model_rule += '"\\n" ws "}"'
         model_rule += '"\\n" triple-quoted-string'
         has_special_string = True
-    if has_markdown_code_block:
+    elif has_markdown_code_block:
         model_rule += '"\\n" ws "}"'
         model_rule += '"\\n" markdown-code-block'
         has_special_string = True
+    else:
+        model_rule += ' ws "}"'
     all_rules = [model_rule] + nested_rules
 
     return all_rules, has_special_string
@@ -764,8 +766,8 @@ def generate_gbnf_grammar_from_pydantic_models(
                 model_rules[
                     0
                 ] += rf' "," ws "\"{request_heartbeat_field_name}\""  ":" ws boolean '
-            if not has_special_string:
-                model_rules[0] += r' ws "}"'
+            # if not has_special_string:
+            #     model_rules[0] += r' ws "}"'
 
             all_rules.extend(model_rules)
 

@@ -28,6 +28,7 @@ class MessagesFormatterType(Enum):
     AUTOCODER = 15
     GEMMA_2 = 16
     DEEP_SEEK_CODER_2 = 17
+    PHI_4 = 18
 
 @dataclass
 class PromptMarkers:
@@ -243,6 +244,12 @@ deep_seek_coder_2_chat_prompt_markers = {
     Roles.assistant: PromptMarkers("""Assistant: """, """<｜end▁of▁sentence｜>"""),
     Roles.tool: PromptMarkers("", ""),
 }
+phi_4_chat_prompt_markers = {
+    Roles.system: PromptMarkers("""<|im_start|>system<|im_sep|>\n""", """<|im_end|>"""),
+    Roles.user: PromptMarkers("""<|im_start|>user<|im_sep|>\n""", """<|im_end|>\n"""),
+    Roles.assistant: PromptMarkers("""<|im_start|>assistant<|im_sep|>""", """<|im_end|>\n"""),
+    Roles.tool: PromptMarkers("", ""),
+}
 
 """
 ### Instruction:
@@ -348,6 +355,14 @@ phi_3_chat_formatter = MessagesFormatter(
     use_user_role_for_function_call_result=True,
 )
 
+phi_4_chat_formatter = MessagesFormatter(
+    "",
+    phi_4_chat_prompt_markers,
+    True,
+    ["<|im_end|>", "<|endoftext|>"],
+    use_user_role_for_function_call_result=True,
+)
+
 open_interpreter_chat_formatter = MessagesFormatter(
     "You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.\n",
     open_interpreter_chat_prompt_markers,
@@ -398,7 +413,8 @@ predefined_formatter = {
     MessagesFormatterType.OPEN_INTERPRETER: open_interpreter_chat_formatter,
     MessagesFormatterType.AUTOCODER: autocoder_chat_formatter,
     MessagesFormatterType.GEMMA_2: gemma_2_chat_formatter,
-    MessagesFormatterType.DEEP_SEEK_CODER_2: deep_seek_coder_2_chat_formatter
+    MessagesFormatterType.DEEP_SEEK_CODER_2: deep_seek_coder_2_chat_formatter,
+    MessagesFormatterType.PHI_4: phi_4_chat_formatter,
 }
 
 

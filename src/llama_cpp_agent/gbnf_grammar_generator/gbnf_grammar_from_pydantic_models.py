@@ -17,6 +17,7 @@ from typing import (
     get_args,
     get_origin,
     get_type_hints,
+    Literal
 )
 
 from docstring_parser import parse
@@ -65,6 +66,7 @@ class PydanticDataType(Enum):
     CUSTOM_CLASS = "custom-class"
     CUSTOM_DICT = "custom-dict"
     SET = "set"
+    LITERAL = "literal"
 
 
 def map_pydantic_type_to_gbnf(pydantic_type: type[Any]) -> str:
@@ -99,6 +101,10 @@ def map_pydantic_type_to_gbnf(pydantic_type: type[Any]) -> str:
     elif get_origin(pydantic_type) is dict:
         key_type, value_type = get_args(pydantic_type)
         return f"custom-dict-key-type-{format_model_and_field_name(map_pydantic_type_to_gbnf(key_type))}-value-type-{format_model_and_field_name(map_pydantic_type_to_gbnf(value_type))}"
+    elif get_origin(pydantic_type) is Literal:
+        literal_types = get_args(pydantic_type)
+        literal_rules = [map_pydantic_type_to_gbnf(lt) for lt in literal_types]
+        return f"literal-{'-or-'.join(literal_rules)}"
     else:
         return "unknown"
 
@@ -540,6 +546,13 @@ def generate_gbnf_rule_for_type(
         gbnf_type, rules = generate_gbnf_integer_rules(
             max_digit=max_digits, min_digit=min_digits
         )
+    elif gbnf_type.startswith("literal-"):
+        literal_types = get_args(field_type)
+        literal_types_str = [
+            json.dumps(lt).replace('"', '\\"') for lt in literal_types
+        ]
+        literal_types_str=[f'"{lt}"' for lt in literal_types_str]
+        gbnf_type = "|".join(literal_types_str)
     else:
         gbnf_type, rules = gbnf_type, []
 
